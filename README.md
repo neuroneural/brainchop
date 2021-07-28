@@ -35,4 +35,4 @@ To run the server:
 ## Demo
 
 
-![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/BrainSeg.gif)
+![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/Compare2_3DCC.gif)
