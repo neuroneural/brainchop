@@ -20,6 +20,9 @@
 
 
   allOutputSlices = [];
+  maxLabel = 0;
+  allOutputSlices2DCC = [];
+  allOutputSlices3DCC = [];  
 
   getSliceData1D = (sliceIdx, niftiHeader, niftiImage) => {
       // get nifti dimensions
@@ -70,6 +73,20 @@
 
       return data1DimArr;    
   }
+
+  // to use with ml5j
+  computeConfusionMatrix = (trueLabels, predictedLabels) => {
+      const CM = ConfusionMatrix.fromLabels(trueLabels, predictedLabels);
+      return CM.getAccuracy();  
+
+  }
+
+  // to use with bci.js
+  compConfusionMat = (predictedLabels, trueLabels) => {
+      const CM = confusionMatrix(predictedLabels, trueLabels);
+      return accuracy(CM);  
+
+  }  
 
   generateColors = (s, l,  num_colors) => {
 	  let colors = []
@@ -133,9 +150,29 @@
   return "rgb(" + r + "," + g + "," + b + ")";
   }
 
-  drawOutputCanvas = (canvas, sliceIdx, niftiHeader, niftiImage, outputSlices) => {
+
+
+ async function drawConfusionMat(groundTruthLabels, predictedLabels, elemId) {
+
+     if(elemId == "accuracyTitleFilter3DCC") {
+        const values = await tfvis.metrics.confusionMatrix(groundTruthLabels, predictedLabels);  
+        const data = { values };   
+        const surface = { name: 'Confusion Matrix 3D CC', tab: 'Charts' };
+        tfvis.render.confusionMatrix(surface, data);
+     }
+ }
+
+ async function calculateAccuracy(groundTruthLabels, predictedLabels, elemId) {
+
+    document.getElementById(elemId).innerHTML = "Accuracy: " + 
+     ( await tfvis.metrics.accuracy(groundTruthLabels, predictedLabels) ).toFixed(3); 
+
+ } 
+
+ drawOutputCanvas = (canvas, sliceIdx, niftiHeader, niftiImage, outputSlices) => {
 
       let n_classes = parseInt(document.getElementById("numOfClassesId").value);
+      let isColorEnable =  document.getElementById("mriColoring").checked;
       // get nifti dimensions
       let cols = niftiHeader.dims[1];
       let rows = niftiHeader.dims[2];
@@ -149,33 +186,136 @@
       let canvasImageData = ctx.createImageData(canvas.width, canvas.height); 
 
       let colors = generateColors(100, 50,  n_classes);
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
 
       for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
-
-      	      let color = { r: 0, g: 0, b: 0 };
-      	      if(outputSlices[sliceIdx][pixelIdx]) {
+          if(isColorEnable) {
+              let color = { r: 0, g: 0, b: 0 };
+              if(outputSlices[sliceIdx][pixelIdx] != bgLabelValue) {
                  color =  getRgbObject(hslToRgb(colors[outputSlices[sliceIdx][pixelIdx]]));
-      	      } 
-              // let value = Math.ceil(outputSlices[sliceIdx][pixelIdx]*255/(n_classes - 1));
-
-              // canvasImageData.data[pixelIdx * 4] = value & 0xFF;
-              // canvasImageData.data[pixelIdx * 4 + 1] = value & 0xFF;
-              // canvasImageData.data[pixelIdx * 4 + 2] = value & 0xFF;
-              // canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;
-
+              } 
               canvasImageData.data[pixelIdx * 4] = color.r & 0xFF;
               canvasImageData.data[pixelIdx * 4 + 1] = color.g & 0xFF;
               canvasImageData.data[pixelIdx * 4 + 2] = color.b & 0xFF;
-              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;              
+              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;   
+
+            } else {
+              let value = Math.ceil(outputSlices[sliceIdx][pixelIdx]*255/(n_classes - 1));
+
+              canvasImageData.data[pixelIdx * 4] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 1] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 2] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;
+            }
 
       }      
 
       ctx.putImageData(canvasImageData, 0, 0);
+
+      // console.log("canvasImageData :", canvasImageData.data)
+
+      let elemId = null;
+
+      if(canvas.id == "outputCanvas") {
+          document.getElementById("predTitle").innerHTML = "Model Output"; 
+          elemId = "accuracyTitleModelPred"; 
+      }
+
+      if(canvas.id == "out2dCC") {
+          document.getElementById("CC2DTitle").innerHTML = "Filter by 2D CC";  
+          elemId = "accuracyTitleFilter2DCC";           
+      }
+
+      if(canvas.id == "out3dCC") {
+          document.getElementById("CC3DTitle").innerHTML = "Filter by 3D CC";  
+          elemId = "accuracyTitleFilter3DCC"; 
+      }      
+
+      let gtCanvas = document.getElementById('gtCanvas');
+      let ctxGt = gtCanvas.getContext("2d");
+
+      let trueLabels =  ctxGt.getImageData(0, 0, gtCanvas.width, gtCanvas.height)
+      // console.log("trueLabels :", trueLabels.data)
+      // trueLabels.data is Uint8ClampedArray  and need to convert to regular array first such that
+      // normalArray = Array.prototype.slice.call(trueLabels.data);
+
+
+      if(! isColorEnable){
+          if(gtLabelLoaded) { 
+
+              const labels = tf.tensor1d( Array.prototype.slice.call(trueLabels.data) );
+              const predictions = tf.tensor1d( Array.prototype.slice.call(canvasImageData.data) ); 
+
+              calculateAccuracy(labels, predictions, elemId); 
+              if(elemId = "accuracyTitleFilter3DCC") {
+                 // drawConfusionMat(labels, predictions, elemId); 
+              }
+
+             // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + await tfvis.metrics.accuracy(tf.tensor1d(Array.prototype.slice.call(trueLabels.data)), tf.tensor1d(Array.prototype.slice.call(canvasImageData.data))); 
+            // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + compConfusionMat(canvasImageData, trueLabels);  
+          }
+
+        } else {
+            document.getElementById("accuracyTitle").innerHTML = "";
+        }
+
   } 
 
-  drawOutputCanvas_old = (canvas, sliceIdx, niftiHeader, niftiImage, outputSlices) => {
 
-      let n_classes = parseInt(document.getElementById("numOfClassesId").value);
+
+
+  getMaxRegionMaskByContour= (canvasImageData) => { // slice matrix
+
+          let mat = cv.matFromImageData(canvasImageData);
+          
+          let mask = cv.Mat.zeros(mat.cols, mat.rows, cv.CV_8UC3);  
+
+          let mask_gray = new cv.Mat ();
+          let mask_binary = new cv.Mat ();
+          let contours = new cv.MatVector();   
+          let hierarchy = new cv.Mat();    
+
+          // Grayscale conversion
+          cv.cvtColor (mat, mask_gray, cv.COLOR_RGBA2GRAY, 0);
+
+          cv.findContours(mask_gray, contours, hierarchy,  cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE); // cv.CHAIN_APPROX_SIMPLE   
+
+  	      let maxContourArea = 0
+  	      let maxContourAreaIdx = -1
+  	      for (let i = 0; i < contours.size(); ++i) {
+  	                  let cnt = contours.get(i);
+  	                  let area = cv.contourArea(cnt, false) 
+  	                  if(maxContourArea < area){
+  	                     maxContourArea = area;
+  	                     maxContourAreaIdx = i;
+  	                     
+  	                  } 
+
+  	                  cnt.delete(); 
+  	      }
+
+          let color = new cv.Scalar(255, 255, 255);
+          cv.drawContours(mask, contours, maxContourAreaIdx, color, -1); //cv.LINE_8      
+	      
+	        cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
+	        cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
+             
+
+          mat.delete();
+          mask.delete();
+          mask_gray.delete();
+
+          contours.delete(); 
+          hierarchy.delete(); 
+ 
+          return  mask_binary.data;       
+  } 
+
+
+
+  postProcessSlices = (outputSlices) => {
+  	  let canvas = document.createElement("CANVAS");
+
       // get nifti dimensions
       let cols = niftiHeader.dims[1];
       let rows = niftiHeader.dims[2];
@@ -186,21 +326,502 @@
 
       // make canvas image data
       let ctx = canvas.getContext("2d");
+
       let canvasImageData = ctx.createImageData(canvas.width, canvas.height); 
 
-      for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
-              let value = Math.ceil(outputSlices[sliceIdx][pixelIdx]*255/(n_classes - 1));
-              canvasImageData.data[pixelIdx * 4] = value & 0xFF;
-              canvasImageData.data[pixelIdx * 4 + 1] = value & 0xFF;
-              canvasImageData.data[pixelIdx * 4 + 2] = value & 0xFF;
-              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;
-      }      
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
+     
+      for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
 
-      ctx.putImageData(canvasImageData, 0, 0);
-  } 
+		      for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
+
+		      	      let color = { r: 0, g: 0, b: 0 };
+		      	      if(outputSlices[sliceIdx][pixelIdx] != bgLabelValue) {
+		      	      	 color = { r: 255, g: 255, b: 255 };
+		      	      } 
+
+		              canvasImageData.data[pixelIdx * 4] = color.r & 0xFF;
+		              canvasImageData.data[pixelIdx * 4 + 1] = color.g & 0xFF;
+		              canvasImageData.data[pixelIdx * 4 + 2] = color.b & 0xFF;
+		              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF; 
+		      }      
+
+		      let maskData = getMaxRegionMaskByContour(canvasImageData);
+            
+		      // show slice max area only 
+		      for( let idx = 0; idx < maskData.length; idx += 1) {
+
+		            if(maskData[idx] == bgLabelValue ) {
+		                   outputSlices[sliceIdx][idx] = 0;
+		             } 
+		      } 
+
+     }
+
+     return outputSlices;
+  }  
+
+/////////////******************* 3D Connected Components**************************/////////////////
+
+      getBinaryMaskData1D = (sliceData) => { // greyImage is one channel 2D image with values 0-255
+          
+          let maskBinaryData1D = [];
+          for (let idx = 0; idx < sliceData.length; idx++) {
+
+               if(sliceData[idx] > 0) {
+                  maskBinaryData1D[idx] = 1;                   
+               } else {
+                  maskBinaryData1D[idx] = 0;                   
+               }
+          }
+      
+          return maskBinaryData1D;
+    }
+
+    getBinaryMaskImage = (greyImage) => { // greyImage is one channel 2D image with values 0-255
+        let binaryMaskImage = greyImage.clone();   // from opencvjs
+        let value = null;
+
+        for (let idx = 0; idx < greyImage.data.length; idx++) {
+
+             if(greyImage.data[idx] > 0) {
+                value = 255;                 
+             } else {
+                value = 0;                  
+             }
+
+            binaryMaskImage.data[idx] = value;
+            binaryMaskImage.data[idx + 1] = value;
+            binaryMaskImage.data[idx + 2] = value;
+            binaryMaskImage.data[idx + 3] = 255; // Alpha channel     
+        }
+
+        return binaryMaskImage;
+    } 
+
+    convertBinaryDataTo2D = (binaryData1D, imgHeight, imgWidth) => {
+        return tf.tensor(binaryData1D, [imgHeight, imgWidth]).arraySync();
+    }
+
+
+    getConComponentsFor2D = (binaryMaskData2D, imgHeight, imgWidth) => {  
+        // initiat label
+        let label1D = [];
+        resetEquivalenceTable();           
+        for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
+                 label1D[idx] = 0;
+        }     
+        
+        let label2D = convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
+
+        // maxLabel initiation to zero, starting label for 2d and 3d labeling
+        maxLabel = 0; 
+
+        // 1st pass
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               
+               if( binaryMaskData2D[row][col] != 0) {
+                  label2D[row][col] = checkNeighbors2D(label2D, row, col, maxLabel)
+                  if(maxLabel < label2D[row][col]) {
+                     maxLabel = label2D[row][col];
+                  }
+
+               }
+            }
+        }
+ 
+        // adjust Equivalence table labels such that  eqvTabel[3] = 2 && eqvTabel[2] = 1 => eqvTabel[3] = 1      
+        for(let labelIdx = equivalenceTabel.length - 1; labelIdx > 0; labelIdx = labelIdx-1 ) {          
+            adjustEquivalenceTable (labelIdx);
+        }  
+
+        // 2nd pass : relabeling the slice after eqvTable adjustment 
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               
+               if( label2D[row][col] != 0) {
+                    label2D[row][col] = equivalenceTabel[label2D[row][col]];
+               }
+            }
+        }          
+
+        return   label2D;
+    }
+
+
+    getMaxLabelFor2D = (label2D, imgHeight, imgWidth) => {  
+
+        let maxLabelFor2D = 0; 
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               
+               if( label2D[row][col] > maxLabelFor2D) {
+                   maxLabelFor2D = label2D[row][col];
+               }
+            }
+        }
+
+        return   maxLabelFor2D;
+    }
+
+
+    getMaxLabelFor3D = (label3D, sliceHeight, sliceWidth, numSlices) => {  
+
+        let maxLabelFor3D = 0; 
+
+        for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {
+	          for(let row = 0; row < sliceHeight; row++) {
+	              for(let col = 0; col < sliceWidth; col++) { 
+	                 
+	                 if( label3D[sliceIdx][row][col] > maxLabelFor3D) {
+	                     maxLabelFor3D = label3D[sliceIdx][row][col];
+	                 }
+	              }
+	          }
+        } 
+        return   maxLabelFor3D;
+    }
+
+    
+    getMaxVolumeLabel3D = (label3D, sliceHeight, sliceWidth, numSlices) => {
+
+        // Initiat connected component volumes to zeros   
+        let  ccVolume = [];
+        let maxCCLabel3D = getMaxLabelFor3D(label3D, sliceHeight, sliceWidth, numSlices)
+
+        for( let idx = 0; idx < maxCCLabel3D; idx ++) {         
+              ccVolume[idx] = 0;
+        }  
+        
+        for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {         
+		        for(let row = 0; row < sliceHeight; row++) {
+		            for(let col = 0; col < sliceWidth; col++) { 
+		               ccVolume[label3D[sliceIdx][row][col]] = ccVolume[label3D[sliceIdx][row][col]] +1;
+		            }  
+		        }
+        }
+     
+        let maxCcVolume = 0;
+        let maxCcVolumeLabel = -1;
+
+        for( let idx = 1; idx < maxCCLabel3D; idx ++) {  
+
+            if( maxCcVolume < ccVolume[idx] ) {
+                 maxCcVolume = ccVolume[idx];
+                 maxCcVolumeLabel = idx;
+            }      
+        } 
+
+        return   maxCcVolumeLabel;
+    }
 
 
 
+    getMaxAreaLabel2D = (label2D, imgHeight, imgWidth) => {  
+
+        // Initiat connected component areas to zeros   
+        let  ccAreas = [];
+        let maxCCLabel = getMaxLabelFor2D(label2D, imgHeight, imgWidth)
+
+        for( let idx = 0; idx < maxCCLabel; idx ++) {         
+              ccAreas[idx] = 0;
+        }  
+        
+         // Find areas of connected components where ccAreas[0] is for background
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               ccAreas[label2D[row][col]] = ccAreas[label2D[row][col]] +1;
+            }  
+        }
+     
+        let maxCcArea = 0;
+        let maxCcAreaLabel = -1;
+        for( let idx = 1; idx < maxCCLabel; idx ++) {  
+            if( maxCcArea < ccAreas[idx] ) {
+                 maxCcArea = ccAreas[idx];
+                 maxCcAreaLabel = idx;
+            }      
+        } 
+
+
+        return   maxCcAreaLabel;
+    }
+
+
+    resetEquivalenceTable = () => {
+       equivalenceTabel = [];
+       equivalenceTabel[0] = 0;
+    }
+
+    updateEquivalenceTable = (label, newLabel) => {
+        equivalenceTabel[label] = newLabel;
+
+    }
+
+
+    adjustEquivalenceTable = (labelIdx) => {
+
+        if(equivalenceTabel[labelIdx] != labelIdx) {
+            equivalenceTabel[labelIdx] = adjustEquivalenceTable(equivalenceTabel[labelIdx]);
+        } 
+       
+        return equivalenceTabel[labelIdx];
+    }
+
+
+    checkNeighbors2D = (label, row, col, maxLabel) => {
+
+        if ( label[row][col - 1] && label[row - 1][col]) {
+
+              if(label[row][col - 1] == label[row - 1][col]) {
+                 return label[row ][col - 1];
+
+              } else {
+
+                 let smallerLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                 let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                 updateEquivalenceTable(largerLabel, smallerLabel);                
+                 return smallerLabel;
+              }
+
+        } else if ( label[row ][col - 1] ) {
+            return label[row ][col - 1] ;
+        } else if ( label[row - 1][col] ) {
+            return label[row - 1][col];            
+        } else {
+            updateEquivalenceTable(maxLabel+1, maxLabel+1); 
+            return maxLabel+1 ;
+        }  
+
+    }
+
+    checkNeighbors3D = (label, z_1PixelLabel, row, col, maxLabel) => { //z_1PixelLabel same x,y pixel label of z-1 prev slice
+          if ( label[row][col - 1] && label[row - 1][col] && z_1PixelLabel) {
+
+                if( (label[row][col - 1] == label[row - 1][col]) && (label[row][col - 1] == z_1PixelLabel) ) {
+                   return z_1PixelLabel;
+
+                } else {
+
+                   let smallLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                   let smallestLabel = ( z_1PixelLabel < smallLabel ) ? z_1PixelLabel : smallLabel;                
+                   let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                   updateEquivalenceTable(largerLabel, smallestLabel);                   
+                   updateEquivalenceTable(smallLabel, smallestLabel);                
+                   return smallestLabel;
+                }
+
+          } else if ( label[row][col - 1] && label[row - 1][col] ) {
+
+              if(label[row][col - 1] == label[row - 1][col]) {
+                 return label[row ][col - 1];
+
+              } else {
+
+                 let smallerLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                 let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
+                 updateEquivalenceTable(largerLabel, smallerLabel);                
+                 return smallerLabel;
+              }
+              
+
+          } else if ( label[row - 1][col] && z_1PixelLabel ) {
+
+              if(label[row - 1][col] == z_1PixelLabel) {
+                 return z_1PixelLabel;
+
+              } else {
+
+                 let smallerLabel = ( z_1PixelLabel < label[row - 1][col] ) ? z_1PixelLabel : label[row - 1][col];
+                 let largerLabel = ( z_1PixelLabel > label[row - 1][col] ) ? z_1PixelLabel : label[row - 1][col];
+                 updateEquivalenceTable(largerLabel, smallerLabel);                
+                 return smallerLabel;
+              }                
+
+          } else if ( label[row][col - 1] && z_1PixelLabel ) {
+              
+              if( label[row][col - 1] == z_1PixelLabel ) {
+                 return z_1PixelLabel;
+
+              } else {
+
+                 let smallerLabel = ( label[row][col - 1] < z_1PixelLabel ) ? label[row][col - 1] : z_1PixelLabel;
+                 let largerLabel = ( label[row][col - 1] > z_1PixelLabel ) ? label[row][col - 1] : z_1PixelLabel;
+                 updateEquivalenceTable(largerLabel, smallerLabel);                
+                 return smallerLabel;
+              }
+                                              
+          } else if ( label[row ][col - 1] ) {
+              return label[row ][col - 1] ;
+          } else if ( label[row - 1][col] ) {
+              return label[row - 1][col]; 
+          } else if ( z_1PixelLabel) {
+              return z_1PixelLabel;  
+          } else {
+              updateEquivalenceTable(maxLabel+1, maxLabel+1); 
+              return maxLabel+1 ;
+          } 
+    }
+
+  
+    getConComponentsFor3D = (binaryMaskData2D, preSliceLabels, imgHeight, imgWidth) => {  
+        let label1D = [];
+        // resetEquivalenceTable();           
+        for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
+                 label1D[idx] = 0;
+        }     
+        
+        let label2D =   convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
+        // let maxLabel = 0; 
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               
+               if( binaryMaskData2D[row][col] != 0) {
+                  label2D[row][col] = checkNeighbors3D(label2D, preSliceLabels[row][col], row, col, maxLabel)
+                  if(maxLabel < label2D[row][col]) {
+                     maxLabel = label2D[row][col];
+                  }
+
+               }
+            }
+        }
+        
+        // console.log("First pass label2D :", label2D);
+        for(let labelIdx = equivalenceTabel.length - 1; labelIdx > 0; labelIdx = labelIdx-1 ) {          
+            adjustEquivalenceTable (labelIdx);
+        }  
+
+        for(let row = 0; row < imgHeight; row++) {
+            for(let col = 0; col < imgWidth; col++) { 
+               
+               if( label2D[row][col] != 0) {
+                    label2D[row][col] = equivalenceTabel[label2D[row][col]];
+               }
+            }
+        }          
+
+        return   label2D;
+    }
+
+
+   postProcessSlices3D = (outputSlices) => {
+      // get nifti dimensions
+      let sliceWidth = niftiHeader.dims[1];
+      let sliceHeight = niftiHeader.dims[2];
+
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
+
+//      let grey = new Array(outputSlices.length).fill(0).map(() => new Array(outputSlices[0].length).fill(0));
+      let binaryMaskData1D = [];
+      let binaryMaskData2D = [];
+      let maxAreaLabel = [];
+      let label3D = [];  
+
+      for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
+           
+	          binaryMaskData1D[sliceIdx] = getBinaryMaskData1D(outputSlices[sliceIdx]); // binaryMaskData1D has values 0 or 1 
+
+	          binaryMaskData2D[sliceIdx] = convertBinaryDataTo2D(binaryMaskData1D[sliceIdx], sliceHeight, sliceWidth);
+
+	          if(sliceIdx == 0) {
+	              label3D[sliceIdx] = getConComponentsFor2D(binaryMaskData2D[sliceIdx], sliceHeight, sliceWidth);
+	          } else {
+	              label3D[sliceIdx] = getConComponentsFor3D(binaryMaskData2D[sliceIdx], label3D[sliceIdx - 1], sliceHeight, sliceWidth);
+	          }
+
+      }
+
+      let maxVolumeLabel =  getMaxVolumeLabel3D(label3D, sliceHeight, sliceWidth, outputSlices.length);	
+
+
+      for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
+              //Get max volume mask 
+              let row, col;
+              for(row = 0; row < sliceHeight; row++) {
+                  for(col = 0; col < sliceWidth; col++) { 
+                     if(label3D[sliceIdx][row][col] != maxVolumeLabel) {
+                         label3D[sliceIdx][row][col] = 0;
+                     } else {
+                         label3D[sliceIdx][row][col] = 255;
+                     }
+                  }  
+              }  		          
+
+		          let pixelIdx;
+
+		          for(row = 0, pixelIdx = 0; row < sliceHeight; row++) {
+		              for(col = 0; col < sliceWidth; col++, pixelIdx++) { 
+		                 
+		                 if(label3D[sliceIdx][row][col] == 0) {
+		                    outputSlices[sliceIdx][pixelIdx] = 0;
+		                 }
+
+		              }  
+		          } 
+     }
+
+     return outputSlices;
+  }   
+
+
+
+   postProcessSlices2D = (outputSlices) => {
+      // get nifti dimensions
+      let sliceWidth = niftiHeader.dims[1];
+      let sliceHeight = niftiHeader.dims[2];
+
+      // let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
+
+//      let grey =  new Array(outputSlices[0].length).fill(0); // for 2d CC
+      let binaryMaskData1D = [];
+      let binaryMaskData2D = [];
+      let maxAreaLabel;
+      let label2D = [];  
+
+      for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
+           
+            binaryMaskData1D = getBinaryMaskData1D(outputSlices[sliceIdx]); // binaryMaskData1D has values 0 or 1 
+
+            binaryMaskData2D = convertBinaryDataTo2D(binaryMaskData1D, sliceHeight, sliceWidth);
+
+            // labels 2d are starting from 0 and increment by 1 with each new label
+            label2D = getConComponentsFor2D(binaryMaskData2D, sliceHeight, sliceWidth);
+
+            
+            maxAreaLabel =  getMaxAreaLabel2D(label2D, sliceHeight,  sliceWidth);
+
+
+            // Get max area mask 
+            // It is fine to set label2D to 255 since each slice labels have no effect on other slices labels.
+            let row, col;
+            for(row = 0; row < sliceHeight; row++) {
+                for(col = 0; col < sliceWidth; col++) { 
+                   if(label2D[row][col] != maxAreaLabel){
+                       label2D[row][col] = 0;
+                   } else {
+                       label2D[row][col] = 255;
+                   }
+                }  
+            }    
+
+
+            // Remove all areas except largest brain area  
+            let pixelIdx;
+            for(row = 0, pixelIdx = 0; row < sliceHeight; row++) {
+                for(col = 0; col < sliceWidth; col++, pixelIdx++) { 
+                   if(label2D[row][col] == 0){
+                      outputSlices[sliceIdx][pixelIdx] = 0;
+                   }
+                }  
+            }                                
+      }
+
+     return outputSlices;
+  }   
+
+
+///////////////******************************************************************////////////////////
 
 	 // Try to create batches with the volume of slices each of D,H,W sub_volume  
 	sliceVolumeIntoBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W ) => {
@@ -229,7 +850,6 @@
 
 	                let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
 	                let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
-	                // batch.print();
 
 	                allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
 	                batch_id += 1;
@@ -253,9 +873,7 @@
 	getAllSlices2D = (allSlices, slice_height, slice_width) => {
 	    let allSlices_2D = [];
 	    for(let sliceIdx = 0; sliceIdx < allSlices.length; sliceIdx ++){
-	        // console.log(" slice" + (sliceIdx + 1) + " 2D : ")
 	        allSlices_2D.push(tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]));
-	        // allSlices_2D[sliceIdx].print()
 	    }   
 
 	    return   allSlices_2D;   
@@ -276,22 +894,16 @@
 	}
 
 	async function load_model() {
-
-	    // let modelUrl = './tfjs71Entropy/model.json';
-	    // let modelUrl = './tfjs21normEntropy/model.json';	  
-	    // let modelUrl = './mnm/model.json';		
-	    let modelUrl = './mnm_tfjs_filters21/model.json';		 
-	    // let modelUrl = './mnm_large/model.json';		 	    	          
-	    // let modelUrl = './tfjs_graph_model/model.json';	    
-	    
+	    let modelUrl = './mnm_tfjs_me_test/model.json';		
+      // let modelUrl = './meshnet_dropout/mnm_dropout/model2.json';        
 	    const Model = await tf.loadLayersModel(modelUrl);
-	    // const Model = await tf.loadGraphModel(modelUrl);	    
 	    return Model;
 	}
 
 	generateOutputSlices = (allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
 	      // buffer set ( depth, H, W) in order
 	      let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32) 
+        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
 
 	      for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
 
@@ -316,20 +928,43 @@
 
 	      console.log("Converting unstack tensors to arrays: ") 
 
+
 	      for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
 	            allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
 	      }
-	  
+
+        // clone 2d allOutputSlices
+        // for(let sliceIdx = 0; sliceIdx < allOutputSlices.length; sliceIdx++ ) {
+        //     for (let pixelIdx = 0; pixelIdx < allOutputSlices[sliceIdx].length ; pixelIdx++) {
+        //       allOutputSlices3DCC[sliceIdx][pixelIdx]  = allOutputSlices[sliceIdx][pixelIdx];
+        //     }
+        // }
+	      
+        if(isPostProcessEnable) {
+            // console.log("wait postprocessing slices");
+            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
+            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
+            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp : " + " Done".fontcolor("green").bold()
+        }        
+   
 	      // draw output canvas
-	      let outCanvas = document.getElementById('outputCanvas');      
+	      let outCanvas = document.getElementById('outputCanvas');  
+        let output2dCC = document.getElementById('out2dCC');           
+        let output3dCC = document.getElementById('out3dCC');     
 	      let slider = document.getElementById('sliceNav');
-	      drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);
+        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+	      drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
 
 	}
 
 
 	inputVolumeChange = (val) => {
-	    document.getElementById("inputVolumeId").innerHTML = "Input Volume Dim : " + "[" + document.getElementById("batchSizeId").value + ", 38, 38, 38, " +
+	    document.getElementById("inputVolumeId").innerHTML = "<b>Input Volume Dim :</b>" + " [" + document.getElementById("batchSizeId").value + ", 38, 38, 38, " +
 	    document.getElementById("numOfChanId").value + "]"
 	}
 
@@ -422,11 +1057,7 @@
 	                        allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
 	                        tf.engine().endScope()
 
-	                        // console.table(tf.memory())
-	                        // let memStatusColor = "green";
-	                        // if(tf.memory().unreliable) {
-	                        // 	memStatusColor = "red";
-	                        // } 
+
 	                        let memStatus = tf.memory().unreliable ? "Red" : "Green";     
 	                        let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
 	                        document.getElementById("completed").innerHTML = "Batches completed:  " + (j+1) + " / " + allBatches.length +  
@@ -446,12 +1077,8 @@
 	               
 	                        if( j == allBatches.length-1 ){
 	                           window.clearInterval( timer );
-	                           // console.log(" Show output of batch ", j+1);
-	                           // prediction.print();
-
-	                            // Generate output volume or slices
+                            // Generate output volume or slices
 	                           generateOutputSlices(allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-
 	                           let stopTime = performance.now()
 	                           document.getElementById("results").innerHTML ="Processing the whole brain volume in tfjs tooks for multi-class output mask : " + 
 												                              ((stopTime -startTime)/1000).toFixed(4).fontcolor("green").bold() + 
