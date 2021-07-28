@@ -32,7 +32,7 @@ To run the server:
 
 
 
-## Demo
+## Offline Demo
 
 
 ![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/Compare2_3DCC.gif)
