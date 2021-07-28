@@ -250,7 +250,7 @@
           }
 
         } else {
-            document.getElementById("accuracyTitle").innerHTML = "";
+            document.getElementById(elemId).innerHTML = "";
         }
 
   } 
