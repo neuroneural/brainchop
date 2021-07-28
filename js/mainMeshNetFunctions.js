@@ -212,8 +212,7 @@
 
       ctx.putImageData(canvasImageData, 0, 0);
 
-      // console.log("canvasImageData :", canvasImageData.data)
-
+   
       let elemId = null;
 
       if(canvas.id == "outputCanvas") {
@@ -235,7 +234,7 @@
       let ctxGt = gtCanvas.getContext("2d");
 
       let trueLabels =  ctxGt.getImageData(0, 0, gtCanvas.width, gtCanvas.height)
-      // console.log("trueLabels :", trueLabels.data)
+
       // trueLabels.data is Uint8ClampedArray  and need to convert to regular array first such that
       // normalArray = Array.prototype.slice.call(trueLabels.data);
 
@@ -247,12 +246,7 @@
               const predictions = tf.tensor1d( Array.prototype.slice.call(canvasImageData.data) ); 
 
               calculateAccuracy(labels, predictions, elemId); 
-              if(elemId = "accuracyTitleFilter3DCC") {
-                 // drawConfusionMat(labels, predictions, elemId); 
-              }
 
-             // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + await tfvis.metrics.accuracy(tf.tensor1d(Array.prototype.slice.call(trueLabels.data)), tf.tensor1d(Array.prototype.slice.call(canvasImageData.data))); 
-            // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + compConfusionMat(canvasImageData, trueLabels);  
           }
 
         } else {
@@ -361,7 +355,6 @@
      return outputSlices;
   }  
 
-/////////////******************* 3D Connected Components**************************/////////////////
 
       getBinaryMaskData1D = (sliceData) => { // greyImage is one channel 2D image with values 0-255
           
@@ -903,7 +896,7 @@
 	generateOutputSlices = (allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
 	      // buffer set ( depth, H, W) in order
 	      let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32) 
-        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
+              let isPostProcessEnable =  document.getElementById("postProcessing").checked;
 
 	      for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
 
@@ -930,34 +923,28 @@
 
 
 	      for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
-	            allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
-              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
-              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+		      allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+		      allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+		      allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
 	      }
 
-        // clone 2d allOutputSlices
-        // for(let sliceIdx = 0; sliceIdx < allOutputSlices.length; sliceIdx++ ) {
-        //     for (let pixelIdx = 0; pixelIdx < allOutputSlices[sliceIdx].length ; pixelIdx++) {
-        //       allOutputSlices3DCC[sliceIdx][pixelIdx]  = allOutputSlices[sliceIdx][pixelIdx];
-        //     }
-        // }
 	      
-        if(isPostProcessEnable) {
-            // console.log("wait postprocessing slices");
-            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
-            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
-            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
-            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
-            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp : " + " Done".fontcolor("green").bold()
-        }        
+		if(isPostProcessEnable) {
+		    console.log("wait postprocessing slices");
+		    document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+		    allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+		    document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
+		    allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
+		    document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp : " + " Done".fontcolor("green").bold()
+		}        
    
 	      // draw output canvas
-	      let outCanvas = document.getElementById('outputCanvas');  
-        let output2dCC = document.getElementById('out2dCC');           
-        let output3dCC = document.getElementById('out3dCC');     
+              let outCanvas = document.getElementById('outputCanvas');  
+              let output2dCC = document.getElementById('out2dCC');           
+              let output3dCC = document.getElementById('out3dCC');     
 	      let slider = document.getElementById('sliceNav');
-        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
-        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+              drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+              drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
 	      drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
 
 	}
