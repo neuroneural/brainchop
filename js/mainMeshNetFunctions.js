@@ -24,6 +24,7 @@
   allOutputSlices2DCC = [];
   allOutputSlices3DCC = [];  
 
+  // Return 1-Dim Array of pixel value, this 1 dim represent one channel 
   getSliceData1D = (sliceIdx, niftiHeader, niftiImage) => {
       // get nifti dimensions
       let cols = niftiHeader.dims[1]; // Slice width
@@ -103,7 +104,7 @@
    getRgbObject = (rgbString) => {
 
 	  let RGB = {};
-      let rgbArray = rgbString;
+    let rgbArray = rgbString;
 	  rgbArray = rgbArray.replace(/[^\d,]/g, '').split(',');
 	  let rgbKeys=["r","g","b"];
 	  RGB=rgbKeys.reduce((obj, key, index) => ({ ...obj, [key]:parseInt(rgbArray[index]) }), {});
@@ -150,9 +151,24 @@
   return "rgb(" + r + "," + g + "," + b + ")";
   }
 
+  // For Dice calculations
+  intersect = (ar1, ar2) => {
+      const intersection = [];
+      for(let i = 0; i < ar1.length ; i++) {
+        if(ar1[i] == ar2[i]) {
+          intersection.push(ar1[i]);
+        }
+      }
+
+      return intersection;
+  }
+
+  diceCoefficient = (ar1, ar2) => {
+      return ( 2 * intersect(ar1, ar2).length ) / ( ar1.length + ar2.length );
+  } 
 
 
- async function drawConfusionMat(groundTruthLabels, predictedLabels, elemId) {
+ drawConfusionMat = async(groundTruthLabels, predictedLabels, elemId) => {
 
      if(elemId == "accuracyTitleFilter3DCC") {
         const values = await tfvis.metrics.confusionMatrix(groundTruthLabels, predictedLabels);  
@@ -162,9 +178,8 @@
      }
  }
 
- async function calculateAccuracy(groundTruthLabels, predictedLabels, elemId) {
-
-    document.getElementById(elemId).innerHTML = "Accuracy: " + 
+ calculateAccuracy = async(groundTruthLabels, predictedLabels, elemId) => {
+     document.getElementById(elemId).innerHTML = "Accuracy: " + 
      ( await tfvis.metrics.accuracy(groundTruthLabels, predictedLabels) ).toFixed(3); 
 
  } 
@@ -212,7 +227,8 @@
 
       ctx.putImageData(canvasImageData, 0, 0);
 
-   
+      // console.log("canvasImageData :", canvasImageData.data)
+
       let elemId = null;
 
       if(canvas.id == "outputCanvas") {
@@ -234,24 +250,41 @@
       let ctxGt = gtCanvas.getContext("2d");
 
       let trueLabels =  ctxGt.getImageData(0, 0, gtCanvas.width, gtCanvas.height)
-
+      // console.log("trueLabels :", trueLabels.data)
       // trueLabels.data is Uint8ClampedArray  and need to convert to regular array first such that
       // normalArray = Array.prototype.slice.call(trueLabels.data);
 
 
       if(! isColorEnable){
           if(gtLabelLoaded) { 
-
+                
               const labels = tf.tensor1d( Array.prototype.slice.call(trueLabels.data) );
               const predictions = tf.tensor1d( Array.prototype.slice.call(canvasImageData.data) ); 
 
-              calculateAccuracy(labels, predictions, elemId); 
+              if(document.getElementById("metricsId").value == "DiceCoef") {
+                    document.getElementById(elemId).innerHTML = "Dice Coef: " +
+                           diceCoefficient( Array.prototype.slice.call(trueLabels.data) , 
+                                            Array.prototype.slice.call(canvasImageData.data) 
+                                           ).toFixed(4);
+              }
 
+
+              if(document.getElementById("metricsId").value == "Accuracy") {
+                       calculateAccuracy(labels, predictions, elemId); 
+              }
+
+
+              if(elemId = "accuracyTitleFilter3DCC") {
+                 // drawConfusionMat(labels, predictions, elemId); 
+              }
+
+             // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + await tfvis.metrics.accuracy(tf.tensor1d(Array.prototype.slice.call(trueLabels.data)), tf.tensor1d(Array.prototype.slice.call(canvasImageData.data))); 
+            // document.getElementById("accuracyTitle").innerHTML = "Accuracy: " + compConfusionMat(canvasImageData, trueLabels);  
           }
 
-        } else {
+      } else {
             document.getElementById(elemId).innerHTML = "";
-        }
+      }
 
   } 
 
@@ -355,8 +388,9 @@
      return outputSlices;
   }  
 
+/////////////******************* 3D Connected Components**************************/////////////////
 
-      getBinaryMaskData1D = (sliceData) => { // greyImage is one channel 2D image with values 0-255
+    getBinaryMaskData1D = (sliceData) => { // greyImage is one channel 2D image with values 0-255
           
           let maskBinaryData1D = [];
           for (let idx = 0; idx < sliceData.length; idx++) {
@@ -473,6 +507,7 @@
 	              }
 	          }
         } 
+
         return   maxLabelFor3D;
     }
 
@@ -549,7 +584,6 @@
 
     updateEquivalenceTable = (label, newLabel) => {
         equivalenceTabel[label] = newLabel;
-
     }
 
 
@@ -662,7 +696,7 @@
         let label1D = [];
         // resetEquivalenceTable();           
         for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
-                 label1D[idx] = 0;
+             label1D[idx] = 0;
         }     
         
         let label2D =   convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
@@ -816,6 +850,150 @@
 
 ///////////////******************************************************************////////////////////
 
+
+    //1- Standard Normal variate using Box-Muller transform.
+    randn_bm = () => {
+          let u = 0, v = 0;
+          while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+          while(v === 0) v = Math.random();
+          return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+    }
+
+
+    // check whether the proposed subvolumes coords are feasible
+    checkInside = (DHW, cubeSides, subCubeSides) => {
+        for (let i = 0; i < 3; i++) {
+            if ( (Math.sign(DHW[i]) < 0) || ( (DHW[i] + subCubeSides[i]) > cubeSides[i]) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    
+    findCoordsOfAddBrainBatches = (numOfSubCubes, mean, sigma, cubeSides, subCubeSides ) => {
+
+        const allCoords = [];
+        let  coord;
+
+        for (let i = 0; i < numOfSubCubes; i++) {
+            coord = Array(Math.round(mean[0]+randn_bm()*sigma[0]),
+                          Math.round(mean[1]+randn_bm()*sigma[1]),
+                          Math.round(mean[2]+randn_bm()*sigma[2]) );
+            if( !checkInside(coord, cubeSides, subCubeSides) ) {
+                i--;
+                // console.log(coord);
+            } else {
+                allCoords[i] = coord;
+            }
+        }
+
+        return allCoords;
+    }
+
+  // Return Tensor with binary 3D volume data  0 or 1
+  binarizeVolumeDataTensor = (volumeDataTensor) => {
+
+   let alpha = 0;
+   return   volumeDataTensor.step(alpha); // element-wise: (x > 0 ? 1 : alpha * x );  e.g. Tenosr [0, 0.9, 0.8, -3] => Tensor [0, 1, 1, 0]
+   // return   volumeData.ceil(); // work with input range 0-1 such as normalized slices_3d
+  }
+
+
+  // Convert tensor to buffer so immutable tensor can be mutable buffer with get() and set()
+  tensor2Buffer = (tensor) => {
+     return tf.buffer(tensor.shape, tensor.dtype, tensor.dataSync());
+  } 
+
+
+
+  // For all MRI volume values > 0 , find the centroid of those data
+  findHeadCentroid = (slices_3d, num_of_slices, slice_height, slice_width) => {
+    // Threshold tensor volume values to 0 or 1 such that if (voxelVal > 0 ? 1 : 0 )
+     let binarizeVolumeTensor = binarizeVolumeDataTensor(slices_3d);
+     let binarizeVolumeBuffer = tensor2Buffer(binarizeVolumeTensor);
+
+     const grid_coords = [];
+     let counter = 0;
+                  
+                     
+      // Find coordinates of nonzero voxels as (x_i, y_i, z_i) vectors
+      for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+            for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+
+                 let voxelValue = binarizeVolumeBuffer.get(depthIdx, rowIdx, colIdx);
+                 if(voxelValue == 1) {
+                         grid_coords[counter] = Array(depthIdx, rowIdx, colIdx);
+                         counter += 1;  
+                 }
+            }
+        }
+      }  
+      
+      // Create 2D Tesnor with three columns for depth, row, col index 
+      let gridCoordsTensor = tf.tensor2d(grid_coords);
+      let axis = 0;
+
+      let headCentroidTensor = tf.round(gridCoordsTensor.mean(axis));
+
+      // Find the Centroid voxel Array [d, h, w]
+      let headCentroidArray = Array.from(headCentroidTensor.dataSync());
+
+      return headCentroidArray;
+
+  }
+
+ // Try to create batches with the volume of slices each of D,H,W sub_volume and focus on brain area for the additional sub_volumes 
+  sliceVolumeIntoOverlappedBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W, headSubCubesCoords ) => {
+
+      let allSlicedBatches = [];
+      let batch_id = 1;
+
+      for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += batch_D) {        
+        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += batch_H) {      
+            for(let colIdx = 0; colIdx < slice_width; colIdx += batch_W) {
+                  // for overlap calculations of last batches 
+                  let depthIdxDiff = 0;
+                  let rowIdxDiff = 0;              
+                  let colIdxDiff = 0;
+
+                  if((depthIdx + batch_D) > num_of_slices) {
+                    depthIdxDiff = (depthIdx + batch_D) - num_of_slices;
+                  }
+
+                  if((rowIdx + batch_H) > slice_height) {
+                    rowIdxDiff = (rowIdx + batch_H) - slice_height;
+                  }
+
+                  if((colIdx + batch_W) > slice_width) {
+                    colIdxDiff = (colIdx + batch_W) - slice_width;
+                  }                                
+
+                  let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
+                  let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+
+                  allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+                  batch_id += 1;
+            } 
+        }
+      }      
+
+      // Additional sub_volumes or batches focus around the head centroid 
+      for(let cubeIdx = 0; cubeIdx < headSubCubesCoords.length; cubeIdx++) {
+
+            let startIndex = [headSubCubesCoords[cubeIdx][0], headSubCubesCoords[cubeIdx][1], headSubCubesCoords[cubeIdx][2]];
+            let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+            allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+            batch_id += 1;            
+      }
+
+
+     return   allSlicedBatches;
+  }    
+
 	 // Try to create batches with the volume of slices each of D,H,W sub_volume  
 	sliceVolumeIntoBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W ) => {
 	    let allSlicedBatches = [];
@@ -886,17 +1064,108 @@
 	    return  normalizedSlices_3d;      
 	}
 
-	async function load_model() {
+	load_model = async() => {
 	    let modelUrl = './mnm_tfjs_me_test/model.json';		
       // let modelUrl = './meshnet_dropout/mnm_dropout/model2.json';        
 	    const Model = await tf.loadLayersModel(modelUrl);
 	    return Model;
 	}
 
+
+  findPixelIndex = (allPixels, d, h, w) => {     
+    
+      for( pIndex = 0; pIndex < allPixels.length; pIndex++) {
+           if( (allPixels[pIndex]["d"] == d) && 
+             (allPixels[pIndex]["h"] == h) && 
+             (allPixels[pIndex]["w"] == w)  ) {
+
+                return pIndex;
+           } 
+
+      }
+
+      return null;
+  }
+
+  
+
+
+// Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+
+      console.log("version 2 num of seg classes: ", numSegClasses);
+        // buffer set ( depth, H, W) in order
+        let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32) 
+        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
+
+
+        for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+
+                let coord = allPredictions[batchIdx]["coordinates"]; 
+                let pixelValues = allPredictions[batchIdx]["data"];
+                let pixelValuesCounter = 0;       
+
+                for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                    for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                      for(colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                          // Find current voxel value of the related seg class buffer  
+                          // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+                          let voxelValue = outVolumeBuffer.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                          // increment current voxel value by 1 in the current class buffer
+                          outVolumeBuffer.set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+
+                          pixelValuesCounter += 1;
+                      } 
+                    }
+                }
+         }
+
+         // convert output  buffer to tensor
+         let axis = -1; // last axis 
+         // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+         // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+         let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis);        
+
+
+        let unstackOutVolumeTensor = tf.unstack(outVolumeTensor)
+
+        console.log("Converting unstack tensors to arrays: ") 
+
+
+        for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
+              allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+        }
+
+
+        
+        if(isPostProcessEnable) {
+            // console.log("wait postprocessing slices");
+            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
+            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
+            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp : " + " Ok".fontcolor("green").bold()
+        }        
+   
+        // draw output canvas
+        let outCanvas = document.getElementById('outputCanvas');  
+        let output2dCC = document.getElementById('out2dCC');           
+        let output3dCC = document.getElementById('out3dCC');     
+        let slider = document.getElementById('sliceNav');
+        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+        drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
+  }
+
+
 	generateOutputSlices = (allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+        console.log("version 1");
 	      // buffer set ( depth, H, W) in order
 	      let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32) 
-              let isPostProcessEnable =  document.getElementById("postProcessing").checked;
+        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
+
 
 	      for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
 
@@ -923,30 +1192,29 @@
 
 
 	      for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
-		      allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
-		      allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
-		      allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+	            allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
 	      }
 
-	      
-		if(isPostProcessEnable) {
-		    console.log("wait postprocessing slices");
-		    document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
-		    allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
-		    document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
-		    allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
-		    document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Done".fontcolor("green").bold() + " => 3D Connected Comp : " + " Done".fontcolor("green").bold()
-		}        
+      
+        if(isPostProcessEnable) {
+            // console.log("wait postprocessing slices");
+            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
+            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
+            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp : " + " Ok".fontcolor("green").bold()
+        }        
    
 	      // draw output canvas
-              let outCanvas = document.getElementById('outputCanvas');  
-              let output2dCC = document.getElementById('out2dCC');           
-              let output3dCC = document.getElementById('out3dCC');     
+	      let outCanvas = document.getElementById('outputCanvas');  
+        let output2dCC = document.getElementById('out2dCC');           
+        let output3dCC = document.getElementById('out3dCC');     
 	      let slider = document.getElementById('sliceNav');
-              drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
-              drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
 	      drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
-
 	}
 
 
@@ -964,6 +1232,44 @@
 	    a.click();
 	}
 
+  checkWebGl1 = () => {
+
+      const gl = document.createElement('canvas').getContext('webgl');
+      if (!gl) {
+          if (typeof WebGLRenderingContext !== 'undefined') {
+            console.log('WebGL1 may be disabled. Please try updating video card drivers');
+            document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Disabled".fontcolor("red").bold() + '<br> Try updating video card driver';
+          } else {
+            console.log('WebGL1 is not supported'); 
+            document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Red".fontcolor("red").bold() + '<br> Not supported';
+          }
+      } else {
+        console.log('WebGl1 is enabled');
+        document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Green".fontcolor("green").bold();
+      }
+
+  }
+
+  checkWebGl2 = () => {
+
+      const gl = document.createElement('canvas').getContext('webgl2');
+      if (!gl) {
+          if (typeof WebGL2RenderingContext !== 'undefined') {
+            console.log('WebGL2 may be disabled. Please try updating video card drivers');
+            document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Disabled".fontcolor("red").bold() + '<br> Try updating video card driver';
+          } else {
+            console.log('WebGL2 is not supported'); 
+            document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Red".fontcolor("red").bold() + '<br> Not supported';
+          }
+
+         checkWebGl1(); 
+      } else {
+        console.log('WebGl2 is enabled');
+        document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Green".fontcolor("green").bold();
+      }
+
+
+  }
 
 	runInference = () => {
 
@@ -995,17 +1301,14 @@
 	            let batch_D = 38;
 	            let batch_H = 38;
 	            let batch_W = 38;
-
-	        
+              
 	            let slice_width = niftiHeader.dims[1];
 	            let slice_height = niftiHeader.dims[2];
 	            let num_of_slices = niftiHeader.dims[3];
 
-	            // This option will  cover all slices, some slices that are not enough to create a batch will need overlap with prevous batch slices
-	            // e.g. slice volume = 3*5*5 DHW , and batch is 2*2*2 ,   2*3*3 =18 batches will be considered        
-	            let num_of_batches = Math.ceil(slice_width/batch_W) * Math.ceil(slice_height/batch_H) * Math.ceil(num_of_slices/batch_D); 
+              let isBatchOverlapEnable =  document.getElementById("batchOverlapId").checked;
 
-	            console.log("Num of Batches for inference: ", num_of_batches);
+
 
 	            let input_shape = [batchSize, 38, 38, 38, numOfChan];
 
@@ -1013,16 +1316,58 @@
 	            let allSlices = getAllSlicesData1D(num_of_slices);
 
 	            let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width)
+              // get slices_3d tensor
 	            let slices_3d = getSlices3D(allSlices_2D);
+              // nomalize MRI data to be from 0 to 1
 	            slices_3d = normalizeVolumeData(slices_3d);
+              
+              let allBatches;
 
-	            let allBatches = sliceVolumeIntoBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+
+              if(isBatchOverlapEnable) {
+                  // number of additional batches focus on the brain/head volume
+                  let num_of_Overlap_batches = parseInt(document.getElementById("numOverlapBatchesId").value);
+                  console.log(" num of overlapped batches: ", num_of_Overlap_batches);
+
+                  // Sigma for focus the batches on the head/brain volumes  
+                  let sigmaDepthFactor = 4;
+                  let sigmaHeightFactor = 4;
+                  let sigmaWidthFactor = 4;   
+
+                  let sigmaDepthValue = Math.sqrt(num_of_slices)*sigmaDepthFactor; 
+                  let sigmaHeightValue = Math.sqrt(slice_height)*sigmaHeightFactor;
+                  let sigmaWidthValue = Math.sqrt(slice_width)*sigmaWidthFactor;   
+
+                  const sigma = [sigmaDepthValue, sigmaHeightValue, sigmaWidthValue];  
+
+                  // Find the centroid of 3D head volume  
+                  const headCentroid = findHeadCentroid(slices_3d, num_of_slices, slice_height, slice_width);
+                  console.log(" Head 3D Centroid : ", headCentroid);                  
+
+                  let headSubCubesCoords = findCoordsOfAddBrainBatches(num_of_Overlap_batches, 
+                                                                      new Array(headCentroid[0], headCentroid[1], headCentroid[2]), 
+                                                                      new Array(sigma[0], sigma[1], sigma[2]),
+                                                                      new Array(num_of_slices, slice_height, slice_width), 
+                                                                      new Array(batch_D, batch_H, batch_W));
+
+                  allBatches = sliceVolumeIntoOverlappedBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W, headSubCubesCoords); 
+
+              } else {
+                  // This option will  cover all slices, some slices that are not enough to create a batch will need overlap with prevous batch slices
+                  // e.g. slice volume = 3*5*5 DHW , and batch is 2*2*2 ,   2*3*3 =18 batches will be considered        
+                  let num_of_batches = Math.ceil(slice_width/batch_W) * Math.ceil(slice_height/batch_H) * Math.ceil(num_of_slices/batch_D); 
+                  console.log("Num of Batches for inference: ", num_of_batches);
+
+                  allBatches = sliceVolumeIntoBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+              }
+
 	       
 	            console.log(" sample of a batch for inference : ", Array.from(allBatches[0].data.dataSync())) 
 
 	            // Load tfjs json model
 	            const model =  load_model();
 	            console.log(tf.getBackend());
+              checkWebGl2();              
 	            // model.summary();
 
 	            let allPredictions = [];
@@ -1031,18 +1376,28 @@
 
 	                 try {
 	                     let startTime = performance.now();
+                       // maxLabelPredicted in whole volume of the brain
+                       let maxLabelPredicted = 0;
 	                     
 	                     let j = 0;
 	                     let timer = window.setInterval(function() {
 
 	                        tf.engine().startScope()
-	                        let curTensor = tf.tensor(allBatches[j].data.dataSync(),input_shape);
+	                        let curTensor = tf.tensor(allBatches[j].data.dataSync(), input_shape);
 	                        let prediction = res.predict( curTensor );
 	                        tf.dispose(curTensor);
 	                        let axis = 4;
 	                        let prediction_argmax = tf.argMax(prediction, axis);
 	                        allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
+                          let curBatchMaxLabel =  Math.max(...Array.from(prediction_argmax.dataSync()));
+                          // console.log("curBatchMaxLabel :", curBatchMaxLabel)
+                          // 
+                          if( maxLabelPredicted < curBatchMaxLabel ) {
+                                maxLabelPredicted = curBatchMaxLabel;
+                          } 
+
 	                        tf.engine().endScope()
+
 
 
 	                        let memStatus = tf.memory().unreliable ? "Red" : "Green";     
@@ -1064,9 +1419,13 @@
 	               
 	                        if( j == allBatches.length-1 ){
 	                           window.clearInterval( timer );
-                            // Generate output volume or slices
-	                           generateOutputSlices(allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-	                           let stopTime = performance.now()
+
+                             let numSegClasses = maxLabelPredicted + 1;
+                             // Generate output volume or slices                             
+	                           generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
+                            // generateOutputSlices(allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+
+	                           let stopTime = performance.now();
 	                           document.getElementById("results").innerHTML ="Processing the whole brain volume in tfjs tooks for multi-class output mask : " + 
 												                              ((stopTime -startTime)/1000).toFixed(4).fontcolor("green").bold() + 
 												                              "  Seconds.<br> Press " + " F12 ".fontcolor("red").bold() + 

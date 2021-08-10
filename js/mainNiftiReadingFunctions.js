@@ -284,7 +284,8 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
                   readNIFTI(evt.target.result);
                   document.getElementById("mriTitle").innerHTML = "MRI";  
                   document.getElementById("groundTruthFile").disabled = false;  
-                  document.getElementById("file").disabled = true;                
+                  document.getElementById("file").disabled = true;  
+                  document.getElementById("runInferenceId").disabled = false;              
               }
 
               if(sourceId == "groundTruthFile") {

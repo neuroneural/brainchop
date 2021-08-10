@@ -14,7 +14,7 @@ To run the server:
 	-Navigate to the directory root directory .
 	-Execute the command to start the server.
 		For Python 2 run server with free port 80xx (e.g.  `python -m SimpleHTTPServer 8020` )
-		For Python 3 run server with free port 80xx (e.g.  `python -m http.server 8020` )
+		For Python 3 run server with free port 80xx (e.g.  `python -m http. server 8020` )
 
 
        
@@ -32,7 +32,7 @@ To run the server:
 
 
 
-## Offline Demo
+## Demo
 
 
-![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/Compare2_3DCC.gif)
+![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/BrainSeg.gif)

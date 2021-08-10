@@ -69,30 +69,43 @@
         <th><p>Slice :<input type="range" min="0" max="100" value="50" class="slider" id="sliceNav"><font id="sliceNumId"></font></p></th>
         <th><input type="checkbox" id="mriColoring" name="mriColoring" checked> <label for="mriColoring">Enable Coloring</label></th>
         <th><input type="checkbox" id="postProcessing" name="postProcessing" checked> <label for="postProcessing">Enable postprocessing</label></th>
+
+        
       </table>    
     </div>  
 
     <div >
       <table >
         <tr>
-          <th><p>Batch Size : <input type="text" id="batchSizeId" size="20" value="1" onchange="inputVolumeChange()" disabled></p></th>
-          <th><p>Num of Channels : <input type="text" id="numOfChanId" size="20" value="1" onchange="inputVolumeChange()" disabled></p></th>
+          <th align= "left"><p>Batch Size : <input type="text" id="batchSizeId" size="20" value="1" onchange="inputVolumeChange()" disabled></p></th>
+          <th align= "left"><p>Num of Channels : <input type="text" id="numOfChanId" size="20" value="1" onchange="inputVolumeChange()" disabled></p></th>
         </tr>
         <tr> 
-          <th><p>Num of Classes : <input type="text" id="numOfClassesId" size="20" value="3" disabled></p></th>
-          <th><p>Background Label : <input type="text" id="bgLabelId" size="20" value="0" disabled></p></th>        
+          <th align= "left"><p>Num of Classes : <input type="text" id="numOfClassesId" size="20" value="3" disabled></p></th>
+          <th align= "left"><p>Background Label : <input type="text" id="bgLabelId" size="20" value="0" disabled></p></th>        
         </tr> 
+        <tr> 
+        <th align= "left"><input type="checkbox" id="batchOverlapId" name="batchOverlap"> <label for="batchOverlap">Enable Batches Overlapping</label></th>  
+          <th align= "left"><p>Num of Overlapped Batches : <input type="text" id="numOverlapBatchesId" size="20" value="200" disabled></p></th>        
+        </tr>
+        <tr>
+          <th align= "left">
+            <p>Metrics: 
+              <select name="metrics" id="metricsId">
+                <option value="DiceCoef">Dice Coef</option>
+                <option value="Accuracy">Accuracy</option>
+              </select>
+            </p>
+          </th>
+        </tr>
       </table>    
     </div> 
 
-<!--     <p>Batch Size : <input type="text" id="batchSizeId" size="20" value="1" onchange="inputVolumeChange()" disabled></p>
-    <p>Num of Channels : <input type="text" id="numOfChanId" size="20" value="1" onchange="inputVolumeChange()" disabled></p>
-    <p>Num of Classes : <input type="text" id="numOfClassesId" size="20" value="3" disabled></p>  
-    <p>Background Label : <input type="text" id="bgLabelId" size="20" value="0" disabled></p>   -->     
+
 
     <p id="inputVolumeId"></p>
 
-    <button onclick="runInference()">Run</button>
+    <button onclick="runInference()" id="runInferenceId" disabled>Run</button>
     <p id="postProcessHint"></p>
     <p id="completed"></p>
     <p id="results"></p>
@@ -100,6 +113,15 @@
     <script type="text/javascript">
       document.getElementById('file').addEventListener('change', handleFileSelect, false);
       document.getElementById('groundTruthFile').addEventListener('change', handleFileSelect, false);
+      document.getElementById('batchOverlapId').addEventListener('change',  function() {
+
+             if(this.checked) {
+                document.getElementById("numOverlapBatchesId").disabled = false;
+             } else {
+                document.getElementById("numOverlapBatchesId").disabled = true;
+             }
+
+          });
     </script>
   </body>
 </html>
