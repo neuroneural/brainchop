@@ -216,40 +216,47 @@
               			   multiple: false, 
               			   on: {        
               				        onBeforeFileAdd: function(upload) {        
-              					          let file = upload.file;
-              					          refFileName = file;
-                                  console.log("refFileName :", refFileName)
-              					          //file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
-              					         
-              					          let reader = new FileReader();  
+                  					          let file = upload.file;
+                  					          refFileName = file;
+                                      console.log("refFileName :", refFileName)
+                  					          //file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                  					         if(refFileName["name"].search(".nii") > 0) {
+                      					          let reader = new FileReader();  
 
-              			              var blob = makeSlice(file, 0, file.size);
+                      			              var blob = makeSlice(file, 0, file.size);
 
-              			              reader.onloadend = function(event) {
+                      			              reader.onloadend = function(event) {
 
-      			                          if (event.target.readyState === FileReader.DONE) {
-      			                              //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+              			                          if (event.target.readyState === FileReader.DONE) {
+              			                              //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
 
-                                          // params_mri["files"] = [file]; // Or
-                                          params_mri["binaryImages"] = [event.target.result]
+                                                  // params_mri["files"] = [file]; // Or
+                                                  params_mri["binaryImages"] = [event.target.result]
 
-                                          // Set 0 for MRI viewer 
-                                          papaya.Container.resetViewer(0, params_mri);
-                                         
-      			                              readNIFTIBasics(event.target.result);
-      			                          
-      			                              $$("imageUploader").disable();
-                                          
-                                          if(checkGPU()) {
-                                             $$("segmentBtn").enable();
-                                          }
+                                                  // Set 0 for MRI viewer 
+                                                  papaya.Container.resetViewer(0, params_mri);
+                                                 
+              			                              readNIFTIBasics(event.target.result);
+              			                          
+              			                              $$("imageUploader").disable();
+                                                  
+                                                  if(checkGPU()) {
+                                                     $$("segmentBtn").enable();
+                                                  }
 
-                                          $$("downloadBtn").disable(); 
-      			                          }
-              			             };
+                                                  $$("downloadBtn").disable(); 
+              			                          }
+                      			             };
 
-              			             reader.readAsArrayBuffer(blob);
-              			             return false;
+                      			             reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select Nifti file *.nii / *.nii.gz")
+                                    
+                                    }     
+                      			        
+                                    return false;
+
               				        }
               			      }
               			  }
