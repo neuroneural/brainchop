@@ -31,10 +31,10 @@ To run the server:
 
 ## Live Demo
 
-Live demo can be found with this [link](https://neuroneural.github.io/brainchop/)
+[See this demo live!](https://neuroneural.github.io/brainchop/)
 
 ## Visual Guidelines
 
-# Integrated with Papaya viewers
+### Integrated with Papaya viewers
 
 ![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/SimpleUI_Demo.gif)
