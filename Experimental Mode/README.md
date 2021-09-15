@@ -34,6 +34,8 @@ To run the server:
 
 ## Demo
 
-# Integrated with Papaya viewers
 
-![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/SimpleUI_Demo.gif)
+![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/Compare2_3DCC.gif)
+
+
+

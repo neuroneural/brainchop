@@ -2,22 +2,21 @@
   // For [1, 38, 38, 38, 1] input shape, MeshNet model
 
   // Main parameters:
-  rawNiftiData = [];
-
   niftiHeader = [];
-
-  //ArrayBuffer
   niftiImage = [];
-
-  //Object
   labelNiftiHeader = [];
-
-  //ArrayBuffer
   labelNiftiImage = [];  
-  //Flag
   gtLabelLoaded = false;
 
-  readNIFTIBasics = (data) => {
+  // This part inspired from https://github.com/rii-mango/NIFTI-Reader-JS  
+  readNIFTI = (data) => {
+  
+      let inputCanvas = document.getElementById('inputCanvas');
+      let gtCanvas = document.getElementById('gtCanvas');       
+      let outCanvas = document.getElementById('outputCanvas'); 
+      let outCC2D = document.getElementById('out2dCC'); 
+      let outCC3D = document.getElementById('out3dCC');                  
+      let slider = document.getElementById('sliceNav');
 
       // parse nifti
       if (nifti.isCompressed(data)) {
@@ -25,101 +24,39 @@
       }
 
       if (nifti.isNIFTI(data)) {
-          // have raw nifti data to use for save
-          rawNiftiData = data;
           niftiHeader = nifti.readHeader(data);
           niftiImage = nifti.readImage(niftiHeader, data);
       }
 
-  }    
 
-//rawData is ArrayBuffer, header is object, data is array
-getNiftiOutArrayBuffer= function (header, rawData, data) {
-    let imageData = [];
-    let outNifti = []
-    let headerArrBuf = [];
-    let outImageArray = [];
+      // set up slider
+      let slices = niftiHeader.dims[3];
 
-    let imageOffset = header.vox_offset,
-        timeDim = 1,
-        statDim = 1;
+      slider.max = slices - 1;
+      // slider.min = 0;
+      slider.value = Math.round(slices / 2);
+      slider.oninput = function() {
+          document.getElementById('sliceNumId').innerHTML = slider.value;
+          drawInputCanvas(inputCanvas, slider.value, niftiHeader, niftiImage);
+          if(gtLabelLoaded) {
+             drawGtCanvas(gtCanvas, slider.value, labelNiftiHeader, labelNiftiImage);  
+          }
+        
+          if(allOutputSlices.length) {
+              drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);
+              drawOutputCanvas(outCC2D, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);
+              drawOutputCanvas(outCC3D, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
+          }
+      };
 
-    if (header.dims[4]) {
-        timeDim = header.dims[4];
-    }
+      // draw slice
+      drawInputCanvas(inputCanvas, slider.value, niftiHeader, niftiImage);
+  }  
 
-    if (header.dims[5]) {
-        statDim = header.dims[5];
-    }
-
-    let imageSize = header.dims[1] * header.dims[2] * header.dims[3] * timeDim * statDim * (header.numBitsPerVoxel / 8);
-
-    headerArrBuf = rawData.slice(0, imageOffset);
-
-    // Convert to normal array
-    hearderArray = arrayBuffer2Array(headerArrBuf);
-
-    outImageArray = hearderArray.concat(data)
-
-    return    array2ArrayBuffer(outImageArray); 
-};
-
-// Convert array to ArrayBuffer
-function array2ArrayBuffer(array) {
-    // convert array to typedarray
-    let typedArray = Uint8Array.from(array);
-    // Convert typedArray to ArrayBuffer and return ArrayBuffer
-    return typedArray.buffer.slice(typedArray.byteOffset, typedArray.byteLength + typedArray.byteOffset)
-}
-
- 
-function arrayBuffer2Array(arrayBuffer) {
-    // convert arrayBuffer to TypedArray
-    let typedArrData = new Uint8Array(arrayBuffer);
-    // convert typedArray to array
-    let arr = [...typedArrData];
-    return arr;
-}
-
-function downloadNifti(mriData){
-      var downloadFileData = (function () {
-        var a = document.createElement("a");
-        document.body.appendChild(a);
-        a.style = "display: none";
-        return function (data, fileName) {
-            // create Blob "Binary Large Object" of type octet-binary for the ArrayBuffer
-            var blob = new Blob([data], {type: "application/octet-binary;charset=utf-8"});
-            var url = window.URL.createObjectURL(blob);
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            window.URL.revokeObjectURL(url);
-            };
-     }());
-
-
-     let fileName = $$("fileNameToDL").getValue();
-     
-     if(fileName.search(".nii") < 0) { // if no nii extension then search will return -1
-       fileName = fileName + ".nii";
-     }
-
-     //Get the data ArrayBuffer
-     var data = getNiftiOutArrayBuffer(niftiHeader, rawNiftiData, mriData);
-     // fileName = "outMRI"+"_3dFilter"+".nii";
-
-
-
-     if (nifti.isNIFTI(data)) {
-          // save arraybuffer data to disk  
-          downloadFileData(data, fileName);
-      } else {
-          console.log("Not Nifti data....... ");
-      }   
-}
 
   readNIFTILabels = (data) => {
- 
+  
+
       let gtCanvas = document.getElementById('gtCanvas');       
       let slider = document.getElementById('sliceNav');
 
@@ -133,7 +70,6 @@ function downloadNifti(mriData){
       if (nifti.isNIFTI(data)) {
           labelNiftiHeader = nifti.readHeader(data);
           labelNiftiImage = nifti.readImage(labelNiftiHeader, data);
-
       }
 
 
@@ -263,9 +199,9 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
           return;
       }
 
-      
+      document.getElementById("numOfClassesId").value = labelMax(typedData) + 1;
       let n_classes = labelMax(typedData) + 1;
-      // document.getElementById("results").innerHTML = "Found " + n_classes.toString().fontcolor("green").bold() + " classes in the ground truth";
+      document.getElementById("results").innerHTML = "Found " + n_classes.toString().fontcolor("green").bold() + " classes in the ground truth";
 
       // offset to specified slice
       let sliceSize = cols * rows;
@@ -341,17 +277,20 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
       reader.onloadend = function (evt) {
           if (evt.target.readyState === FileReader.DONE) {
  
-              // document.getElementById("results").innerHTML = "";
+               document.getElementById("results").innerHTML = "";
 
               //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
               if(sourceId == "file") {
                   readNIFTI(evt.target.result);
-           
+                  document.getElementById("mriTitle").innerHTML = "MRI";  
+                  document.getElementById("groundTruthFile").disabled = false;  
+                  document.getElementById("file").disabled = true;  
+                  document.getElementById("runInferenceId").disabled = false;              
               }
 
               if(sourceId == "groundTruthFile") {
                  readNIFTILabels(evt.target.result);   
-                 // document.getElementById("gtTitle").innerHTML = "Ground Truth";    
+                 document.getElementById("gtTitle").innerHTML = "Ground Truth";    
                  document.getElementById("groundTruthFile").disabled = true;              
               }
 

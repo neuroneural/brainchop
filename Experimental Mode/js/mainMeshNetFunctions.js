@@ -23,8 +23,6 @@
   maxLabel = 0;
   allOutputSlices2DCC = [];
   allOutputSlices3DCC = [];  
-  allOutputSlices3DCC1DimArray = [];
-  maxLabelPredicted = 0;
 
   // Return 1-Dim Array of pixel value, this 1 dim represent one channel 
   getSliceData1D = (sliceIdx, niftiHeader, niftiImage) => {
@@ -77,41 +75,53 @@
       return data1DimArr;    
   }
 
+  // to use with ml5j
+  computeConfusionMatrix = (trueLabels, predictedLabels) => {
+      const CM = ConfusionMatrix.fromLabels(trueLabels, predictedLabels);
+      return CM.getAccuracy();  
 
+  }
+
+  // to use with bci.js
+  compConfusionMat = (predictedLabels, trueLabels) => {
+      const CM = confusionMatrix(predictedLabels, trueLabels);
+      return accuracy(CM);  
+
+  }  
 
   generateColors = (s, l,  num_colors) => {
-	  let colors = []
-	  let delta = Math.trunc(360 / num_colors)
+    let colors = []
+    let delta = Math.trunc(360 / num_colors)
 
-	  for (let i = 0; i < num_colors; i++) {
-	    let h = i * delta
-	    colors.push("hsla("+ h + "," + s +"%," + l+ "%"  + ")")	    
-	  }
+    for (let i = 0; i < num_colors; i++) {
+      let h = i * delta
+      colors.push("hsla("+ h + "," + s +"%," + l+ "%"  + ")")     
+    }
 
-	  return colors
+    return colors
   }
 
    getRgbObject = (rgbString) => {
 
-	  let RGB = {};
+    let RGB = {};
     let rgbArray = rgbString;
-	  rgbArray = rgbArray.replace(/[^\d,]/g, '').split(',');
-	  let rgbKeys=["r","g","b"];
-	  RGB=rgbKeys.reduce((obj, key, index) => ({ ...obj, [key]:parseInt(rgbArray[index]) }), {});
-	  return RGB;
+    rgbArray = rgbArray.replace(/[^\d,]/g, '').split(',');
+    let rgbKeys=["r","g","b"];
+    RGB=rgbKeys.reduce((obj, key, index) => ({ ...obj, [key]:parseInt(rgbArray[index]) }), {});
+    return RGB;
   }
 
   hslToRgb = (hsl) => {
-	 let sep = hsl.indexOf(",") > -1 ? "," : " ";
-	 hsl = hsl.substr(5).split(")")[0].split(sep);
+   let sep = hsl.indexOf(",") > -1 ? "," : " ";
+   hsl = hsl.substr(5).split(")")[0].split(sep);
 
-	 if (hsl.indexOf("/") > -1)
-	    hsl.splice(3,1);
+   if (hsl.indexOf("/") > -1)
+      hsl.splice(3,1);
 
-	 let h = hsl[0],
-	      s = hsl[1].substr(0,hsl[1].length - 1) / 100,
-	      l = hsl[2].substr(0,hsl[2].length - 1) / 100;
-	
+   let h = hsl[0],
+        s = hsl[1].substr(0,hsl[1].length - 1) / 100,
+        l = hsl[2].substr(0,hsl[2].length - 1) / 100;
+  
 
 
      let c = (1 - Math.abs(2 * l - 1)) * s,
@@ -158,6 +168,130 @@
   } 
 
 
+ drawConfusionMat = async(groundTruthLabels, predictedLabels, elemId) => {
+
+     if(elemId == "accuracyTitleFilter3DCC") {
+        const values = await tfvis.metrics.confusionMatrix(groundTruthLabels, predictedLabels);  
+        const data = { values };   
+        const surface = { name: 'Confusion Matrix 3D CC', tab: 'Charts' };
+        tfvis.render.confusionMatrix(surface, data);
+     }
+ }
+
+ calculateAccuracy = async(groundTruthLabels, predictedLabels, elemId) => {
+     document.getElementById(elemId).innerHTML = "Accuracy: " + 
+     ( await tfvis.metrics.accuracy(groundTruthLabels, predictedLabels) ).toFixed(3); 
+
+ } 
+
+ drawOutputCanvas = (canvas, sliceIdx, niftiHeader, niftiImage, outputSlices) => {
+
+      let n_classes = parseInt(document.getElementById("numOfClassesId").value);
+      let isColorEnable =  document.getElementById("mriColoring").checked;
+      // get nifti dimensions
+      let cols = niftiHeader.dims[1];
+      let rows = niftiHeader.dims[2];
+
+      // set canvas dimensions to nifti slice dimensions
+      canvas.width = cols;
+      canvas.height = rows;
+
+      // make canvas image data
+      let ctx = canvas.getContext("2d");
+      let canvasImageData = ctx.createImageData(canvas.width, canvas.height); 
+
+      let colors = generateColors(100, 50,  n_classes);
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
+
+      for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
+          if(isColorEnable) {
+              let color = { r: 0, g: 0, b: 0 };
+              if(outputSlices[sliceIdx][pixelIdx] != bgLabelValue) {
+                 color =  getRgbObject(hslToRgb(colors[outputSlices[sliceIdx][pixelIdx]]));
+              } 
+              canvasImageData.data[pixelIdx * 4] = color.r & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 1] = color.g & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 2] = color.b & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;   
+
+            } else {
+              let value = Math.ceil(outputSlices[sliceIdx][pixelIdx]*255/(n_classes - 1));
+
+              canvasImageData.data[pixelIdx * 4] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 1] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 2] = value & 0xFF;
+              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF;
+            }
+
+      }      
+
+      ctx.putImageData(canvasImageData, 0, 0);
+
+      // console.log("canvasImageData :", canvasImageData.data)
+
+      let elemId = null;
+
+      if(canvas.id == "outputCanvas") {
+          document.getElementById("predTitle").innerHTML = "Model Output"; 
+          elemId = "accuracyTitleModelPred"; 
+      }
+
+      if(canvas.id == "out2dCC") {
+          document.getElementById("CC2DTitle").innerHTML = "Filter by 2D CC";  
+          elemId = "accuracyTitleFilter2DCC";           
+      }
+
+      if(canvas.id == "out3dCC") {
+          document.getElementById("CC3DTitle").innerHTML = "Filter by 3D CC";  
+          elemId = "accuracyTitleFilter3DCC"; 
+      }      
+
+      let gtCanvas = document.getElementById('gtCanvas');
+      let ctxGt = gtCanvas.getContext("2d");
+
+      let trueLabels =  ctxGt.getImageData(0, 0, gtCanvas.width, gtCanvas.height)
+
+      // trueLabels.data is Uint8ClampedArray  and need to convert to regular array first such that
+      // normalArray = Array.prototype.slice.call(trueLabels.data);
+
+
+      if(! isColorEnable){
+          if(gtLabelLoaded) { 
+                
+              const labels = tf.tensor1d( Array.prototype.slice.call(trueLabels.data) );
+              const predictions = tf.tensor1d( Array.prototype.slice.call(canvasImageData.data) ); 
+
+              if(document.getElementById("metricsId").value == "DiceCoef") {
+                    document.getElementById(elemId).innerHTML = "Dice Coef: " +
+                           diceCoefficient( Array.prototype.slice.call(trueLabels.data) , 
+                                            Array.prototype.slice.call(canvasImageData.data) 
+                                           ).toFixed(4);
+              }
+
+
+              if(document.getElementById("metricsId").value == "Accuracy") {
+                       calculateAccuracy(labels, predictions, elemId); 
+                       labels.dispose();
+                       predictions.dispose();
+
+              }
+
+
+              if(elemId = "accuracyTitleFilter3DCC") {
+                 // drawConfusionMat(labels, predictions, elemId); 
+              }
+
+          }
+
+      } else {
+            document.getElementById(elemId).innerHTML = "";
+      }
+
+  } 
+
+
+
+
   getMaxRegionMaskByContour= (canvasImageData) => { // slice matrix
 
           let mat = cv.matFromImageData(canvasImageData);
@@ -174,25 +308,25 @@
 
           cv.findContours(mask_gray, contours, hierarchy,  cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE); // cv.CHAIN_APPROX_SIMPLE   
 
-  	      let maxContourArea = 0
-  	      let maxContourAreaIdx = -1
-  	      for (let i = 0; i < contours.size(); ++i) {
-  	                  let cnt = contours.get(i);
-  	                  let area = cv.contourArea(cnt, false) 
-  	                  if(maxContourArea < area){
-  	                     maxContourArea = area;
-  	                     maxContourAreaIdx = i;
-  	                     
-  	                  } 
+          let maxContourArea = 0
+          let maxContourAreaIdx = -1
+          for (let i = 0; i < contours.size(); ++i) {
+                      let cnt = contours.get(i);
+                      let area = cv.contourArea(cnt, false) 
+                      if(maxContourArea < area){
+                         maxContourArea = area;
+                         maxContourAreaIdx = i;
+                         
+                      } 
 
-  	                  cnt.delete(); 
-  	      }
+                      cnt.delete(); 
+          }
 
           let color = new cv.Scalar(255, 255, 255);
           cv.drawContours(mask, contours, maxContourAreaIdx, color, -1); //cv.LINE_8      
-	      
-	        cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
-	        cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
+        
+          cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
+          cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
              
 
           mat.delete();
@@ -208,7 +342,7 @@
 
 
   postProcessSlices = (outputSlices) => {
-  	  let canvas = document.createElement("CANVAS");
+      let canvas = document.createElement("CANVAS");
 
       // get nifti dimensions
       let cols = niftiHeader.dims[1];
@@ -223,32 +357,32 @@
 
       let canvasImageData = ctx.createImageData(canvas.width, canvas.height); 
 
-      let bgLabelValue = 0;//parseInt($$("bgLabelId").getValue());
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
      
       for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
 
-		      for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
+          for (let pixelIdx = 0; pixelIdx < outputSlices[sliceIdx].length; pixelIdx++) {
 
-		      	      let color = { r: 0, g: 0, b: 0 };
-		      	      if(outputSlices[sliceIdx][pixelIdx] != bgLabelValue) {
-		      	      	 color = { r: 255, g: 255, b: 255 };
-		      	      } 
+                  let color = { r: 0, g: 0, b: 0 };
+                  if(outputSlices[sliceIdx][pixelIdx] != bgLabelValue) {
+                     color = { r: 255, g: 255, b: 255 };
+                  } 
 
-		              canvasImageData.data[pixelIdx * 4] = color.r & 0xFF;
-		              canvasImageData.data[pixelIdx * 4 + 1] = color.g & 0xFF;
-		              canvasImageData.data[pixelIdx * 4 + 2] = color.b & 0xFF;
-		              canvasImageData.data[pixelIdx * 4 + 3] = 0xFF; 
-		      }      
+                  canvasImageData.data[pixelIdx * 4] = color.r & 0xFF;
+                  canvasImageData.data[pixelIdx * 4 + 1] = color.g & 0xFF;
+                  canvasImageData.data[pixelIdx * 4 + 2] = color.b & 0xFF;
+                  canvasImageData.data[pixelIdx * 4 + 3] = 0xFF; 
+          }      
 
-		      let maskData = getMaxRegionMaskByContour(canvasImageData);
+          let maskData = getMaxRegionMaskByContour(canvasImageData);
             
-		      // show slice max area only 
-		      for( let idx = 0; idx < maskData.length; idx += 1) {
+          // show slice max area only 
+          for( let idx = 0; idx < maskData.length; idx += 1) {
 
-		            if(maskData[idx] == bgLabelValue ) {
-		                   outputSlices[sliceIdx][idx] = 0;
-		             } 
-		      } 
+                if(maskData[idx] == bgLabelValue ) {
+                       outputSlices[sliceIdx][idx] = 0;
+                 } 
+          } 
 
      }
 
@@ -365,14 +499,14 @@
         let maxLabelFor3D = 0; 
 
         for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {
-	          for(let row = 0; row < sliceHeight; row++) {
-	              for(let col = 0; col < sliceWidth; col++) { 
-	                 
-	                 if( label3D[sliceIdx][row][col] > maxLabelFor3D) {
-	                     maxLabelFor3D = label3D[sliceIdx][row][col];
-	                 }
-	              }
-	          }
+            for(let row = 0; row < sliceHeight; row++) {
+                for(let col = 0; col < sliceWidth; col++) { 
+                   
+                   if( label3D[sliceIdx][row][col] > maxLabelFor3D) {
+                       maxLabelFor3D = label3D[sliceIdx][row][col];
+                   }
+                }
+            }
         } 
 
         return   maxLabelFor3D;
@@ -390,11 +524,11 @@
         }  
         
         for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {         
-		        for(let row = 0; row < sliceHeight; row++) {
-		            for(let col = 0; col < sliceWidth; col++) { 
-		               ccVolume[label3D[sliceIdx][row][col]] = ccVolume[label3D[sliceIdx][row][col]] +1;
-		            }  
-		        }
+            for(let row = 0; row < sliceHeight; row++) {
+                for(let col = 0; col < sliceWidth; col++) { 
+                   ccVolume[label3D[sliceIdx][row][col]] = ccVolume[label3D[sliceIdx][row][col]] +1;
+                }  
+            }
         }
      
         let maxCcVolume = 0;
@@ -597,13 +731,13 @@
   
     getConComponentsFor2Slices = (binaryMaskData2D, preSliceLabels, imgHeight, imgWidth) => {  
         let label1D = [];
-        // resetEquivalenceTable();           
+
         for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
              label1D[idx] = 0;
         }     
         
         let label2D =   convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
-        // let maxLabel = 0; 
+
         for(let row = 0; row < imgHeight; row++) {
             for(let col = 0; col < imgWidth; col++) { 
                
@@ -617,7 +751,6 @@
             }
         }
         
-        // console.log("First pass label2D :", label2D);
         for(let labelIdx = equivalenceTabel.length - 1; labelIdx > 0; labelIdx = labelIdx-1 ) {          
             adjustEquivalenceTable (labelIdx);
         }  
@@ -640,12 +773,13 @@
       let sliceWidth = niftiHeader.dims[1];
       let sliceHeight = niftiHeader.dims[2];
 
-      let bgLabelValue = 0; //parseInt($$("bgLabelId").getValue());
+      let bgLabelValue = parseInt(document.getElementById("bgLabelId").value);
+
       let label3D = [];  
 
       label3D = getConComponentsFor3DVolume(outputSlices, sliceHeight, sliceWidth);
 
-      let maxVolumeLabel =  getMaxVolumeLabel3D(label3D, sliceHeight, sliceWidth, outputSlices.length);	
+      let maxVolumeLabel =  getMaxVolumeLabel3D(label3D, sliceHeight, sliceWidth, outputSlices.length); 
 
 
       for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
@@ -659,19 +793,19 @@
                          label3D[sliceIdx][row][col] = 255;
                      }
                   }  
-              }  		          
+              }               
 
-		          let pixelIdx;
+              let pixelIdx;
 
-		          for(row = 0, pixelIdx = 0; row < sliceHeight; row++) {
-		              for(col = 0; col < sliceWidth; col++, pixelIdx++) { 
-		                 
-		                 if(label3D[sliceIdx][row][col] == 0) {
-		                    outputSlices[sliceIdx][pixelIdx] = 0;
-		                 }
+              for(row = 0, pixelIdx = 0; row < sliceHeight; row++) {
+                  for(col = 0; col < sliceWidth; col++, pixelIdx++) { 
+                     
+                     if(label3D[sliceIdx][row][col] == 0) {
+                        outputSlices[sliceIdx][pixelIdx] = 0;
+                     }
 
-		              }  
-		          } 
+                  }  
+              } 
      }
 
      return outputSlices;
@@ -781,7 +915,6 @@
 
    let alpha = 0;
    return   volumeDataTensor.step(alpha); // element-wise: (x > 0 ? 1 : alpha * x );  e.g. Tenosr [0, 0.9, 0.8, -3] => Tensor [0, 1, 1, 0]
-
   }
 
 
@@ -809,6 +942,7 @@
       let meanArray = Array.from(tf.round(moments['mean']).dataSync());
       let varArray = Array.from(moments['variance'].dataSync());
       coordsTensor.dispose();
+
       return [meanArray, varArray];
   };
 
@@ -900,93 +1034,82 @@
      return   allSlicedBatches;
   }    
 
-	 // Try to create batches with the volume of slices each of D,H,W sub_volume  with minimum overlap option
-	sliceVolumeIntoBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W ) => {
-	    let allSlicedBatches = [];
-	    let batch_id = 1;
+   // Try to create batches with the volume of slices each of D,H,W sub_volume  with minimum overlap option
+  sliceVolumeIntoBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W ) => {
+      let allSlicedBatches = [];
+      let batch_id = 1;
 
-	    for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += batch_D) {        
-	      for(let rowIdx = 0; rowIdx < slice_height; rowIdx += batch_H) {      
-	          for(let colIdx = 0; colIdx < slice_width; colIdx += batch_W) {
-	                // for overlap calculations of last batches 
-	                let depthIdxDiff = 0;
-	                let rowIdxDiff = 0;              
-	                let colIdxDiff = 0;
+      for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += batch_D) {        
+        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += batch_H) {      
+            for(let colIdx = 0; colIdx < slice_width; colIdx += batch_W) {
+                  // for overlap calculations of last batches 
+                  let depthIdxDiff = 0;
+                  let rowIdxDiff = 0;              
+                  let colIdxDiff = 0;
 
-	                if((depthIdx + batch_D) > num_of_slices) {
-	                  depthIdxDiff = (depthIdx + batch_D) - num_of_slices;
-	                }
+                  if((depthIdx + batch_D) > num_of_slices) {
+                    depthIdxDiff = (depthIdx + batch_D) - num_of_slices;
+                  }
 
-	                if((rowIdx + batch_H) > slice_height) {
-	                  rowIdxDiff = (rowIdx + batch_H) - slice_height;
-	                }
+                  if((rowIdx + batch_H) > slice_height) {
+                    rowIdxDiff = (rowIdx + batch_H) - slice_height;
+                  }
 
-	                if((colIdx + batch_W) > slice_width) {
-	                  colIdxDiff = (colIdx + batch_W) - slice_width;
-	                }                                
+                  if((colIdx + batch_W) > slice_width) {
+                    colIdxDiff = (colIdx + batch_W) - slice_width;
+                  }                                
 
-	                let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
-	                let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+                  let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
+                  let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
 
-	                allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
-	                batch_id += 1;
-	          } 
-	      }
-	    }
+                  allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+                  batch_id += 1;
+            } 
+        }
+      }
 
-	   return   allSlicedBatches;
-	}
+     return   allSlicedBatches;
+  }
 
-	getAllSlicesData1D = (num_of_slices) => {
-	      let allSlices = [];
-	      for(let sliceIdx = 0; sliceIdx < num_of_slices; sliceIdx++) {
-	          let slice = getSliceData1D(sliceIdx, niftiHeader, niftiImage);
-	          allSlices.push(slice);
-	      }        
+  getAllSlicesData1D = (num_of_slices) => {
+        let allSlices = [];
+        for(let sliceIdx = 0; sliceIdx < num_of_slices; sliceIdx++) {
+            let slice = getSliceData1D(sliceIdx, niftiHeader, niftiImage);
+            allSlices.push(slice);
+        }        
 
-	     return   allSlices; 
-	}
+       return   allSlices; 
+  }
 
-	getAllSlices2D = (allSlices, slice_height, slice_width) => {
-	    let allSlices_2D = [];
-	    for(let sliceIdx = 0; sliceIdx < allSlices.length; sliceIdx ++){
-	        allSlices_2D.push(tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]));
-	    }   
+  getAllSlices2D = (allSlices, slice_height, slice_width) => {
+      let allSlices_2D = [];
+      for(let sliceIdx = 0; sliceIdx < allSlices.length; sliceIdx ++){
+          allSlices_2D.push(tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]));
+      }   
 
-	    return   allSlices_2D;   
-	}
+      return   allSlices_2D;   
+  }
 
-	getSlices3D = (allSlices_2D) => {
+  getSlices3D = (allSlices_2D) => {
 
-	  return tf.stack(allSlices_2D);  
+    return tf.stack(allSlices_2D);  
 
-	}
+  }
 
-	normalizeVolumeData = (volumeData) => {
-	    //Normalize the data to the range 0 - 1 using min-max scaling
-	    const volumeData_Max = volumeData.max();
-	    const volumeData_Min = volumeData.min();
-	    const normalizedSlices_3d = volumeData.sub(volumeData_Min).div(volumeData_Max.sub(volumeData_Min));
-	    return  normalizedSlices_3d;      
-	}
+  normalizeVolumeData = (volumeData) => {
+      //Normalize the data to the range 0 - 1 using min-max scaling
+      const volumeData_Max = volumeData.max();
+      const volumeData_Min = volumeData.min();
+      const normalizedSlices_3d = volumeData.sub(volumeData_Min).div(volumeData_Max.sub(volumeData_Min));
+      return  normalizedSlices_3d;      
+  }
 
-	load_model = async( modelIndex ) => {
-
-    let modelUrl;		
-
-    if(parseInt(modelIndex) == 1) {
-        // MeshNet GMWM
-        modelUrl = './ModelToLoad/mnm_tfjs_me_test/model.json';   
-
-    } else if(parseInt(modelIndex) == 2) {
-        // MeshNet Dropout GMWM
-        modelUrl = './ModelToLoad/meshnet_dropout/mnm_dropout/model2.json'; 
-    }
-
-	  const Model = await tf.loadLayersModel(modelUrl);
-
-	  return Model;
-	}
+  load_model = async() => {
+      let modelUrl = './mnm_tfjs_me_test/model.json';   
+      // let modelUrl = './meshnet_dropout/mnm_dropout/model2.json';        
+      const Model = await tf.loadLayersModel(modelUrl);
+      return Model;
+  }
 
 
   findPixelIndex = (allPixels, d, h, w) => {     
@@ -1004,23 +1127,22 @@
       return null;
   }
 
+  
 
 // Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
 generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W) => {
 
-        console.log("Num of seg classes: ", numSegClasses);
-        webix.message("Wait while generate output labels... ");
+      console.log("version 2 num of seg classes: ", numSegClasses);
         // buffer set ( depth, H, W) in order
         let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32) 
-        let isPostProcessEnable =  1; //$$("postProcessing").getValue();
+        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
 
-        //Convert to buffer 
 
-        for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+        for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
 
                 let coord = allPredictions[batchIdx]["coordinates"]; 
                 let pixelValues = allPredictions[batchIdx]["data"];
-                let pixelValuesCounter = 0;    
+                let pixelValuesCounter = 0;       
 
                 for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
                     for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
@@ -1037,77 +1159,133 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                 }
          }
 
+         // convert output  buffer to tensor
+         let axis = -1; // last axis 
+         // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+         // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+         let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis);        
 
-        // convert output  buffer to tensor
-        let axis = -1; // last axis 
-        // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
-        // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
-        let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
 
         let unstackOutVolumeTensor = tf.unstack(outVolumeTensor);
-
         outVolumeTensor.dispose();
 
-        // convert all slices into 1 Dim array to download
+        console.log("Converting unstack tensors to arrays: ") 
 
-        allOutputSlices3DCC = [];
 
-        for(let sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
-              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
+        for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
+              allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+        }
+
+
+        
+        if(isPostProcessEnable) {
+            // console.log("wait postprocessing slices");
+            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
+            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
+            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp : " + " Ok".fontcolor("green").bold()
+        }        
+   
+        // draw output canvas
+        let outCanvas = document.getElementById('outputCanvas');  
+        let output2dCC = document.getElementById('out2dCC');           
+        let output3dCC = document.getElementById('out3dCC');     
+        let slider = document.getElementById('sliceNav');
+        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+        drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
+  }
+
+
+  generateOutputSlices = (allPredictions, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+        console.log("version 1");
+        // buffer set ( depth, H, W) in order
+        let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32) 
+        let isPostProcessEnable =  document.getElementById("postProcessing").checked;
+
+
+        for(batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+
+                let coord = allPredictions[batchIdx]["coordinates"] 
+                let pixelValues = allPredictions[batchIdx]["data"]
+                let pixelValuesCounter = 0;       
+
+                for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                    for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                      for(colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                          outVolumeBuffer.set(pixelValues[pixelValuesCounter], depthIdx, rowIdx, colIdx );
+                          pixelValuesCounter += 1;
+                      } 
+                    }
+                }
+         }
+
+         // convert output  buffer to tensor
+        let outVolumeTensor =  outVolumeBuffer.toTensor();
+
+        let unstackOutVolumeTensor = tf.unstack(outVolumeTensor)
+
+        console.log("Converting unstack tensors to arrays: ") 
+
+
+        for(sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
+              allOutputSlices[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
+              allOutputSlices2DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())              
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync())
         }
 
         
         if(isPostProcessEnable) {
+            // console.log("wait postprocessing slices");
+            document.getElementById("postProcessHint").innerHTML =   "Post processing status => 2D Connected Comp:  " + " In progress".fontcolor("red").bold();
+            allOutputSlices2DCC = postProcessSlices(allOutputSlices2DCC); // remove noisy regions using 2d CC
+            document.getElementById("postProcessHint").innerHTML =  "postprocessing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp: " + " In progress".fontcolor("red").bold()
             allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC); // remove noisy regions using 3d CC           
-        }   
-
-        allOutputSlices3DCC1DimArray = [];
-        // Use this conversion to download output slices as nii file
-        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
-        } 
-
-        var lableArrayBuffer = getNiftiOutArrayBuffer(niftiHeader, rawNiftiData, allOutputSlices3DCC1DimArray); 
-
-        params_label["binaryImages"] = [lableArrayBuffer];
-
-        // set 1 for label viewer 
-        papaya.Container.resetViewer(1, params_label);               
-
+            document.getElementById("postProcessHint").innerHTML =  "Post processing status => 2D Connected Comp:  " + " Ok".fontcolor("green").bold() + " => 3D Connected Comp : " + " Ok".fontcolor("green").bold()
+        }        
+   
+        // draw output canvas
+        let outCanvas = document.getElementById('outputCanvas');  
+        let output2dCC = document.getElementById('out2dCC');           
+        let output3dCC = document.getElementById('out3dCC');     
+        let slider = document.getElementById('sliceNav');
+        drawOutputCanvas(outCanvas, slider.value, niftiHeader, niftiImage, allOutputSlices);  
+        drawOutputCanvas(output2dCC, slider.value, niftiHeader, niftiImage, allOutputSlices2DCC);              
+        drawOutputCanvas(output3dCC, slider.value, niftiHeader, niftiImage, allOutputSlices3DCC);
   }
 
 
+  inputVolumeChange = (val) => {
+      document.getElementById("inputVolumeId").innerHTML = "<b>Input Volume Dim :</b>" + " [" + document.getElementById("batchSizeId").value + ", 38, 38, 38, " +
+      document.getElementById("numOfChanId").value + "]"
+  }
 
-	inputVolumeChange = (val) => {
-	    document.getElementById("inputVolumeId").innerHTML = "<b>Input Volume Dim :</b>" + " [" + $$("batchSizeId").getValue() + ", 38, 38, 38, " +
-	    $$("numOfChanId").getValue() + "]"
-	}
-
-	// For future use
-	download = (content, fileName, contentType) => {
-	    var a = document.createElement("a");
-	    var file = new Blob([content], {type: contentType});
-	    a.href = URL.createObjectURL(file);
-	    a.download = fileName;
-	    a.click();
-	}
+  // For future use
+  download = (content, fileName, contentType) => {
+      var a = document.createElement("a");
+      var file = new Blob([content], {type: contentType});
+      a.href = URL.createObjectURL(file);
+      a.download = fileName;
+      a.click();
+  }
 
   checkWebGl1 = () => {
 
       const gl = document.createElement('canvas').getContext('webgl');
       if (!gl) {
-                if (typeof WebGLRenderingContext !== 'undefined') {
-                  console.log('WebGL1 may be disabled. Please try updating video card drivers');
-                  // webix.message("WebGL1 also may be disabled. Please try updating video card drivers");
-                } else {
-                  console.log('WebGL1 is not supported'); 
-                  // webix.message("WebGL1 also is not supported");
-                }
-
-                return false;
+          if (typeof WebGLRenderingContext !== 'undefined') {
+            console.log('WebGL1 may be disabled. Please try updating video card drivers');
+            document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Disabled".fontcolor("red").bold() + '<br> Try updating video card driver';
+          } else {
+            console.log('WebGL1 is not supported'); 
+            document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Red".fontcolor("red").bold() + '<br> Not supported';
+          }
       } else {
-          console.log('WebGl1 is enabled');
-          return true;
+        console.log('WebGl1 is enabled');
+        document.getElementById("results").innerHTML += '<br>WebGL1 status: ' + "Green".fontcolor("green").bold();
       }
 
   }
@@ -1116,78 +1294,77 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
       const gl = document.createElement('canvas').getContext('webgl2');
       if (!gl) {
-                if (typeof WebGL2RenderingContext !== 'undefined') {
-                  console.log('WebGL2 may be disabled. Please try updating video card drivers');
-                  webix.alert("WebGL2 may be disabled. Please try updating video card drivers");
-                } else {
-                  console.log('WebGL2 is not supported'); 
-                  // webix.alert("WebGL2 is not supported");
-                }
-                return false;
+          if (typeof WebGL2RenderingContext !== 'undefined') {
+            console.log('WebGL2 may be disabled. Please try updating video card drivers');
+            document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Disabled".fontcolor("red").bold() + '<br> Try updating video card driver';
+          } else {
+            console.log('WebGL2 is not supported'); 
+            document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Red".fontcolor("red").bold() + '<br> Not supported';
+          }
 
-                
+         checkWebGl1(); 
       } else {
         console.log('WebGl2 is enabled');
-        return true;
-        // document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Green".fontcolor("green").bold();
+        document.getElementById("results").innerHTML = 'WebGL2 status: ' + "Green".fontcolor("green").bold();
       }
 
 
   }
 
-	runInference = () => {
+  runInference = () => {
 
-	        let processingFlag = true;
+          let processingFlag = true;
 
-	        let batchSize = 1;//parseInt($$("batchSizeId").getValue());
-	        let numOfChan = 1;//parseInt($$("numOfChanId").getValue());
+          let batchSize = parseInt(document.getElementById("batchSizeId").value);
+          let numOfChan = parseInt(document.getElementById("numOfChanId").value);
 
-	        // if (document.getElementById("file").value == "") {
-	        //     // document.getElementById("results").innerHTML = "No NIfTI file is selected".fontcolor("red");
-	        //     processingFlag = false;
-	        // }               
+          if (document.getElementById("file").value == "") {
+              document.getElementById("results").innerHTML = "No NIfTI file is selected".fontcolor("red");
+              processingFlag = false;
+          }               
 
-	        if (isNaN(batchSize) || batchSize < 1 || batchSize > 1) {
-	            processingFlag = false;
-	        }   
+          if (isNaN(batchSize) || batchSize < 1 || batchSize > 1) {
+              document.getElementById("results").innerHTML = "The batch Size must be 1 for this demo".fontcolor("red");
+              processingFlag = false;
+          }   
 
-	        if (isNaN(numOfChan) || (numOfChan !=1)) {
-	            // document.getElementById("results").innerHTML = "The number of channels must be a number of 1 for this demo".fontcolor("red");
-	            processingFlag = false;
-	        }                
+          if (isNaN(numOfChan) || (numOfChan !=1)) {
+              document.getElementById("results").innerHTML = "The number of channels must be a number of 1 for this demo".fontcolor("red");
+              processingFlag = false;
+          }                
 
-	        if(processingFlag) {
+          if(processingFlag) {
 
               tf.engine().startScope()
 
-	            console.log("Batch size: ", batchSize);
-	            console.log("Num of Channels: ", numOfChan);
+              console.log("Batch size: ", batchSize);
+              console.log("Num of Channels: ", numOfChan);
 
-	            // Propose subvolume size as needed by inference model input e.g. 38x38x38
-	            let batch_D = 38;
-	            let batch_H = 38;
-	            let batch_W = 38;
+              // Propose subvolume size as needed by inference model input e.g. 38x38x38
+              let batch_D = 38;
+              let batch_H = 38;
+              let batch_W = 38;
               
-	            let slice_width = niftiHeader.dims[1];
-	            let slice_height = niftiHeader.dims[2];
-	            let num_of_slices = niftiHeader.dims[3];
+              let slice_width = niftiHeader.dims[1];
+              let slice_height = niftiHeader.dims[2];
+              let num_of_slices = niftiHeader.dims[3];
 
-              let isBatchOverlapEnable =  1;//$$("batchOverlapId").getValue();
+              let isBatchOverlapEnable =  document.getElementById("batchOverlapId").checked;
 
 
 
-	            // let input_shape = [batchSize, 38, 38, 38, numOfChan];
+              // let input_shape = [batchSize, 38, 38, 38, numOfChan];
               let input_shape = [batchSize, batch_D, batch_H, batch_W, numOfChan];              
 
 
-	            let allSlices = getAllSlicesData1D(num_of_slices);
+              let allSlices = getAllSlicesData1D(num_of_slices);
 
-	            let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
+              let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
               // get slices_3d tensor
-	            let slices_3d = getSlices3D(allSlices_2D);
+              let slices_3d = getSlices3D(allSlices_2D);
               tf.dispose(allSlices_2D);               
               // nomalize MRI data to be from 0 to 1
-	            slices_3d = normalizeVolumeData(slices_3d);
+              slices_3d = normalizeVolumeData(slices_3d);
               
               let allBatches = [];
               let headSubCubesCoords = [];
@@ -1195,8 +1372,11 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
               if(isBatchOverlapEnable) {
                   // number of additional batches focus on the brain/head volume
-                  let num_of_Overlap_batches = 200; //parseInt($$("numOverlapBatchesId").getValue());
+                  let num_of_Overlap_batches = parseInt(document.getElementById("numOverlapBatchesId").value);
                   console.log(" num of overlapped batches: ", num_of_Overlap_batches);
+
+                  // Find the centroid of 3D head volume  
+                  // const headCentroid = findHeadCentroid(slices_3d, num_of_slices, slice_height, slice_width);
 
                   // Find the centroid of 3D head volume  and the variance                  
                   let cent_var = cubeMoments(slices_3d, 0.5);
@@ -1206,6 +1386,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                   // Variance 
                   const sigma = cent_var[1];
                   console.log(" Head 3D Variance : ", sigma);                  
+                  
 
                   headSubCubesCoords = findCoordsOfAddBrainBatches(num_of_Overlap_batches, 
                                                                       new Array(headCentroid[0], headCentroid[1], headCentroid[2]), 
@@ -1224,101 +1405,102 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                   allBatches = sliceVolumeIntoBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
               }
 
-              tf.dispose(slices_3d); 	       
+              tf.dispose(slices_3d);         
+              console.log(" sample of a batch for inference : ", Array.from(allBatches[0].data.dataSync())) 
 
-	            console.log(tf.getBackend());
-
-              // if( ! checkWebGl2() ) {
-              //    if( ! checkWebGl1() ) {
-              //         webix.alert(" WebGL2 and WebGL1 are not supported<br> Run terminated");
-              //         return 0;
-
-              //    } else {
-              //          webix.alert(" WebGL2 is not supported<br> Run process will be very slow");
-
-              //    } 
-              // }   
+              console.log(tf.getBackend());
+              checkWebGl2();  
 
 
-              // fetch('./ModelToLoad/mnm_tfjs_me_test/model.json')
-              // .then(response => {
-              //    return response.json();
-              // })
-              // .then(data => console.log("fetch results: ", data)); 
+              fetch('./mnm_tfjs_me_test/model.json')
+              .then(response => {
+                 return response.json();
+              })
+              .then(data => console.log("fetch results: ", data)); 
+                                        
 
-
-	            let allPredictions = [];
+              let allPredictions = [];
               console.log("predictOnBatch enabled");
 
-	            model.then(function (res) {
+              model.then(function (res) {
 
-	                 try {
-	                     let startTime = performance.now();
+                   try {
+                       let startTime = performance.now();
                        // maxLabelPredicted in whole volume of the brain
-                        maxLabelPredicted = 0;
-	                     
-	                     let j = 0;
-	                     let timer = window.setInterval(function() {
+                       let maxLabelPredicted = 0;
+                       
+                       let j = 0;
+                       let timer = window.setInterval(function() {
 
-	                        let curTensor = tf.tensor(allBatches[j].data.dataSync(), input_shape);
+                          let curTensor = tf.tensor(allBatches[j].data.dataSync(), input_shape);
                           // let prediction = res.predict( curTensor );
-	                        let prediction = res.predictOnBatch( curTensor );
-	                        tf.dispose(curTensor);
-	                        let axis = -1; //4;
-	                        let prediction_argmax = tf.argMax(prediction, axis);
+                          let prediction = res.predictOnBatch( curTensor );
+                          tf.dispose(curTensor);
+                          let axis = -1; //4;
+                          let prediction_argmax = tf.argMax(prediction, axis);
                           tf.dispose(prediction);                          
-	                        allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
+                          allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
                           let curBatchMaxLabel =  Math.max(...Array.from(prediction_argmax.dataSync()));
 
                           if( maxLabelPredicted < curBatchMaxLabel ) {
                                 maxLabelPredicted = curBatchMaxLabel;
                           } 
-
+                          
                           tf.dispose(prediction_argmax); 
           
 
-	                        let memStatus = tf.memory().unreliable ? "Red" : "Green";     
-	                        let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
-                          document.getElementById("progressBar").style.width=  (j+1)*100/allBatches.length + "%";
-
-                          document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
-
-                          // document.getElementById("progressBar").innerHTML=  Math.floor((j+1)*100/allBatches.length) + "%";
-
-	               
-	                        if( j == allBatches.length-1 ) {
-	                           window.clearInterval( timer );
+                          let memStatus = tf.memory().unreliable ? "Red" : "Green";     
+                          let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
+                          document.getElementById("completed").innerHTML = "Batches completed:  " + (j+1) + " / " + allBatches.length +  
+                                                // https://js.tensorflow.org/api/latest/#memory
+                                                "<br><br>" +"TF Memory Status: " + memStatus.fontcolor(tf.memory().unreliable ? "red" : "green").bold()  + 
+                                                // numBytes: Number of bytes allocated (undisposed) at this time
+                                                "<br>" + "numBytes :   " +  Math.round(tf.memory().numBytes/(1024*1024)) + "   MB" +
+                                                //numBytesInGPU : Number of bytes allocated (undisposed) in the GPU only at this time
+                                                "<br>" + "numBytesInGPU :   " + Math.round(tf.memory().numBytesInGPU/(1024*1024)) + "   MB" +
+                                                "<br>" + "numBytesInGPUAllocated :   " + Math.round(tf.memory().numBytesInGPUAllocated/(1024*1024)) + "   MB" +
+                                                "<br>" + "numBytesInGPUFree :   " + Math.round(tf.memory().numBytesInGPUFree/(1024*1024)) + "   MB" +
+                                                // numDataBuffers : Number of unique data buffers allocated (undisposed) at this time, which is ≤ the number of tensors
+                                                "<br>" + "numDataBuffers :   " + tf.memory().numDataBuffers + 
+                                                "<br>" + "numTensors :   " + tf.memory().numTensors +
+                                                "<br>" + unreliableReasons ;                                                
+                          
+                 
+                          if( j == allBatches.length-1 ){
+                             window.clearInterval( timer );
 
                              let numSegClasses = maxLabelPredicted + 1;
                              // Generate output volume or slices                             
-	                           generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
+                             generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
 
-                             document.getElementById("progressBar").style.width = 0;   
-
-                             $$("downloadBtn").enable();   
-                             $$("segmentBtn").enable();                      
                              tf.engine().endScope();
 
-	                           let stopTime = performance.now();
-	                           console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
-												                              ((stopTime -startTime)/1000).toFixed(4) + "  Seconds");
-                                                                              
-	                        }
+                             let stopTime = performance.now();
+                             document.getElementById("results").innerHTML ="Processing the whole brain volume in tfjs tooks for multi-class output mask : " + 
+                                                      ((stopTime -startTime)/1000).toFixed(4).fontcolor("green").bold() + 
+                                                      "  Seconds.<br> Press " + " F12 ".fontcolor("red").bold() + 
+                                                      "to see the inference results in Console"   
+                             //download(JSON.stringify(allPredictions), 'prediction.json', 'text/plain');                                                                                
+                          }
 
-	                        j++;
+                          j++;
 
-	                     }, 0);                            
+                       }, 0);                            
 
-	                  }
-	                  catch(err) {
-	                    // document.getElementById("results").innerHTML = err.message.fontcolor("red").bold() + 
-	                    //     "  Try to decrease batch size or increase H/W resources".fontcolor("red").bold() +
-	                    //     "<br>" +"If webgl context is lost, try to restore webgl context by visit the link ".fontcolor("red") + 
-	                    //     '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
-	                  }
-	            }); 
-	      }       
-	 }// end of runInference
+                    }
+                    catch(err) {
+                      document.getElementById("results").innerHTML = err.message.fontcolor("red").bold() + 
+                          "  Try to decrease batch size or increase H/W resources".fontcolor("red").bold() +
+                          "<br>" +"If webgl context is lost, try to restore webgl context by visit the link ".fontcolor("red") + 
+                          '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
+                    }
+              }); 
+        }       
+   }// end of runInference
+
+
+  // Load tfjs json model
+  const model =  load_model();
 
 
 })();
