@@ -1,4 +1,4 @@
-# 3D Brain Segmentation  v1.0.0
+# 3D Brain Segmentation  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]()
 Mohamed Masoud - Sergey Plis - 2021
 
 
@@ -29,10 +29,11 @@ To run the server:
 
        - Please DON'T change batch size, it is static to 1 for now.
 
+## Live Demo
 
+Live demo can be found with this [link](https://neuroneural.github.io/brainchop/)
 
-
-## Demo
+## Visual Guidelines
 
 # Integrated with Papaya viewers
 
