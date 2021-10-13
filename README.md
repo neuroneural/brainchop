@@ -1,5 +1,5 @@
-# 3D Brain Segmentation  v1.0.0
-Mohamed Masoud - 2021
+# 3D Brain Segmentation  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]()
+Mohamed Masoud - Sergey Plis - 2021
 
 
 ## Whole Brain Inference at the Browser
@@ -25,14 +25,16 @@ To run the server:
 
        - Open browser console by press F12 to see the sample outputs 
 
-       - click on Choose File, and navigate to "MRI Sample" folder
+       - click on Browse File button, and navigate to "MRI Sample" folder
 
        - Please DON'T change batch size, it is static to 1 for now.
 
+## Live Demo
 
+To see the tool in action please visit this [link!](https://neuroneural.github.io/brainchop/)
 
+## Visual Guidelines
 
-## Demo
+#### Integrated with Papaya viewers
 
-
-![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/Compare2_3DCC.gif)
+![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/SimpleUI_Demo.gif)
