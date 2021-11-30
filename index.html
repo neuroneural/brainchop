@@ -275,7 +275,12 @@
                                                   niftiHeader = readNiftiHeader(rawNiftiData);
                                                   niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
                                                   if(niftiHeader.datatypeCode > 2) {
-                                                      webix.alert("For best resutls, please normalize image to 1x1x1 mm thickness");
+                                                      let alertTxt = "Please normalize image to 1x1x1 mm thickness by using: <br> <b>mri_convert -c your_original_image input.nii.gz </b>";
+                                                      webix.alert({
+                                                        type:"alert-error",
+                                                         width:"35%",
+                                                        text: alertTxt
+                                                      });                                                      
                                                   }
 
 
