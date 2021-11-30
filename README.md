@@ -31,7 +31,7 @@ To run the server:
 
 ## Live Demo
 
-To see the tool in action please visit this [link!](https://neuroneural.github.io/brainchop/)
+To see the tool in action please visit this [link!](https://brainchopjs.gitlab.io/basic/)
 
 ## Visual Guidelines
 

@@ -16,11 +16,12 @@
                 3D Brain Segmentation
 =========================================================*/  
 
+
 (function(){
 
   // defined at parameters file
-  maxLabel = 0;
-  maxLabelPredicted = 0;
+  // maxLabel = 0;
+  // maxLabelPredicted = 0;
 
 
 /**
@@ -130,9 +131,8 @@
 */ 
 
    getRgbObject = (rgbString) => {
-
 	  let RGB = {};
-      let rgbArray = rgbString;
+    let rgbArray = rgbString;
 	  rgbArray = rgbArray.replace(/[^\d,]/g, '').split(',');
 	  let rgbKeys=["r","g","b"];
 	  RGB=rgbKeys.reduce((obj, key, index) => ({ ...obj, [key]:parseInt(rgbArray[index]) }), {});
@@ -287,8 +287,8 @@
           let color = new cv.Scalar(255, 255, 255);
           cv.drawContours(mask, contours, maxContourAreaIdx, color, -1); //cv.LINE_8      
 	      
-	      cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
-	      cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
+	        cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
+	        cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
              
 
           mat.delete();
@@ -303,538 +303,8 @@
 
 
 /////////////******************* 3D Connected Components**************************/////////////////
-
 /**
-* Get binary mask of slice data
-*
-* @since 1.0.0
-* @param {Array} sliceData- The array represents slice pixel values in 1D
-* @returns {Array} Returns binary mask in 1D
-* @example
-*
-* getBinaryMaskData1D([0,100,100, 0,255,255, .. ])
-* // => [0,1,1, 0,1,1, .. ]
-*
-*/ 
-
-    getBinaryMaskData1D = (sliceData) => { // greyImage is one channel 2D image with values 0-255
-          
-          let maskBinaryData1D = [];
-          for (let idx = 0; idx < sliceData.length; idx++) {
-
-               if(sliceData[idx] > 0) {
-                  maskBinaryData1D[idx] = 1;                   
-               } else {
-                  maskBinaryData1D[idx] = 0;                   
-               }
-          }
-      
-          return maskBinaryData1D;
-    }
-
-/**
-* Convert 1D binary data to 2D
-*
-* @since 1.0.0
-* @param {Array} binaryData1D- The array represents slice binary mask values in 1D
-* @param {number} imgHeight- Slice Height
-* @param {number} imgWidth - Slice Width
-* @returns {Array} Returns binary mask in 2D
-* @example
-*
-* convertBinaryDataTo2D([0,1,1, 0,0,1 ], 2, 3)
-*
-* // => [ [0,1,1],
-*         [0,0,1],
-*       ]
-*
-*/ 
-
-    convertBinaryDataTo2D = (binaryData1D, imgHeight, imgWidth) => {
-        return tf.tensor(binaryData1D, [imgHeight, imgWidth]).arraySync();
-    }
-
-
-/**
-* Add zero padding to 2D array e.g label2D
-* pad([[1,1],[1,1]]) means: 1 row of zeros befor, 1 row of zeros after,
-*                           1 col of zeros befor, 1 col of zeros after,
-* Ref: https://js.tensorflow.org/api/3.6.0/#pad
-*
-* @since 1.0.0
-* @param {Array} arr2d- The array can represents slice binary mask values in 2D
-* @returns {Array} Returns same input array with zero padding edges
-* @example
-*
-* addZeroPaddingTo2dArray( [ [1,0,1],
-*                            [0,0,1] ])
-*
-* // => [ [0,0,0,0,0],
-*         [0,1,0,1,0],
-*         [0,0,0,1,0],
-*         [0,0,0,0,0],
-*       ]
-*
-*/ 
-   addZeroPaddingTo2dArray = (arr2d) => {
-        const tensor2d = tf.tensor2d(arr2d);
-        return tensor2d.pad([[1,1],[1,1]]).arraySync();
-    }
-
-
-
-
-/**
-* Get connected components For 2D slice
-*
-* @since 1.0.0
-* @param {Array} binaryMaskData2D- The array represents slice binary mask values in 2D, zero padding is needed. 
-* @param {number} imgHeight- Slice Height
-* @param {number} imgWidth - Slice Width
-* @returns {Array} Returns Connected Components labels in 2D
-* @example
-*
-* getConComponentsFor2D( [ [0,0,0,0,0],[0,1,0,1,0],[0,0,0,0,0] ], 3, 5)
-*
-* // => [ [0,0,0,0,0],
-*         [0,1,0,2,0],
-*         [0,0,0,0,0]
-*       ]
-*
-*/ 
-
-    getConComponentsFor2D = (binaryMaskData2D, imgHeight, imgWidth) => {  
-        // initiat label
-        let label1D = [];
-        resetEquivalenceTable();           
-        for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
-                 label1D[idx] = 0;
-        }     
-        
-        let label2D = convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
-
-        // maxLabel initiation to zero, starting label for 2d and 3d labeling
-        maxLabel = 0; 
-
-        // 1st pass
-        for(let row = 0; row < imgHeight; row++) {
-            for(let col = 0; col < imgWidth; col++) { 
-               
-               if( binaryMaskData2D[row][col] != 0) {
-                  label2D[row][col] = checkNeighbors2D(label2D, row, col, maxLabel)
-                  if(maxLabel < label2D[row][col]) {
-                     maxLabel = label2D[row][col];
-                  }
-
-               }
-            }
-        }
- 
-        // adjust Equivalence table labels such that  eqvTabel[3] = 2 && eqvTabel[2] = 1 => eqvTabel[3] = 1      
-        for(let labelIdx = equivalenceTabel.length - 1; labelIdx > 0; labelIdx = labelIdx-1 ) {          
-            adjustEquivalenceTable (labelIdx);
-        }  
-
-        // 2nd pass : relabeling the slice after eqvTable adjustment 
-        for(let row = 0; row < imgHeight; row++) {
-            for(let col = 0; col < imgWidth; col++) { 
-               
-               if( label2D[row][col] != 0) {
-                    label2D[row][col] = equivalenceTabel[label2D[row][col]];
-               }
-            }
-        }          
-
-        return   label2D;
-    }
-
-
-/**
-* Find Max label resulted from applying 3D connected components.
-*
-* @since 1.0.0
-* @param {Array} label3D- The 3D array represents slices labels, e.g label3D[sliceIdx][row][col]
-* @param {number} sliceHeight- Slice Height
-* @param {number} sliceWidth - Slice Width
-* @param {number} numSlices - Total Number of slices (a.k.a z-dim)
-* @returns {number} Returns Maximum label found 
-* @example
-*
-* getMaxLabelFor3D( [ [[0,0,0],[0,1,0]],[[0,2,0],[0,0,3]] ], 2, 3, 2)
-* // => 3
-*
-*/ 
-
-    getMaxLabelFor3D = (label3D, sliceHeight, sliceWidth, numSlices) => {  
-
-        let maxLabelFor3D = 0; 
-
-        for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {
-	          for(let row = 0; row < sliceHeight; row++) {
-	              for(let col = 0; col < sliceWidth; col++) { 
-	                 
-	                 if( label3D[sliceIdx][row][col] > maxLabelFor3D) {
-	                     maxLabelFor3D = label3D[sliceIdx][row][col];
-	                 }
-	              }
-	          }
-        } 
-
-        return   maxLabelFor3D;
-    }
-
-
-/**
-* Find volume label that has the maximum number of voxels resulted from applying 3D connected components.
-*
-* @since 1.0.0
-* @param {Array} label3D- The 3D array represents slices labels, e.g label3D[sliceIdx][row][col]
-* @param {number} sliceHeight- Slice Height
-* @param {number} sliceWidth - Slice Width
-* @param {number} numSlices - Total Number of slices aka z-dim
-* @returns {number} Returns Volume label that has maximum number of voxels
-* @example
-*
-* getMaxVolumeLabel3D( [ [[0,1,0],[0,1,0]],[[0,2,0],[0,0,3]] ], 2, 3, 2)
-* // => 1
-*
-*/ 
-    
-    getMaxVolumeLabel3D = (label3D, sliceHeight, sliceWidth, numSlices) => {
-
-        // Initiat connected component volumes to zeros   
-        let  ccVolume = [];
-        let maxCCLabel3D = getMaxLabelFor3D(label3D, sliceHeight, sliceWidth, numSlices)
-
-        for( let idx = 0; idx < maxCCLabel3D; idx ++) {         
-              ccVolume[idx] = 0;
-        }  
-        
-        for(let sliceIdx = 0; sliceIdx < numSlices; sliceIdx++ ) {         
-		        for(let row = 0; row < sliceHeight; row++) {
-		            for(let col = 0; col < sliceWidth; col++) { 
-		               ccVolume[label3D[sliceIdx][row][col]] = ccVolume[label3D[sliceIdx][row][col]] +1;
-		            }  
-		        }
-        }
-     
-        let maxCcVolume = 0;
-        let maxCcVolumeLabel = -1;
-
-        for( let idx = 1; idx < maxCCLabel3D; idx ++) {  
-
-            if( maxCcVolume < ccVolume[idx] ) {
-                 maxCcVolume = ccVolume[idx];
-                 maxCcVolumeLabel = idx;
-            }      
-        } 
-
-        return   maxCcVolumeLabel;
-    }
-
-
-
-
-    resetEquivalenceTable = () => {
-       equivalenceTabel = [];
-       equivalenceTabel[0] = 0;
-    }
-
-    updateEquivalenceTable = (label, newLabel) => {
-        equivalenceTabel[label] = newLabel;
-    }
-
-
-/**
-* Adjust equivalence table for connected components finding. Recursive call
-* adjust Equivalence table labels such that if eqvTabel[3] = 2 && eqvTabel[2] = 1 then eqvTabel[3] = 1 
-*
-* @since 1.0.0
-* @param {number} labelIdx 
-*
-*/ 
-
-    adjustEquivalenceTable = (labelIdx) => {
-
-        if(equivalenceTabel[labelIdx] != labelIdx) {
-            equivalenceTabel[labelIdx] = adjustEquivalenceTable(equivalenceTabel[labelIdx]);
-        } 
-       
-        return equivalenceTabel[labelIdx];
-    }
-
-   
-/**
-*  Check neighbors of each pixel to assign proper label to current pixel in 2D slice
-*
-* @since 1.0.0
-* @param {Array} label- The 2D array represents slice labels, e.g label[row][col]
-* @param {number} row- Slice Height
-* @param {number} col - Slice Width
-* @param {number} maxLabel - Max label assginged to connected components task till this call
-* @returns {number} Returns smallest neighbor label or new incremental label if there is no neighbors with label
-* @example
-*
-* checkNeighbors2D( [  [0,0,0,0],
-*                      [0,0,4,0], 
-*                      [0,5,0,0],
-*                      [0,0,0,0] ], 2, 2, 5)
-* // => 4
-*
-*/ 
-
-    checkNeighbors2D = (label, row, col, maxLabel) => {
-
-        if ( label[row][col - 1] && label[row - 1][col]) {
-
-              if(label[row][col - 1] == label[row - 1][col]) {
-                 return label[row ][col - 1];
-
-              } else {
-
-                 let smallerLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                 let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                 updateEquivalenceTable(largerLabel, smallerLabel);                
-                 return smallerLabel;
-              }
-
-        } else if ( label[row ][col - 1] ) {
-            return label[row ][col - 1] ;
-        } else if ( label[row - 1][col] ) {
-            return label[row - 1][col];            
-        } else {
-            updateEquivalenceTable(maxLabel+1, maxLabel+1); 
-            return maxLabel+1 ;
-        }  
-
-    }
-
-
-/**
-*  Check neighbors of each voxel to assign proper label to current voxel in two consecutive slices 
-*
-* @since 1.0.0
-* @param {Array} label- The 2D array represents slice labels, e.g label[row][col]
-* @param {number} z_1PixelLabel- Previous slice pixel label value at same row and col
-* @param {number} row- Slice Height
-* @param {number} col - Slice Width
-* @param {number} maxLabel - Max label assginged to connected components task till this call
-* @returns {number} Returns smallest neighbor label or new incremental label if there is no neighbors with label
-* @example
-*
-* checkNeighbors3D( [  [0,0, 0,0],
-*                      [0,0,17,0], 
-*                      [0,18,0,0],
-*                      [0,0 ,0,0] ], 16 , 2, 2, 18)
-* // => 16
-*
-*/  
-
-
-    checkNeighbors3D = (label, z_1PixelLabel, row, col, maxLabel) => { //z_1PixelLabel same x,y pixel label of z-1 prev slice
-          if ( label[row][col - 1] && label[row - 1][col] && z_1PixelLabel) {
-
-                if( (label[row][col - 1] == label[row - 1][col]) && (label[row][col - 1] == z_1PixelLabel) ) {
-                   return z_1PixelLabel;
-
-                } else {
-
-                   let smallLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                   let smallestLabel = ( z_1PixelLabel < smallLabel ) ? z_1PixelLabel : smallLabel;                
-                   let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                   updateEquivalenceTable(largerLabel, smallestLabel);                   
-                   updateEquivalenceTable(smallLabel, smallestLabel);                
-                   return smallestLabel;
-                }
-
-          } else if ( label[row][col - 1] && label[row - 1][col] ) {
-
-              if(label[row][col - 1] == label[row - 1][col]) {
-                 return label[row ][col - 1];
-
-              } else {
-
-                 let smallerLabel = ( label[row][col - 1] < label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                 let largerLabel = ( label[row][col - 1] > label[row - 1][col] ) ? label[row][col - 1] : label[row - 1][col];
-                 updateEquivalenceTable(largerLabel, smallerLabel);                
-                 return smallerLabel;
-              }
-              
-
-          } else if ( label[row - 1][col] && z_1PixelLabel ) {
-
-              if(label[row - 1][col] == z_1PixelLabel) {
-                 return z_1PixelLabel;
-
-              } else {
-
-                 let smallerLabel = ( z_1PixelLabel < label[row - 1][col] ) ? z_1PixelLabel : label[row - 1][col];
-                 let largerLabel = ( z_1PixelLabel > label[row - 1][col] ) ? z_1PixelLabel : label[row - 1][col];
-                 updateEquivalenceTable(largerLabel, smallerLabel);                
-                 return smallerLabel;
-              }                
-
-          } else if ( label[row][col - 1] && z_1PixelLabel ) {
-              
-              if( label[row][col - 1] == z_1PixelLabel ) {
-                 return z_1PixelLabel;
-
-              } else {
-
-                 let smallerLabel = ( label[row][col - 1] < z_1PixelLabel ) ? label[row][col - 1] : z_1PixelLabel;
-                 let largerLabel = ( label[row][col - 1] > z_1PixelLabel ) ? label[row][col - 1] : z_1PixelLabel;
-                 updateEquivalenceTable(largerLabel, smallerLabel);                
-                 return smallerLabel;
-              }
-                                              
-          } else if ( label[row ][col - 1] ) {
-              return label[row ][col - 1] ;
-          } else if ( label[row - 1][col] ) {
-              return label[row - 1][col]; 
-          } else if ( z_1PixelLabel) {
-              return z_1PixelLabel;  
-          } else {
-              updateEquivalenceTable(maxLabel+1, maxLabel+1); 
-              return maxLabel+1 ;
-          } 
-    }
-   
-
-/**
-* Get connected components For 3D Volume
-*
-* @since 1.0.0
-* @param {Array} outputSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that outputSlices[i] gives slice data as 1d Array
-* @param {number} sliceHeight- Slice Height
-* @param {number} sliceWidth - Slice Width
-* @returns {Array} Returns 3D labels e.g. label3D[sliceIdx][row][col]
-* @example
-*
-* getConComponentsFor3DVolume( [ [0,0,0,0,0,128, 50 , 0 ,0,0,0,0],
-*                                [0,0,0,0,0, 0 , 90 , 0 ,0,0,0,0],
-*                                [0,0,0,0,0, 0 , 240,100,0,100,0,0] ], 3, 4)
-*
-* // => [ [ [0,0,0,0],
-*           [0,1,1,0],
-*           [0,0,0,0]],
-*
-*         [ [0,0,0,0],
-*           [0,0,1,0],
-*           [0,0,0,0]],
-*
-*         [ [0,0,0,0],
-*           [0,0,1,1],
-*           [0,2,0,0]], 
-*       ]
-*
-*/    
-    getConComponentsFor3DVolume = (outputSlices, sliceHeight, sliceWidth) => {
-
-          let binaryMaskData1D = [];
-          let binaryMaskData2D = [];     
-          let label3D = [];  
-
-          for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
-               
-                binaryMaskData1D[sliceIdx] = getBinaryMaskData1D(outputSlices[sliceIdx]); // binaryMaskData1D has values 0 or 1 
-
-                binaryMaskData2D[sliceIdx] = convertBinaryDataTo2D(binaryMaskData1D[sliceIdx], sliceHeight, sliceWidth);
-
-                if(sliceIdx == 0) {
-                    //Only called for once at begining with first slice
-                    label3D[sliceIdx] = getConComponentsFor2D(binaryMaskData2D[sliceIdx], sliceHeight, sliceWidth);
-
-                } else {
-                    label3D[sliceIdx] = getConComponentsFor2Slices(binaryMaskData2D[sliceIdx], label3D[sliceIdx - 1], sliceHeight, sliceWidth);
-                }
-
-          }
-
-          // 3d connected components third pass
-          for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
-              let row, col;
-              for(row = 0; row < sliceHeight; row++) {
-                  for(col = 0; col < sliceWidth; col++) {
-                     
-                     if( label3D[sliceIdx][row][col] != 0) {
-                          label3D[sliceIdx][row][col] = equivalenceTabel[label3D[sliceIdx][row][col]];
-                     }
-                  }
-              }  
-          }    
-
-          return  label3D;              
-    }
-
-/**
-* Get connected components For a Volume of 2 slices, current slice and previous slice.
-*
-* @since 1.0.0
-* @param {Array} binaryMaskData2D- 2D array[row][col] has the mask {0,1} values of the current selected slice
-* @param {Array} preSliceLabels- 2D array[row][col] has the previous slice labels
-* @param {number} imgHeight- Slice Height
-* @param {number} imgWidth - Slice Width
-* @returns {Array} Returns 2D labels e.g. label2D[row][col] of the current slice
-* @example
-*
-* equivalenceTabel = [];
-* equivalenceTabel[1] = 1;
-* getConComponentsFor2Slices(  [[0,0,0,0,0],
-*                               [0,1,0,1,0],
-*                               [0,0,0,0,0]] , [[0,0,0,0,0],
-*                                               [0,0,0,1,0],
-*                                               [0,0,0,0,0]] , 3, 5);
-*                           
-* // => [ [0,0,0,0,0],
-*         [0,2,0,1,0],
-*         [0,0,0,0,0]
-*       ]
-*
-*/ 
-
-  
-    getConComponentsFor2Slices = (binaryMaskData2D, preSliceLabels, imgHeight, imgWidth) => {  
-        let label1D = [];
-        // resetEquivalenceTable();           
-        for(let idx = 0; idx < imgHeight * imgWidth; idx++) {
-             label1D[idx] = 0;
-        }     
-        
-        let label2D =   convertBinaryDataTo2D(label1D, imgHeight, imgWidth);
-        // let maxLabel = 0; 
-        for(let row = 0; row < imgHeight; row++) {
-            for(let col = 0; col < imgWidth; col++) { 
-               
-               if( binaryMaskData2D[row][col] != 0) {
-                  label2D[row][col] = checkNeighbors3D(label2D, preSliceLabels[row][col], row, col, maxLabel)
-                  if(maxLabel < label2D[row][col]) {
-                     maxLabel = label2D[row][col];
-                  }
-
-               }
-            }
-        }
-        
-        // console.log("First pass label2D :", label2D);
-        for(let labelIdx = equivalenceTabel.length - 1; labelIdx > 0; labelIdx = labelIdx-1 ) {          
-            adjustEquivalenceTable (labelIdx);
-        }  
-
-        for(let row = 0; row < imgHeight; row++) {
-            for(let col = 0; col < imgWidth; col++) { 
-               
-               if( label2D[row][col] != 0) {
-                    label2D[row][col] = equivalenceTabel[label2D[row][col]];
-               }
-            }
-        }          
-
-        return   label2D;
-    }
-
-
-/**
-* Post processing the resulted labels from the inference model by removing noisy 3D regions
+* Post processing the resulted labels from the inference model by removing noisy 3D regions, and keep only largest region
 *
 * @since 1.0.0
 * @param {Array} outputSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that outputSlices[i] gives slice data as 1d Array
@@ -856,47 +326,164 @@
 
    postProcessSlices3D = (outputSlices, sliceHeight, sliceWidth) => {
 
-      // let bgLabelValue = 0; //parseInt($$("bgLabelId").getValue());
-      let label3D = [];  
+      let cc3d = new ConnectCompFor3D();
 
-      label3D = getConComponentsFor3DVolume(outputSlices, sliceHeight, sliceWidth);
-
-      // Filter only largest volumetric 3d region with the most voxels of same label and remove noisy smaller 3d regions 
-      let maxVolumeLabel =  getMaxVolumeLabel3D(label3D, sliceHeight, sliceWidth, outputSlices.length);	
-
-      for(let sliceIdx = 0; sliceIdx < outputSlices.length; sliceIdx++) {
-              //Get max volume mask 
-              let row, col;
-              for(row = 0; row < sliceHeight; row++) {
-                  for(col = 0; col < sliceWidth; col++) { 
-                     // remove nosiy smaller regions
-                     if(label3D[sliceIdx][row][col] != maxVolumeLabel) {
-                         label3D[sliceIdx][row][col] = 0;
-                     } else {
-                         //mask largest 3d volumatic region 
-                         label3D[sliceIdx][row][col] = 255;
-                     }
-                  }  
-              }  		          
-
-	          let pixelIdx;
-
-	          for(row = 0, pixelIdx = 0; row < sliceHeight; row++) {
-	              for(col = 0; col < sliceWidth; col++, pixelIdx++) { 
-	                 //Filter smaller regions original MRI data 
-	                 if(label3D[sliceIdx][row][col] == 0) {
-	                    outputSlices[sliceIdx][pixelIdx] = 0;
-	                 }
-
-	              }  
-	          } 
-     }
-
-     return outputSlices;
-  }   
+      outputSlices = cc3d.findLargest3dRegion(outputSlices, sliceHeight, sliceWidth);
+      
+      // postprocess outputSlices after remove noisy regions or smaller regions 
+      delete cc3d;
+      return outputSlices;
+  }  
 
 
-///////////////******************************************************************////////////////////
+
+
+///////////////************************3D Contours*********************************////////////////////
+
+   getSliceContoursMaskByLabel = (imgDataForLabel, mask, color) => {
+
+          let mat = cv.matFromImageData( imgDataForLabel );
+          let mask_gray = new cv.Mat ();
+          let mask_binary = new cv.Mat ();
+          let contours = new cv.MatVector();   
+          let hierarchy = new cv.Mat();    
+
+          // Grayscale conversion
+          cv.cvtColor (mat, mask_gray, cv.COLOR_RGBA2GRAY, 0);
+          cv.findContours(mask_gray, contours, hierarchy,  cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE); //cv.RETR_CCOMP cv.CHAIN_APPROX_SIMPLE cv.CHAIN_APPROX_NONE  cv.RETR_EXTERNAL
+
+          // Draw contours on mask
+          for (let i = 0; i < contours.size(); ++i) {
+              cv.drawContours(mask, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+          }
+
+          mask_gray.delete();  contours.delete(); hierarchy.delete();  
+
+          return mask;  
+   }
+
+
+
+  getCustomContoursColor = (numSegClasses) => {
+          let colors = generateColors(100, 50,  numSegClasses);
+          let colorsRgbObj = [];
+           //Find the color object for each class
+           for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+                 colorsRgbObj[classIdx] =  getRgbObject(hslToRgb(colors[classIdx]));
+           }
+
+          return colorsRgbObj;
+  }
+
+
+  getCanvasImageDataForImgRegion = (sliceData1D,  imgHeight, imgWidth, regionLabel) => {  
+      let canvas = document.createElement("CANVAS"); 
+      // let canvas = document.getElementById('canvasOutput');
+
+      // set canvas dimensions to nifti slice dimensions
+      canvas.width = imgWidth;
+      canvas.height = imgHeight;
+
+      // make canvas image data
+      let ctx = canvas.getContext("2d");
+      let canvasImageData = ctx.createImageData(canvas.width, canvas.height);            
+
+      // canvasImageData.data = sliceData1D;
+
+      for (let idx = 0; idx < sliceData1D.length; idx++) {
+
+           if(sliceData1D[idx] ==  regionLabel) {
+              value = 255;                 
+           } else {
+              value = 0;                  
+           }
+
+          canvasImageData.data[idx * 4] = value;
+          canvasImageData.data[idx * 4 + 1] = value;
+          canvasImageData.data[idx * 4 + 2] = value;
+          canvasImageData.data[idx * 4 + 3] = 255; // Alpha channel     
+      }
+
+      // return canvasImageData;
+      return canvasImageData;
+    
+  }
+
+
+   getSliceContours = ( sliceData1D, sliceHeight, sliceWidth,  numSegClasses, isRGBA = false) => {
+
+          //let sliceContoursMask = cv.Mat.zeros(mat.cols, mat.rows, cv.CV_8UC3);  
+          let sliceContoursMask = cv.Mat.zeros(sliceWidth, sliceHeight, cv.CV_8UC3); 
+
+          let allLabelColors = getCustomContoursColor(numSegClasses); 
+          //-- e.g. allLabelColors : [ { r: 255, g: 0, b: 0 }, { r: 0, g: 255, b: 0 }, { r: 0, g: 0, b: 255 } ]
+          
+          // For future use
+          let bgLabel = 0;
+
+          // For each labeled region  find its contours
+          for(let label = 0; label < numSegClasses; label++) {
+
+              if(label != bgLabel) {
+                  
+                  let labelColor;
+
+                  if(isRGBA) {
+                      labelColor = { 0: allLabelColors[label].r , 1: allLabelColors[label].g, 2: allLabelColors[label].b, 3: 0, length: 4 };                                                         
+                  } else { // is Gray
+                      let grayValue = Math.ceil(label*255/(numSegClasses - 1))
+                      labelColor = { 0: grayValue , 1: grayValue, 2: grayValue, 3: 0, length: 4 };                                                         
+                  }
+                  sliceContoursMask = getSliceContoursMaskByLabel( getCanvasImageDataForImgRegion( [...sliceData1D], sliceHeight, sliceWidth, label ), sliceContoursMask, labelColor );
+              }
+          }
+
+          
+
+          if(isRGBA) {
+
+              // Convert output contours mask to RGBA  to make background areas transparent. 
+              cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGB2RGBA, 0);
+
+              
+
+              // Make background areas transparent and keep only edges
+              let slicePixelsRGBA1D = sliceContoursMask.data;
+
+              for (let i = 0; i < slicePixelsRGBA1D.length; i += 4) {
+
+                if( (slicePixelsRGBA1D[i] == 0) && (slicePixelsRGBA1D[i+1] == 0) && (slicePixelsRGBA1D[i+2] == 0) ) {
+                   slicePixelsRGBA1D[i+3] = 0;
+                } 
+              }
+
+              sliceContoursMask.delete();
+
+              return slicePixelsRGBA1D
+
+          } else { // Gray is needed.
+          
+             cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGBA2GRAY, 0);
+             return sliceContoursMask.data  
+          }  
+        
+
+
+  }
+
+
+  findVolumeContours = (volumeSlices, sliceHeight, sliceWidth, numSegClasses) => {
+       let volumeSlicesWithContours = [];
+
+       for(let sliceIdx = 0; sliceIdx < volumeSlices.length; sliceIdx++) {
+               volumeSlicesWithContours[sliceIdx] =  getSliceContours( [...volumeSlices[sliceIdx]], sliceHeight, sliceWidth,  numSegClasses)
+       }
+
+       return volumeSlicesWithContours;
+  } 
+
+
+////////////*******************************************************************////////////////////
 /**
 * Standard Normal variate using Box-Muller transformation.
 * The transformation simply takes two variables that are uniformly distributed 
@@ -1055,6 +642,36 @@
 
   tensor2Array = (tensor) => {
     return tensor.arraySync();
+  }
+
+
+/**
+*  Convert single/multi dimensional array to single/multi tensor
+*  
+* @since 1.0.0
+* @param {Array} array- e.g. [1,2,3,4,5,6,7,8]
+* @returns {tf.tensor} Returns tf.tensor  
+* @example
+*
+* t = array2Tensor([[ [1,2],
+*                     [3,4] ],
+* 
+*                   [ [5,6],
+*                     [7,8] ]
+*                 ])
+*
+* t.print()
+* // =>tensor [ [ [1,2],
+*                 [3,4] ],
+*
+*               [ [5,6],
+*                 [7,8] ]
+*             ]
+* 
+*/ 
+
+  array2Tensor = (array) => {
+    return tf.tensor(array);
   }
 
 
@@ -1448,10 +1065,26 @@
         return await tf.loadLayersModel(modelUrl);
 	}
 
+/**
+* load uploaded pre-trained model from local drive 
+*
+* @since 1.0.0
+* @param {File} modelFile - the model File e.g. { name: "model.json", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
+* @param {File} weightFile - the weight File e.g. { name: "weight.bin", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
+* @returns {promise} Promise object represents the model to load
+* @example
+*
+* load_browser_model(uploadJSONInput.files[0], uploadWeightsInput.files[0])
+* // => Promise { <state>: "fulfilled", <value>: {…} }
+*
+*/  
 
+    load_browser_model = async( modelFile, weightFile) => {
+        return await tf.loadLayersModel(tf.io.browserFiles( [ modelFile, weightFile ]));
+    }
 
 /**
-* Generates range of colors for Segmentation classes 
+* Generates range of colors for Segmentation classes -- (refine)
 *
 * @since 1.0.0
 * @param {number} numSegClasses - The number of segmentation classes.
@@ -1542,8 +1175,191 @@ getCustomColorTable = (numSegClasses) => {
 }
 
 
+
+getCustomColorTableFromUrl = (numSegClasses, colorURL ) => { 
+
+
+        var customColorTable = function() { }; 
+
+        let colors; 
+        // read json file in sync mode
+        $.ajax({
+              url: colorURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                colors = response
+                //-- colors : {0: "rgb(0,0,0)", 1: "rgb(0,255,0)", 2: "rgb(255,0,255)"} 
+              }
+            });
+
+
+
+        console.log("colors: ", colors)
+        
+
+        let colorsRgbObj = [];
+
+        // Array of threshold grey value of each class
+        let classGreyValue = [];
+
+
+            
+        //Find the threshold grey value of each class
+        for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+              classGreyValue[classIdx] = Math.ceil(classIdx*255/(numSegClasses - 1));
+              // if file exist
+              colorsRgbObj[classIdx] =  getRgbObject(colors[classIdx]);
+              console.log(" colorsRgbObj[classIdx] ", colorsRgbObj[classIdx])
+        }
+
+
+        customColorTable.prototype.lookupRed = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].r; 
+                }
+
+             }   
+
+        };
+
+        customColorTable.prototype.lookupGreen = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].g; 
+                }
+
+             }    
+        };
+
+        customColorTable.prototype.lookupBlue = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].b; 
+                }
+
+             }   
+        };            
+
+        return customColorTable;
+}
+
+
 /**
-* Generate output labels of all slices.
+* Fetch Labels data from labels.json file  -- (refine)
+*
+* @since 1.0.0
+* @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
+* @example
+*
+* fetchLabelStructure("./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json")
+*
+*/  
+
+fetchLabelStructure = (labelsURL) => {
+
+    if(labelsURL !== null) {
+
+        //const response = await fetch(labelsURL);
+        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+
+        $.ajax({
+              url: labelsURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                labelsDataObj = response  
+                //-- labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+              }
+            });
+
+
+        var customAtlas = function() { };
+
+        customAtlas.prototype.getLabelAtCoordinate = function (xWorld, yWorld, zWorld, xIndex, yIndex, zIndex ) {
+            let labels = labelsDataObj;
+            let voxelValue = papayaContainers[1].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
+            return [labels[voxelValue]]; // [labels[0]] = "background"
+
+        };
+
+        papaya.Container.atlas =  new customAtlas();
+
+    } else {
+       console.log(" No labels file found for this model")
+    }    
+}
+
+
+
+/**
+* Fetch Labels data from labels.json file and annotate while mouse moving  --(refine)
+*
+* @since 1.0.0
+* @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
+* @param {number} papayaContainerIdx - 0 for MRI viewer and 1 for laber viewer.
+* @example
+*
+* addMouseMoveHandler("./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 0)
+*
+*/  
+
+addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
+
+    if(labelsURL !== null) {
+
+        // const response = await fetch(labelsURL);
+
+        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+
+        $.ajax({
+              url: labelsURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                labelsDataObj = response
+              }
+            });        
+
+        let canvasMain  = papayaContainers[papayaContainerIdx].viewer.canvas;
+
+        mouseMoveHandler = () => {
+                let curVoxelPosition = papayaContainers[papayaContainerIdx].viewer.cursorPosition;
+                let xIndex = curVoxelPosition["x"];
+                let yIndex = curVoxelPosition["y"];
+                let zIndex = curVoxelPosition["z"];
+                let voxelValue = papayaContainers[papayaContainerIdx].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
+                // console.log(labelsDataObj[voxelValue])
+                // $$("annotOfContainer." + papayaContainerIdx).setValue(labelsDataObj[voxelValue]);
+                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = labelsDataObj[voxelValue];
+        }
+
+        canvasMain.addEventListener('mousemove', mouseMoveHandler);   
+
+        mouseOutHandler = () => {
+                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = "";
+        }
+
+        canvasMain.addEventListener('mouseout', mouseOutHandler);
+
+
+    } else {
+       console.log(" No labels file found for this model")
+    }    
+}
+
+/**
+* Generate output labels of all slices. (refine)
 * Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers,
 * one for each seg classes 0, 1, 2
 *  
@@ -1564,46 +1380,188 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
         console.log("Num of seg classes: ", numSegClasses);
         console.log("Wait while generate output labels... ");
+        let unstackOutVolumeTensor;
+
         // buffer set ( depth, H, W) in order
-        let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32) 
+        if(numSegClasses <= opts.browserArrayBufferMaxZDim ) {
+            let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32) 
 
 
-        //Convert to buffer 
-        for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+            //Convert to buffer 
+            for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
 
-                let coord = allPredictions[batchIdx]["coordinates"]; 
-                let pixelValues = allPredictions[batchIdx]["data"];
-                let pixelValuesCounter = 0;    
+                    let coord = allPredictions[batchIdx]["coordinates"]; 
+                    let pixelValues = allPredictions[batchIdx]["data"];
+                    let pixelValuesCounter = 0;    
 
-                for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
-                    for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
-                      for(colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
-                          // Find current voxel value of the related seg class buffer  
-                          // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
-                          let voxelValue = outVolumeBuffer.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
-                          // increment current voxel value by 1 in the current class buffer
-                          outVolumeBuffer.set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                    for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                        for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                          for(colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                              // Find current voxel value of the related seg class buffer  
+                              // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+                              let voxelValue = outVolumeBuffer.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                              // increment current voxel value by 1 in the current class buffer
+                              outVolumeBuffer.set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
 
-                          pixelValuesCounter += 1;
-                      } 
+                              pixelValuesCounter += 1;
+                          } 
+                        }
+                    }
+             }
+
+            // convert output  buffer to tensor
+            let axis = -1; // last axis 
+            // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+            // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+            let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
+
+            unstackOutVolumeTensor = tf.unstack(outVolumeTensor);
+
+            outVolumeTensor.dispose();
+
+
+        } else {
+
+            let Buffer1NumLabels = 50;
+
+            let outVolumeBuffer1 =  tf.buffer([num_of_slices, slice_height, slice_width, Buffer1NumLabels ], dtype=tf.float32) 
+            //labels : 0-49
+            console.log("outVolumeBuffer-1 created");           
+
+            let outVolumeBuffer2 =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses - Buffer1NumLabels ], dtype=tf.float32) 
+            // labels : 50 - (numSegClasses-1)
+            console.log("outVolumeBuffer-2 created");
+
+
+            //Convert to buffer 
+            for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+
+                    let coord = allPredictions[batchIdx]["coordinates"]; 
+                    let pixelValues = allPredictions[batchIdx]["data"];
+                    let pixelValuesCounter = 0;    
+
+                    for(let depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                        for(let rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                          for(let colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                              // Find current voxel value of the related seg class buffer  
+                              // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+                              if(pixelValues[pixelValuesCounter] < Buffer1NumLabels) {
+                                  let voxelValue1 = outVolumeBuffer1.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                                  // increment current voxel value by 1 in the current class buffer
+                                  outVolumeBuffer1.set(voxelValue1 + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                              } else {
+                                   // maping to higher labels to range 0 to   (numSegClasses - Buffer1NumLabels)
+                                  let voxelValue2 = outVolumeBuffer2.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] - Buffer1NumLabels );
+                                  // increment current voxel value by 1 in the current class buffer
+                                  outVolumeBuffer2.set(voxelValue2 + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] - Buffer1NumLabels );
+
+                              }
+
+                              pixelValuesCounter += 1;
+                          } 
+                        }
+                    }
+             }
+
+            console.log("Start argMax for  buffer-1  with last axis -1")
+
+            let outBuffer1 = tf.buffer([num_of_slices, slice_height, slice_width ], dtype=tf.float32) ;
+
+
+            // convert output  buffer to tensor
+            // let axis = -1; // last axis 
+            // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+            // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+            for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+                for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                    for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+                        // index of buffer with max Freq or max number so the index of that buffer is the right concensus label
+                        let indexOfMaxVotedBuffer = -1;                    
+                        let maxVoxelValue = -1;                    
+                        // Move through all buffers for the same voxel location and find which buffer indx has that max voxel value
+                        for(let bufferIdx = 0; bufferIdx < Buffer1NumLabels; bufferIdx += 1) {
+                            let voxelValue = outVolumeBuffer1.get(depthIdx, rowIdx, colIdx, bufferIdx );     
+                            if(maxVoxelValue < voxelValue) {
+                               maxVoxelValue = voxelValue;
+                               indexOfMaxVotedBuffer = bufferIdx;
+                            }                   
+                        }
+                        
+                        outBuffer1.set(indexOfMaxVotedBuffer, depthIdx, rowIdx, colIdx);
+
                     }
                 }
-         }
+            }
+
+            console.log("argMax in  buffer-1 ..Done")   
 
 
-        // convert output  buffer to tensor
-        let axis = -1; // last axis 
-        // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
-        // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
-        let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
+            console.log("Start argMax for  buffer-2  with last axis -1")
 
-        let unstackOutVolumeTensor = tf.unstack(outVolumeTensor);
+            let outBuffer2 = tf.buffer([num_of_slices, slice_height, slice_width ], dtype=tf.float32) ;
 
-        outVolumeTensor.dispose();
+            for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+                for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                    for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+                        // index of buffer with max Freq or max number so the index of that buffer is the right concensus label
+                        let indexOfMaxVotedBuffer = -1;                    
+                        let maxVoxelValue = -1;                    
+
+                        for(let bufferIdx = 0; bufferIdx < (numSegClasses - Buffer1NumLabels); bufferIdx += 1) {
+                            let voxelValue = outVolumeBuffer2.get(depthIdx, rowIdx, colIdx, bufferIdx );     
+                            if(maxVoxelValue < voxelValue) {
+                               maxVoxelValue = voxelValue;
+                               indexOfMaxVotedBuffer = bufferIdx;
+                            }                   
+                        }
+                        
+                        outBuffer2.set(indexOfMaxVotedBuffer, depthIdx, rowIdx, colIdx);
+
+                    }
+                }
+            }            
+
+            // let outVolumeTensor1 = tf.argMax(outVolumeBuffer1.toTensor(), axis); 
+            // let outVolumeTensor2 = tf.argMax(outVolumeBuffer2.toTensor(), axis); 
+
+            console.log("argMax in  buffer-2 ..Done")            
+
+            // let outBuffer1 = tensor2Buffer(outVolumeTensor1);
+            // let outBuffer2 = tensor2Buffer(outVolumeTensor2);
+            let outFinaleBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32)            
+
+            for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+                for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                  for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+
+                     let voxelValue1 = outBuffer1.get(depthIdx, rowIdx, colIdx);
+                     let voxel1_histoMax = outVolumeBuffer1.get(depthIdx, rowIdx, colIdx, voxelValue1 );                   
+                     let voxelValue2 = outBuffer2.get(depthIdx, rowIdx, colIdx); 
+                     let voxel2_histoMax = outVolumeBuffer2.get(depthIdx, rowIdx, colIdx, voxelValue2 );                       
+                     if(voxel2_histoMax < voxel1_histoMax) {
+                         outFinaleBuffer.set(voxelValue1, depthIdx, rowIdx, colIdx);
+                     } else {
+                         outFinaleBuffer.set(voxelValue2 + Buffer1NumLabels, depthIdx, rowIdx, colIdx);
+
+                     }                    
+
+                  }
+              }
+          }
+
+            console.log("Final merged buffer -- Done")  
+
+            unstackOutVolumeTensor = tf.unstack(outFinaleBuffer.toTensor());
+
+            // outVolumeTensor1.dispose();
+            // outVolumeTensor2.dispose();
+
+        }
 
         // convert all slices into 1 Dim array to download
 
-        allOutputSlices3DCC = [];
+        let allOutputSlices3DCC = [];
+        let allOutputSlices3DContours = [];
 
         // dataSync() using to flatten array
         for(let sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
@@ -1618,28 +1576,145 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
             allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
         }   
 
+        if(opts.isContoursViewEnable) { // Enable contour for overlay option
+            // remove noisy regions using 3d CC   
+            let sliceWidth = niftiHeader.dims[1];
+            let sliceHeight = niftiHeader.dims[2];                                
+            // allOutputSlices3DContours = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+            allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, numSegClasses ); 
+        }  
+
+
         allOutputSlices3DCC1DimArray = [];
         // Use this conversion to download output slices as nii file
         for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
               allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
         } 
 
-        var lableArrayBuffer = createNiftiOutArrayBuffer(niftiHeader, rawNiftiData, allOutputSlices3DCC1DimArray); 
+        var labelArrayBuffer;
+        let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
+
+        switch ( modelType) {
+                    case 'Brain_Mask':
+                                     { 
+                                        let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray));
+                                        let brainMask = Array.from(brainMaskTensor1d.dataSync());
+                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainMask);  
+                                        allOutputSlices3DCC1DimArray = brainMask;
+                                        break;             
+                                     }             
+               case 'Brain_Extraction':
+                                     { 
+                                        // input data or loaded nifti file data 
+                                        let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage); 
+                                        let brainExtractionData1DimArr = [];
+
+                                        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
+                                            for(pixelIdx = 0; pixelIdx < (slice_height * slice_width); pixelIdx++) {
+                                                 //Filter smaller regions original MRI data 
+                                                 if(allOutputSlices3DCC[sliceIdx][pixelIdx] == 0) {
+                                                    allSlices[sliceIdx][pixelIdx] = 0;
+                                                 } 
+                                             }               
+                                             brainExtractionData1DimArr.push.apply(brainExtractionData1DimArr, allSlices[sliceIdx])
+                                        }           
+                                       
+                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainExtractionData1DimArr); 
+                                        allOutputSlices3DCC1DimArray = brainExtractionData1DimArr;
+                                        break;             
+                                    }  
+                             default:
+                                    {
+                                      labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, allOutputSlices3DCC1DimArray); 
+                                      break;             
+                                    }                                        
+        }
 
 
         if(opts.isColorEnable) {   
-            let blob = new Blob([lableArrayBuffer], {type: "application/octet-binary;charset=utf-8"});
+            let blob = new Blob([labelArrayBuffer], {type: "application/octet-binary;charset=utf-8"});
             let file = new File([blob], "temp.nii");
             params_label["files"] = [file];
 
-            let customColorTable = getCustomColorTable(numSegClasses);  
-            params_label[file["name"]] = {lut: new customColorTable()}; 
+            switch ( modelType) {
+                        case 'Brain_Mask':
+                                         { 
+                                            params_label[file["name"]] = {lut: "Grayscale", interpolation: false};  
+                                            break;             
+                                         }             
+                   case 'Brain_Extraction':
+                                         { 
+                                            params_label[file["name"]] = {lut: "Grayscale", interpolation: false};  
+                                            break;             
+                                        }  
+                                 default:
+                                        {
+                                            let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
+                                            if(colorURL) { // colorURL file exists
+                                                    let customColorTable = getCustomColorTableFromUrl(numSegClasses, colorURL);  
+                                                     params_label[file["name"]] = {lut:  new customColorTable(), interpolation: false}
+
+                                            } else {// No colorURL file 
+                                                if(numSegClasses > 3) {
+                                                    params_label[file["name"]] = {lut: opts.atlasSelectedColorTable, interpolation: false};                  
+
+                                                } else {
+                                                    let customColorTable = getCustomColorTable(numSegClasses);  
+                                                    params_label[file["name"]] = {lut: new customColorTable(), interpolation: false};                 
+                                                }
+                                            }
+
+                                          break;             
+                                        }                                        
+            }
+
+
         } else {
-            params_label["binaryImages"] = [lableArrayBuffer];
+            params_label["binaryImages"] = [labelArrayBuffer];
         }   
 
+        // Set the view of container-2 as container-1
+        params_label["mainView"] = papayaContainers[0].viewer.mainImage.sliceDirection == 1? "axial" :
+                                   papayaContainers[0].viewer.mainImage.sliceDirection == 2? "coronal" : "sagittal";
+
+
+        //add overlay to MRI viewer index 0
+        //remove any existing overlay
+        if(numOfOverlays == 1) {
+             papaya.Container.removeImage(0, 1);
+             numOfOverlays = 0;
+        }
+        // add new one
+        var addImageParams = [];
+        addImageParams["binaryImages"] = [labelArrayBuffer];
+        papaya.Container.addImage(0, [labelArrayBuffer], addImageParams);  
+        numOfOverlays += 1; 
+
+      
+        // Label segmenation voxels according to label file
+        // fetchLabelStructure(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"]);      
+        console.log("label path: ", inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"])
+      
+      
         // set 1 for label viewer 
-        papaya.Container.resetViewer(1, params_label);               
+        papaya.Container.resetViewer(1, params_label);    
+
+        //Activate annotation for papaya container 0
+        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 0);
+
+        //Activate annotation for papaya container 1        
+        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+
+        // To sync swap view button 
+        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
+              papayaContainers[1].viewer.rotateViews()
+
+        })
+
+        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
+              papayaContainers[0].viewer.rotateViews()
+
+        })                  
 
   }
 
@@ -1699,6 +1774,27 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
 
 /**
+* Function to find maximum array value
+*
+* @since 1.0.0
+* @param {Array} array - character to check
+* @returns {number} 
+* @example
+*
+* findArrayMax([3, 0, 2])
+* // => 3
+*/
+
+  findArrayMax = (array) => {
+    return array.reduce( (e1, e2) => {
+      return ( e1 > e2 ? e1 : e2 );
+    });
+  }
+
+
+
+
+/**
 * Function to check if GPU installed
 *
 * @since 1.0.0
@@ -1734,6 +1830,33 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
 
 /**
+* Function to check if browser is chrome
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+isChrome = () => {
+   return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+}
+
+
+/**
+* Function to online connection is established 
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+isOnline= () => {
+   return navigator.onLine;
+}
+
+
+
+/**
 * Function to check if checkWebGl1 is supported
 *
 * @since 1.0.0
@@ -1756,6 +1879,20 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
           return true;
       }
 
+  }
+
+
+/**
+* Function to check if WebGL context is lost
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+  isWebGL2ContextLost = () => {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      return gl.isContextLost();
   }
 
 /**
@@ -1782,10 +1919,14 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
       }
   }
 
+
+  //-- inference function   (refine)
+ 
   runInference = () => {
 
-	      let batchSize = opts.batchSize;
-	      let numOfChan = opts.numOfChan;
+	      const batchSize = opts.batchSize;
+	      const numOfChan = opts.numOfChan;
+          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];          
 
 	      if (isNaN(batchSize) || batchSize !=1) {
                 webix.alert("The batch Size for input shape must be 1");
@@ -1803,10 +1944,32 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
           console.log("Batch size: ", batchSize);
           console.log("Num of Channels: ", numOfChan);
 
+          let batchInputShape = [];    
+          // read input shape from model.json object 
+          batchInputShape = modelObject.layers[0].batchInputShape; 
+
+          console.log(" Model batch input shape : ", batchInputShape)
+
+          if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
+                webix.alert("The number of channels for input shape must be 1");
+                return 0;
+          }                           
+
           // Propose subvolume size as needed by inference model input e.g. 38x38x38
-          let batch_D = opts.batchDim;
-          let batch_H = opts.batchDim;
-          let batch_W = opts.batchDim;
+        //   let batch_D = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][1];
+        //   let batch_H = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][2];
+        //   let batch_W = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][3];  
+
+          let batch_D = batchInputShape[1];
+          let batch_H = batchInputShape[2];
+          let batch_W = batchInputShape[3];     
+          
+          console.log("Batch Input Shape: ", batchInputShape);          
+
+          if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
+                webix.alert("The subvolume dimension in z-axis shouldn't exceed 30 number of slices for browser limitation");
+                return 0;
+          }  
           
           let slice_width = niftiHeader.dims[1];
           let slice_height = niftiHeader.dims[2];
@@ -1829,9 +1992,9 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
           let headSubCubesCoords = [];
 
 
-          if(opts.isBatchOverlapEnable) {
+          if(isBatchOverlapEnable) {
               // number of additional batches focus on the brain/head volume
-              let numOverlapBatches = opts.numOverlapBatches; 
+              let numOverlapBatches = inferenceModelsList[$$("selectModel").getValue() - 1]["numOverlapBatches"];
               console.log(" num of overlapped batches: ", numOverlapBatches);
 
               // Find the centroid of 3D head volume  and the variance                  
@@ -1851,24 +2014,18 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
               allBatches = sliceVolumeIntoOverlappedBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W, headSubCubesCoords); 
 
-          } else {
+           } else {
               // This option will  cover all slices, some slices that are not enough to create a batch will need overlap with prevous batch slices
               // e.g. slice volume = 3*5*5 DHW , and batch is 2*2*2 ,   2*3*3 =18 batches will be considered        
               let num_of_batches = Math.ceil(slice_width/batch_W) * Math.ceil(slice_height/batch_H) * Math.ceil(num_of_slices/batch_D); 
               console.log("Num of Batches for inference: ", num_of_batches);
 
               allBatches = sliceVolumeIntoBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-          }
+           }
 
-          tf.dispose(slices_3d); 	       
-
-          console.log(tf.getBackend());
-
-          // fetch('./ModelToLoad/mnm_tfjs_me_test/model.json')
-          // .then(response => {
-          //    return response.json();
-          // })
-          // .then(data => console.log("fetch results: ", data)); 
+           tf.dispose(slices_3d); 	       
+ 
+            console.log(tf.getBackend());
 
 
             let allPredictions = [];
@@ -1879,20 +2036,29 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                  try {
                       let startTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
-                      maxLabelPredicted = 0;
+                      let maxLabelPredicted = 0;
                      
                       let j = 0;
                       let timer = window.setInterval(function() {
 
                       let curTensor = tf.tensor(allBatches[j].data.dataSync(), input_shape);
                       // let prediction = res.predict( curTensor );
-                      let prediction = res.predictOnBatch( curTensor );
+                      // let prediction = res.predictOnBatch( curTensor );
+                      for (let i = 1; i < res.layers.length-1; i++){
+                            let prediction = res.layers[i].apply( curTensor );
+                            tmp = curTensor;
+                            curTensor = prediction;
+                            tmp.dispose();
+                      }
+                      
+                      prediction = res.layers[res.layers.length-1].apply(curTensor);
+
                       tf.dispose(curTensor);
                       let axis = -1; //4;
                       let prediction_argmax = tf.argMax(prediction, axis);
                       tf.dispose(prediction);                          
                       allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
-                      let curBatchMaxLabel =  Math.max(...Array.from(prediction_argmax.dataSync()));
+                      let curBatchMaxLabel =  findArrayMax(Array.from(prediction_argmax.dataSync()));
 
                       if( maxLabelPredicted < curBatchMaxLabel ) {
                             maxLabelPredicted = curBatchMaxLabel;
@@ -1921,10 +2087,11 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                            generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
 
                            document.getElementById("progressBar").style.width = 0;   
-                           webix.message.hide("waitMessage");
+                           //webix.message.hide("waitMessage");
 
                            $$("downloadBtn").enable();   
-                           $$("segmentBtn").enable();                      
+                           $$("segmentBtn").enable();  
+                        //    $$("imageUploader").enable();                    
                            tf.engine().endScope();
 
                            let stopTime = performance.now();
@@ -1944,7 +2111,12 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                     console.log(
                         "If webgl context is lost, try to restore webgl context by visit the link " + 
                         '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
-                    );    
+                    );  
+
+
+                    document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green"; 
+
+                    document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green"; 
                   }
             }); 
 	            

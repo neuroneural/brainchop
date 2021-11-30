@@ -1,0 +1,127 @@
+.webix_window{
+	position:absolute;
+	box-shadow:@mediumShadow;
+	&:focus{
+		box-shadow:@bigShadow;
+	}
+}
+.webix_win_body{
+	overflow:hidden;	
+}
+.webix_window, .webix_win_content, .webix_win_body, .webix_win_body > .webix_view{
+	border-radius: @windowRadius;
+}
+.webix_win_body > .webix_view .webix_cal_month{
+	border-radius: @windowRadius;
+}
+
+
+.webix_win_head{
+	border-bottom: 1px solid @borderColor;
+}
+
+.webix_win_title{
+	text-align:center;
+}
+
+/*----------------------------*/
+/* DO NOT CHANGE STYLES BELOW */
+/*----------------------------*/
+.webix_win_content{
+	height:auto;
+    width:auto;
+	overflow:hidden;
+}
+
+.webix_modal{
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+
+	background-color: black;
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=20);
+	opacity: 0.2;
+}
+
+.webix_modalbox_inside{
+	pointer-events: none;
+}
+
+.webix_point_top, .webix_point_right, .webix_point_bottom, .webix_point_left{
+	position:absolute;
+}
+
+.webix_point_top, .webix_point_bottom {
+	width:13px;
+	height:7px;
+}
+.webix_point_left, .webix_point_right {
+	width:7px;
+	height:13px;
+}
+
+.webix_point_top, .webix_point_bottom, .webix_point_right, .webix_point_left{
+	background-image:data-uri('../images/@{skin}/arrows.png');
+}
+.webix_point_top{
+	#image > .pointTopImage();
+}
+.webix_point_bottom{
+	#image > .pointBottomImage();
+}
+.webix_point_right{
+	#image > .pointRightImage();
+}
+.webix_point_left{
+	#image > .pointLeftImage();
+}
+
+.webix_resize_handle{
+	position: absolute;
+	z-index:2;
+	width: 15px;
+	height: 15px;
+	bottom:0px;
+	line-height: 15px;
+	right:-1px;
+	text-align: center;
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAMAAAAMCGV4AAAABlBMVEUAAAAAAAClZ7nPAAAAAXRSTlMAQObYZgAAABZJREFUeAFjIAUwUshlpJDLSIhLGAAACQ4AFk79JaMAAAAASUVORK5CYII=);
+	cursor: nw-resize;
+}
+
+.webix_resize_frame{
+	position: absolute;
+	filter:alpha(opacity=10);
+	opacity: 0.1;
+	background: @mainColor;
+	display: block;
+	border: 1px solid darken(@mainColor,20%);
+	box-shadow: 1px 3px 6px #000;
+}
+.webix_resize_cursor{
+	cursor: nw-resize;
+}
+
+.webix_shadow_medium, .webix_shadow_small, .webix_shadow_big{
+	position: relative;
+}
+.webix_shadow_medium{
+	box-shadow: @mediumShadow;
+}
+.webix_shadow_small{
+	box-shadow: @smallShadow;
+}
+.webix_shadow_big{
+	box-shadow: @bigShadow;
+}
+.webix_shadow_none{
+	box-shadow: none !important;
+}
+
+.webix_toolbar.webix_shadow_small,
+.webix_toolbar.webix_shadow_medium,
+.webix_toolbar.webix_shadow_big{
+	z-index: 1;
+}
