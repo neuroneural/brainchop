@@ -1,9 +1,13 @@
-# Brainchop  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]()
+# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]()
 Mohamed Masoud - Sergey Plis - 2021
+
+![Interface](https://github.com/neuroneural/neuroneural.github.io/tree/master/style/SimpleUI.png)
 
 
 ## In-browser 3D MRI segmentation
-Demo shows segmenation of 3D brain MRI at the browser based on a pretrained MeshNet model.
+ Brainchop.org brings automatic MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
+
+ We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation as shown.
 
 
 
