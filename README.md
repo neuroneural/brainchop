@@ -1,4 +1,4 @@
-# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]()[![HW ](https://img.shields.io/badge/HardWare-GPU-green)]()
+# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]()[![HW ](https://img.shields.io/badge/HardWare-GPU-green)]() [![CC BY-NC-ND ](https://img.shields.io/badge/license-BY--NC--ND-orange)](https://creativecommons.org/licenses/by-nc-nd/3.0/) 
 
  Brainchop.org brings automatic MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
 
@@ -13,8 +13,6 @@ To see the tool in action please click  [here](https://neuroneural.github.io/).
 
 ## .
 <div align="center">
-
-[![CC BY-NC-ND ](https://img.shields.io/badge/license-BY--NC--ND-orange)](https://creativecommons.org/licenses/by-nc-nd/3.0/) 
 
 <img src='https://github.com/neuroneural/neuroneural.github.io/blob/master/style/TReNDS_logo.jpg' width='200' height='100'></img>
 
