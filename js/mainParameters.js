@@ -81,7 +81,7 @@
                                        labelsPath: "./ModelToLoad/mnm_tfjs_me_test/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json",                                        
                                    //     batch_input_shape: [null, 38, 38, 38, 1], //[batchSize, batch_D, batch_H, batch_W, numOfChan];  
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
                                   },
@@ -94,7 +94,7 @@
                                        labelsPath: null, 
                                        colorsPath: null,                                        
                                    //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   },
@@ -106,7 +106,7 @@
                                        labelsPath: null, 
                                        colorsPath: null,                                         
                                    //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   }
