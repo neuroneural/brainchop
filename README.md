@@ -11,12 +11,12 @@
 
 To see the tool in action please click  [here](https://neuroneural.github.io/).
 
-
+## .
 <div align="center">
 
 [![CC BY-NC-ND ](https://img.shields.io/badge/license-BY--NC--ND-orange)](https://creativecommons.org/licenses/by-nc-nd/3.0/) 
 
-<img src='https://github.com/neuroneural/neuroneural.github.io/blob/master/style/TReNDS_logo.jpg' width='100' height='50'></img>
+<img src='https://github.com/neuroneural/neuroneural.github.io/blob/master/style/TReNDS_logo.jpg' width='200' height='100'></img>
 
 **Mohamed Masoud - Sergey Plis - 2021**
 </div>
