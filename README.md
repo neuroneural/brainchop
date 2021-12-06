@@ -11,12 +11,12 @@
 
 To see the tool in action please click  [here](https://neuroneural.github.io/).
 
-<br />
-<div align="center">
-
 ## Funding
 
-This work was funded by the NIH grant RF1MH121885.	
+This work was funded by the NIH grant RF1MH121885.
+
+<br />
+<div align="center">
 
 <img src='https://github.com/neuroneural/neuroneural.github.io/blob/master/style/TReNDS_logo.jpg' width='300' height='100'></img>
 
