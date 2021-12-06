@@ -4,8 +4,8 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, 38, 38, 38, 1]                  
-*               Model : Meshnet      
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                
+*               Model : Meshnet or similar     
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
 =========================================================
@@ -105,7 +105,10 @@
         margin-right: 20px;
       }
 
-
+      #githubId{
+        cursor: pointer;
+        margin-right: 20px;
+      }
       .customTheme {
           font-weight: bold;
           background-color: black;
@@ -184,21 +187,85 @@
       .attr("id","out3dCC")
       .style('display', 'none');
 
+
+      // About Window
+      let aboutWindowForm = {view: "form", id: "aboutWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable you to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the nifti format. The output may also be downloaded as a nifti file. <br><br> <b>Input Data:</b> Normalized T1 volume with 1x1x1 mm voxels as created by  the <a href='https://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert'><b>FreeSurfer's</b></a> command : <br> <b><center>mri_convert -c your_original_T1.nii    normalized_T1.nii.gz </center></b><br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2021).<br> <b>Version:</b> 1.0.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='style/TReNDS_logo.jpg' width='100' height='50'></img></center>" 
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("aboutWindow").hide();
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+
+
+      // About Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "aboutWindow",
+                  height:600,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"About", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("aboutWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: aboutWindowForm
+
+      })
+
       
-      let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis<br>2021";
+      let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis (2021) <br> Grant:  NIH RF1MH121885 ";
        
       aboutClick = () => {
-            webix.alert({
-              title:"",
-              ok:"Ok",
-              text: about
-            })
+            // webix.alert({
+            //   title:"",
+            //   ok:"Ok",
+            //   text: about
+            // })
+            $$("aboutWindow").show()
+
       }
+
+
+
+
 
       feedbackClick = () => {
                    window.open("https://forms.gle/WzUyVEzgCCY2bHo79");
       }
 
+      githubClick = () => {
+                   window.open("https://github.com/neuroneural/brainchop");
+      }
 
       toolbar = {
           view: "toolbar",
@@ -213,7 +280,9 @@
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
                    // { view: "button", id: "feedback", value: "feedback", width: 100, align: "right", click: feedbackClick },
-                   { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick }
+                   { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
+                   { view: "label", label: '<i id="githubId" class="fa fa-github"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: githubClick, tooltip:"GitHub" },                   
                   ]
                 }
           ]
@@ -620,7 +689,6 @@
 
 
       // Model Browsing Window to select local model
-
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
@@ -780,6 +848,76 @@
               { content: "progressBarDiv" , height:50}
           ]
        }
+
+
+
+      // Welcome Window
+
+      let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: " You're viewing a sample T1 (Left)  and its tissue segmentation (Right). To use your own sample please normalize your T1  first to 1x1x1 mm thickness by using <a href='https://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert'><b>FreeSurfer</b></a> command : <br> <b><center>mri_convert -c your_original_T1.nii    normalized_T1.nii.gz </center></b> <br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show this again</label>",  
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("welcomeWindow").hide();
+                                     webix.storage.local.put("showWelcomeScreen", ! document.getElementById("noShowWelcomeWindow").checked);
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+
+
+      // Welcome Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "welcomeWindow",
+                  height:270,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Welcome", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("welcomeWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: welcomeWindowForm
+
+      })
+
+      fetchWelcomeScreenStatus = () => {
+          return webix.storage.local.get("showWelcomeScreen");
+      } 
+
+      if(fetchWelcomeScreenStatus() == null || fetchWelcomeScreenStatus()) {
+          $$("welcomeWindow").show();
+      } else  {
+          $$("welcomeWindow").hide();
+      }
+
+
 
 
       let downloadNiftiFile = {view: "form", id: "downloadNiftiFileId", elements: [ 

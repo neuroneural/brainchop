@@ -4,8 +4,8 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, 38, 38, 38, 1]                  
-*               Model : Meshnet      
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                    
+*               Model : Meshnet or similar       
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
 =========================================================

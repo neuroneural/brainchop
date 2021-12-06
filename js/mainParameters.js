@@ -4,8 +4,8 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, 38, 38, 38, 1]                  
-*               Model : Meshnet      
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                 
+*               Model : Meshnet or similar     
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
 =========================================================
@@ -17,20 +17,14 @@
 =========================================================*/ 
 
 
+
     //---------- initialize Globals-------//  
 
     var model;
     var modelObject;
 
-    // var  allOutputSlices = [];
-    // var  allOutputSlices2DCC = [];
-    // var  allOutputSlices3DCC = [];  
     var  allOutputSlices3DCC1DimArray = [];
 
-    //Find max label while processing connect components
-    // var  maxLabel;  
-    //Find max label in the output segmentation  
-    // var  maxLabelPredicted;  
     //raw Nifti Data and header
     var  rawNiftiData = [];
     //Object    
@@ -74,8 +68,6 @@
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
-  
-
     }
 
 
@@ -85,7 +77,7 @@
                                        id: "1", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName: "MeshNet GMWM",  
+                                       modelName: "Tissue Segmentation",  
                                        labelsPath: "./ModelToLoad/mnm_tfjs_me_test/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json",                                        
                                    //     batch_input_shape: [null, 38, 38, 38, 1], //[batchSize, batch_D, batch_H, batch_W, numOfChan];  
@@ -93,20 +85,9 @@
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
                                   },
+
                                   {
                                        id: "2", 
-                                       type: "Segmentation", 
-                                       path:"./ModelToLoad/meshnet_dropout/mnm_dropout/model2.json", 
-                                       modelName:"MeshNet Dropout GMWM", 
-                                       labelsPath: "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 
-                                       colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json", 
-                                   //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
-                                       description: ""
-                                  },
-                                  {
-                                       id: "3", 
                                        type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Brain Extraction", 
@@ -118,10 +99,10 @@
                                        description: ""
                                   },
                                                                                                       {
-                                       id: "4", 
-                                       type: "Brain_Mask", 
+                                       id: "3", 
+                                       type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Brain Mask", 
+                                       modelName:"Brain Masking", 
                                        labelsPath: null, 
                                        colorsPath: null,                                         
                                    //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
@@ -129,17 +110,7 @@
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   }
-                              //     {
-                              //          id: "3", 
-                              //          type: "Segmentation", 
-                              //          path:"./ModelToLoad/mnm_atlas_256_30/model.json", 
-                              //          modelName:"MeshNet parcellation 104",  
-                              //          labelsPath: null, 
-                              //          batch_input_shape:[null, 30, 256, 256, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
-                              //          isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                              //          numOverlapBatches: 9, //Number of extra overlap batches for inference                                          
-                              //          description: ""
-                              //     }                                  
+                                 
                             ];   
 
 
@@ -161,7 +132,7 @@
 
 
 
-    //https://github.com/rii-mango/Papaya/wiki/Configuration
+    //--https://github.com/rii-mango/Papaya/wiki/Configuration
     // MRI Viewer settings
     var params_mri = [];
     params_mri["worldSpace"] = false;
