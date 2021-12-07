@@ -85,9 +85,21 @@
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
                                   },
-
                                   {
                                        id: "2", 
+                                       type: "Segmentation", 
+                                       path:"./ModelToLoad/meshnet_dropout/mnm_dropout/model2.json", 
+                                       modelName:"Tissue Segmentation d", 
+                                       labelsPath: "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 
+                                       colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json", 
+                                   //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
+                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
+                                       description: ""
+                                  },                                  
+
+                                  {
+                                       id: "3", 
                                        type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Brain Extraction", 
@@ -99,7 +111,7 @@
                                        description: ""
                                   },
                                                                                                       {
-                                       id: "3", 
+                                       id: "4", 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Brain Masking", 
