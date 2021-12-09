@@ -1962,8 +1962,8 @@ isOnline= () => {
 
           let batch_D = batchInputShape[1];
           let batch_H = batchInputShape[2];
-          let batch_W = batchInputShape[3];     
-          
+          let batch_W = batchInputShape[3]; 
+
           console.log("Batch Input Shape: ", batchInputShape);          
 
           if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
