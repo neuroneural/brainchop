@@ -1,4 +1,4 @@
-# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)]() [![MIT-License ](https://img.shields.io/badge/license-MIT-green)]() 
+# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)]() 
 
  Brainchop.org brings automatic 3D MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
 
