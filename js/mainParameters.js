@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v0.1.0
+* Brainchop - v1.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation

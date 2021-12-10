@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v0.1.0
+* Brainchop - v1.0.0
 =========================================================
 
 * Discription:  Pure Javascript code for 3D and 2D connected components
@@ -19,7 +19,7 @@
     /**
     * Get binary mask of slice data
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} sliceData- The array represents slice pixel values in 1D
     * @returns {Array} Returns binary mask in 1D
     * @example
@@ -49,7 +49,7 @@
     /**
     * Convert 1D binary data to 2D
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} binaryData1D- The array represents slice binary mask values in 1D
     * @param {number} imgHeight- Slice Height
     * @param {number} imgWidth - Slice Width
@@ -77,7 +77,7 @@
     *                           1 col of zeros befor, 1 col of zeros after,
     * Ref: https://js.tensorflow.org/api/3.6.0/#pad
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} arr2d- The array can represents slice binary mask values in 2D
     * @returns {Array} Returns same input array with zero padding edges
     * @example
@@ -104,7 +104,7 @@
     * pad([[1,1],[1,1]]) means: 1 row of zeros befor, 1 row of zeros after,
     *                           1 col of zeros befor, 1 col of zeros after,
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} arr2d- The array can represents slice binary mask values in 2D
     * @returns {Array} Returns same input array without zero padding edges
     * @example
@@ -154,7 +154,7 @@
     * Adjust equivalence table for connected components finding. Recursive call  -- (refine)
     * adjust Equivalence table labels such that if eqvTabel[3] = 2 && eqvTabel[2] = 1 then eqvTabel[3] = 1 
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {number} labelIdx 
     *
     */ 
@@ -172,7 +172,7 @@
     /**
     *  Check neighbors of each pixel to assign proper label to current pixel in 2D slice  --(refine)
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} label- The 2D array represents slice labels, e.g label[row][col]
     * @param {number} row- Slice Height
     * @param {number} col - Slice Width
@@ -219,7 +219,7 @@
     /**
     * Get connected components For 2D slice -- (refine)
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} binaryMaskData2D- The array represents slice binary mask values in 2D, zero padding is needed. 
     * @param {number} imgHeight- Slice Height
     * @param {number} imgWidth - Slice Width
@@ -303,7 +303,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     /**
     * Find Max label resulted from applying 3D connected components.
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} label3D- The 3D array represents slices labels, e.g label3D[sliceIdx][row][col]
     * @param {number} sliceHeight- Slice Height
     * @param {number} sliceWidth - Slice Width
@@ -338,7 +338,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     /**
     * Find largest volume region with the label that has the maximum number of voxels resulted from applying 3D connected components.
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} label3D- The 3D array represents slices labels, e.g label3D[sliceIdx][row][col]
     * @param {number} sliceHeight- Slice Height
     * @param {number} sliceWidth - Slice Width
@@ -388,7 +388,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     /**
     *  Check neighbors of each voxel to assign proper label to current voxel in two consecutive slices -- (refine)
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} label- The 2D array represents slice labels, e.g label[row][col]
     * @param {number} z_1PixelLabel- Previous slice pixel label value at same row and col
     * @param {number} row- Slice Height
@@ -478,7 +478,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     /**
     * Get connected components For 3D Volume  --(refine)
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} volumeSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that volumeSlices[i] gives slice data as 1d Array
     * @param {number} sliceHeight- Slice Height
     * @param {number} sliceWidth - Slice Width
@@ -545,7 +545,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     /**
     * Get connected components For a Volume of 2 slices, current slice and previous slice.-- (refine)
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} binaryMaskData2D- 2D array[row][col] has the mask {0,1} values of the current selected slice
     * @param {Array} preSliceLabels- 2D array[row][col] has the previous slice labels
     * @param {number} imgHeight- Slice Height
@@ -622,7 +622,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
     * Find largest 3d region
     * Can be used for post processing the resulted labels from the inference model by removing noisy 3D regions, and keep only
     *
-    * @since 0.1.0
+    * @since 1.0.0
     * @param {Array} volumeSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that volumeSlices[i] gives slice data as 1d Array
     * @param {number} sliceHeight- Slice Height
     * @param {number} sliceWidth - Slice Width

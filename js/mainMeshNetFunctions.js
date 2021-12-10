@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v0.1.0
+* Brainchop - v1.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -27,7 +27,7 @@
 /**
 * Return 1-Dim Array of the slice pixels value, this 1 dim represents one channel  
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {number} sliceIdx- The slice index.
 * @param {object} niftiHeader- The header of nifti file.
 * @param {ArrayBuffer} niftiImage- The image data of nifti file.
@@ -93,7 +93,7 @@
 /**
 * Generates number of colors using HSL wheel hsl(hue, saturation, lightness).  
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {number} s- The saturation number.
 * @param {number} l- The lightness number.
 * @param {number} num_colors- The number of colors to generate.
@@ -120,7 +120,7 @@
 /**
 * Convert rgb string to rgb object.  
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {string} rgbString- The rgb string.
 * @returns {Object} Returns RGB as object
 * @example
@@ -142,7 +142,7 @@
 /**
 * Convert "hsl(hue, saturation, lightness)" string to "rgb(rValue,gValue,bValue)" string.  
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {string} hsl- The hsl string.
 * @returns {string} Returns RGB as string
 * @example
@@ -197,7 +197,7 @@
 /**
 * For Dice calculations- find the intersection 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} ar1- The array represents output labels in 1D
 * @param {Array} ar2- The array represents GT data in 1D
 * @returns {Array} Returns intersection 1D array 
@@ -223,7 +223,7 @@
 /**
 * For Dice calculations- diceCoefficient 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} ar1- The array represents output labels in 1D
 * @param {Array} ar2- The array represents GT data in 1D
 * @returns {number} Returns dice Coefficient number
@@ -242,7 +242,7 @@
 /**
 * Get maximum region mask using contour method to filter 2D slice smaller regions
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ImageData} canvasImageData- The imageData object represents slice canvas data e.g. ImageData { width: 100, height: 100, data: Uint8ClampedArray(40000) }
 * @returns {TypedArray} Returns contour pixels value {0, 255}
 * @example
@@ -306,7 +306,7 @@
 /**
 * Post processing the resulted labels from the inference model by removing noisy 3D regions, and keep only largest region
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} outputSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that outputSlices[i] gives slice data as 1d Array
 * @param {number} sliceHeight- Slice Height
 * @param {number} sliceWidth - Slice Width
@@ -489,7 +489,7 @@
 * The transformation simply takes two variables that are uniformly distributed 
 * and sends them to two independent random variables with a standard normal distribution.
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {number} Returns 
 * @example
 *
@@ -512,7 +512,7 @@
 /**
 * Check whether the proposed subvolumes coords are feasible
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} DHW- Generated Coordinates e.g. [100,150,100]
 * @param {Array} cubeSides - MRI volume sides e.g.[256,256,256]
 * @param {Array} subCubeSides -Batch size e.g. [38,38,38]
@@ -541,7 +541,7 @@
 /**
 * Generate feasible overlap coordinates for inference 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {number} numOfSubCubes- Number of ovelap subCubes to generate e.g. 200
 * @param {Array} mean - MRI mean voxel coordinate e.g. [ 123, 145, 127 ]
 * @param {Array} sigma - Variance
@@ -580,7 +580,7 @@
 *  Return Tensor with binary 3D volume data  0 or 1
 *  Element-wise: (x > 0 ? 1 : alpha * x );  e.g. Tenosr [0, 0.9, 0.8, -3] => Tensor [0, 1, 1, 0]
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor|TypedArray|Array} volumeDataTensor- e.g. tf.tensor1d([0, 0.2, 0.1, 0.3])
 * @returns {tf.Tensor} Returns Binary value tensor {0,1}
 * @example
@@ -605,7 +605,7 @@
 *  Convert tensor to buffer so immutable tensor can be mutable buffer with get() and set()
 *  To convert buffer to tensor use bufferObj.toTensor()
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor|TypedArray|Array} tensor- e.g. tf.tensor1d([0, 0.2, 0.1, 0.3])
 * @returns {tf.buffer} Returns mutable tf.buffer object
 * @example
@@ -624,7 +624,7 @@
 /**
 *  Convert single/multi dimensional tensor to single/multi dimensional Array
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} tensor- e.g. tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] )
 * @returns {Array} Returns mutable  single/multi dimensional Array
 * @example
@@ -648,7 +648,7 @@
 /**
 *  Convert single/multi dimensional array to single/multi tensor
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} array- e.g. [1,2,3,4,5,6,7,8]
 * @returns {tf.tensor} Returns tf.tensor  
 * @example
@@ -678,7 +678,7 @@
 /**
 *  Convert single/multi dimensional tensor to flatten 1d dimensional Array
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} tensor- e.g. tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] )
 * @returns {Array} Returns mutable  flatten 1d dimensional Array
 * @example
@@ -699,7 +699,7 @@
 /**
 *  Calculate the mements of the MRI volume to find mean and variance
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} cube3d- e.g slice3d repesents the MRI volume
 * @param {number} threshold- filter  voxels based on the threshold value
 * @returns {Array} Returns [meanArray, varArray]
@@ -739,7 +739,7 @@
 /**
 *  For all MRI volume values > 0 , find the Centroid voxel Array [d, h, w]
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
 * @param {number} num_of_slices- Total Number of slices aka z-dim
 * @param {number} slice_height- - Slice Height
@@ -799,7 +799,7 @@
 *  Creates batches with the volume of slices each of D,H,W sub_volume and
 *  focus on brain area for the additional sub_volumes 
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
 * @param {number} num_of_slices- Total Number of slices aka z-dim
 * @param {number} slice_height- - Slice Height
@@ -869,7 +869,7 @@
 /**
 *  Try to create batches with the volume of slices each of D,H,W sub_volume  with minimum overlap option
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
 * @param {number} num_of_slices- Total Number of slices aka z-dim
 * @param {number} slice_height- - Slice Height
@@ -928,7 +928,7 @@
 /**
 * Return 2-Dim Array of the all slices data where each slice data is a 1d array
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {number} num_of_slices- Total Number of slices a.k.a z-dim
 * @param {object} niftiHeader- The header of nifti file.
 * @param {ArrayBuffer} niftiImage- The image data of nifti file.
@@ -955,7 +955,7 @@
 /**
 * Return 2-Dim Array of the all slices data where each slice data is a 2d array
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} allSlices- Array of all slices data as 1D
 * @param {number} slice_height- - Slice Height
 * @param {number} slice_width- Slice Width
@@ -986,7 +986,7 @@
 
 /**
 * Return volumatric 3-Dim tensor of all slices data
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} allSlices_2D- Array of 2d tensors of all slices data 
 * @returns {tf.Tensor}  Returns Tensor of all slices data 
 * @example
@@ -1020,7 +1020,7 @@
 
 /**
 * Normalize the tensor data to the range 0 - 1 using min-max scaling
-* @since 0.1.0
+* @since 1.0.0
 * @param {tf.Tensor} volumeData- Tensor1d/Tensor2d/Tensor3d,  e.g. Tensor3d of all MRI volume data 
 * @returns {tf.Tensor}  Returns Tensor of all normalized data 
 * @example
@@ -1051,7 +1051,7 @@
 /**
 * load pre-trained model from local drive
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {string} modelUrl - the model URL e.g. "./ModelToLoad/mnm_tfjs_me_test/model.json"
 * @returns {promise} Promise object represents the model to load
 * @example
@@ -1068,7 +1068,7 @@
 /**
 * load uploaded pre-trained model from local drive 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {File} modelFile - the model File e.g. { name: "model.json", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
 * @param {File} weightFile - the weight File e.g. { name: "weight.bin", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
 * @returns {promise} Promise object represents the model to load
@@ -1086,7 +1086,7 @@
 /**
 * Generates range of colors for Segmentation classes -- (refine)
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {number} numSegClasses - The number of segmentation classes.
 * @returns {function} Returns custom color table function
 * @example
@@ -1258,7 +1258,7 @@ getCustomColorTableFromUrl = (numSegClasses, colorURL ) => {
 /**
 * Fetch Labels data from labels.json file  -- (refine)
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
 * @example
 *
@@ -1305,7 +1305,7 @@ fetchLabelStructure = (labelsURL) => {
 /**
 * Fetch Labels data from labels.json file and annotate while mouse moving  --(refine)
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
 * @param {number} papayaContainerIdx - 0 for MRI viewer and 1 for laber viewer.
 * @example
@@ -1363,7 +1363,7 @@ addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
 * Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers,
 * one for each seg classes 0, 1, 2
 *  
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} allPredictions - Array of objects {"id": number, "coordinates": Array,  "data":1dArray }) 
 * @param {number} num_of_slices- Total Number of slices a.k.a z-dim
 * @param {number} numSegClasses- The number of segmentation classes
@@ -1722,7 +1722,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 /**
 * Threshold canvas of the viewer
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {CanvasRenderingContext2D } ctx - renderContext e.g.  papayaContainers[0].viewer.canvas.getContext("2d")
 * @param {number} Threshold - To threshold the canvas context 
 * @param {object} RGB - e.g. { r: 110, g: 255, b: 182 }
@@ -1753,7 +1753,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 /**
 * Function to use with checking output file name, it must start with letter a-z or A-Z
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {*} ch - character to check
 * @returns {boolean} Returns - true or false
 * @example
@@ -1776,7 +1776,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 /**
 * Function to find maximum array value
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} array - character to check
 * @returns {number} 
 * @example
@@ -1797,7 +1797,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 /**
 * Function to check if GPU installed
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */
@@ -1832,7 +1832,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 /**
 * Function to check if browser is chrome
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */
@@ -1845,7 +1845,7 @@ isChrome = () => {
 /**
 * Function to online connection is established 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */
@@ -1859,7 +1859,7 @@ isOnline= () => {
 /**
 * Function to check if checkWebGl1 is supported
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */
@@ -1885,7 +1885,7 @@ isOnline= () => {
 /**
 * Function to check if WebGL context is lost
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */
@@ -1898,7 +1898,7 @@ isOnline= () => {
 /**
 * Function to check if checkWebGl2 is supported
 *
-* @since 0.1.0
+* @since 1.0.0
 * @returns {boolean} Returns - true or false
 *
 */

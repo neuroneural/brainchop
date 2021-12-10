@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v0.1.0
+* Brainchop - v1.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -20,7 +20,7 @@
 /** For future use
 * Function to normalize Nifti image data for nii files with float values or values > 255
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} rawData, raw data of browsing Nifti file 
 * @returns {ArrayBuffer} Returns normalized Nifti image ArrayBuffer 
 * @example
@@ -51,7 +51,7 @@ normalizeNiftiImageData = (rawData) => {
 /**
 * Function to decompress/check Nifti arraybuffer from uploaded file source
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} rawData, raw data of browsing Nifti file 
 * @returns {ArrayBuffer} Returns checked/decompressed Nifti ArrayBuffer 
 * @example
@@ -76,7 +76,7 @@ getNiftiRawData = (rawData) => {
 /**
 * Function to read Nifti  header 
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} Nifti Raw data
 * @returns {Object} Returns Nifti header object 
 * @example
@@ -92,7 +92,7 @@ readNiftiHeader = (rawNiftiData) => {
 /**
 * Function to read Nifti file image data
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} data, raw data of browsing Nifti file 
 * @param {Object} Nifti header data
 * @returns {ArrayBuffer} Returns  Nifti image  ArrayBuffer 
@@ -110,7 +110,7 @@ readNiftiImageData = (niftiHeader, rawNiftiData) => {
 /**
 * Create Nifti Output Array Buffer
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} rawData 
 * @param {Array} data 
 * @returns {ArrayBuffer} Returns Output labels as ArrayBuffer
@@ -153,7 +153,7 @@ createNiftiOutArrayBuffer = (rawData, data) => {
 /**
 * Convert array to ArrayBuffer
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} array 
 * @returns {ArrayBuffer} Returns 
 * @example
@@ -199,7 +199,7 @@ array2ArrayBuffer = (array, datatypeCode) => {
 /**
 * Convert ArrayBuffer to array
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {ArrayBuffer} arrayBuffer 
 * @returns {Array} Returns 
 * @example
@@ -248,7 +248,7 @@ arrayBuffer2Array = (arrayBuffer, datatypeCode) => {
 /**
 * Convert typedArray to array
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {TypedArray} typedArray e.g.  Uint8Array(65536) [ 0, 0, 0, 0 ... ]
 * @returns {Array} Returns 
 * @example
@@ -272,7 +272,7 @@ typedArray2Array = (typedArray) => {
 /**
 * Download Nifti data as *.nii file
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} mriData - All Output Slices  labels as 1Dim Array
 * @param {string} fileName 
 * @param {ArrayBuffer} rawNiftiData 
@@ -312,7 +312,7 @@ downloadNifti = (mriData, rawNiftiData, fileName ) => {
 /**
 * Download current viewer canvas data as *.png or *.jpg image file
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {object} canvas e.g. papayaContainers[0].viewer.canvas
 * @param {string} fileName 
 * @example
@@ -341,7 +341,7 @@ downloadCanvas = (canvas, fileName) => { // canvas : papayaContainers[0].viewer.
 /**
 * Find max value with array
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} arr 
 * @returns {number} max 
 * @example
@@ -368,7 +368,7 @@ labelMax = (arr) => {
 /**
 * Draw Ground Truth labels if any
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {Array} canvas 
 * @param {number} sliceIdx 
 * @param {object} labelNiftiHeader- The header of nifti file.
@@ -459,7 +459,7 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
 /**
 * Draw Ground Truth labels if any
 *
-* @since 0.1.0
+* @since 1.0.0
 * @param {object} file 
 * @param {number} start - e.g. 0
 * @param {number} length - File size
