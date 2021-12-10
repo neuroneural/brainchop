@@ -1,19 +1,19 @@
 /*
 =========================================================
-* 3D xSegmentation Demo - v1.0.0
+* Brainchop - v0.1.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                 
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                
 *               Model : Meshnet or similar     
 *
-* Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
+* Authors:  Mohamed Masoud  and Sergey Plis  - 2021
 =========================================================
 
 
 
 =========================================================
-                3D Brain Segmentation
+           Brainchop for 3D Brain Segmentation
 =========================================================*/ 
 
 
