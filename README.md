@@ -4,12 +4,12 @@
 
  We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/neuroneural.github.io/wiki).
 
-![Interface](https://github.com/neuroneural/neuroneural.github.io/blob/master/style/SimpleUI.png)
+![Interface](https://github.com/neuroneural/brainchop/blob/master/style/SimpleUI.png)
 
 
 ## Live Demo
 
-To see the tool in action please click  [here](https://neuroneural.github.io/).
+To see the tool in action please click  [here](https://neuroneural.github.io/brainchop).
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 
@@ -20,7 +20,7 @@ This work was funded by the NIH grant RF1MH121885.
 <br />
 <div align="center">
 
-<img src='https://github.com/neuroneural/neuroneural.github.io/blob/master/style/TReNDS_logo.jpg' width='300' height='100'></img>
+<img src='https://github.com/neuroneural/brainchop/blob/master/style/TReNDS_logo.jpg' width='300' height='100'></img>
 
 **Mohamed Masoud - Sergey Plis - 2021**
 </div>
