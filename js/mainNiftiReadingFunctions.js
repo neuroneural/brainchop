@@ -40,9 +40,6 @@ normalizeNiftiImageData = (rawData) => {
       //Normalize image data
       imageDataArr = tensor2Array(tf.mul(normalizeVolumeData(imageDataTensor), tf.scalar(255)));
 
-      // Create normalized Nifti arrayBuffer
-      // let normRawData = createNiftiOutArrayBuffer(rawData, imageDataArr);
-
       return array2ArrayBuffer(imageDataArr);
 } 
 
@@ -187,10 +184,6 @@ array2ArrayBuffer = (array, datatypeCode) => {
       }  
 
 
-
-    // convert array to typedarray
-    // let typedArray = Uint8Array.from(array);
-
     // Convert typedArray to ArrayBuffer and return ArrayBuffer
     return typedArray.buffer.slice(typedArray.byteOffset, typedArray.byteLength + typedArray.byteOffset)
 }
@@ -234,9 +227,6 @@ arrayBuffer2Array = (arrayBuffer, datatypeCode) => {
           return;
       }  
 
-
-    // // Convert arrayBuffer to TypedArray
-    // let typedArrData = new Uint8Array(arrayBuffer);
 
     // Convert typedArray to array using Spread syntax[...]
     let arr = [...typedArrData];
@@ -380,16 +370,16 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
       let cols = labelNiftiHeader.dims[1];
       let rows = labelNiftiHeader.dims[2];
 
-      // set canvas dimensions to nifti slice dimensions
+      // Set canvas dimensions to nifti slice dimensions
       canvas.width = cols;
       canvas.height = rows;
      
 
-      // make canvas image data
+      // Make canvas image data
       let ctx = canvas.getContext("2d");
       let canvasImageData = ctx.createImageData(canvas.width, canvas.height);
 
-      // convert raw data to typed array based on nifti datatype
+      // Convert raw data to typed array based on nifti datatype
       let typedData;
 
       if (labelNiftiHeader.datatypeCode === nifti.NIFTI1.TYPE_UINT8) {
@@ -414,8 +404,6 @@ drawGtCanvas = (canvas, sliceIdx, labelNiftiHeader, labelNiftiImage) => {
 
       
       let n_classes = labelMax(typedData) + 1;
-      // document.getElementById("results").innerHTML = "Found " + n_classes.toString().fontcolor("green").bold() + " classes in the ground truth";
-
       // offset to specified slice
       let sliceSize = cols * rows;
       let sliceOffset = sliceSize * sliceIdx;

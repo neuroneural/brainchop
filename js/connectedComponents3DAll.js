@@ -677,7 +677,7 @@ class ConnectCompFor3D extends ConnectCompFor2D {
                   } 
          }
 
-         // postprocess volumeSlices after remove noisy regions or smaller regions 
+         //-- Postprocess volumeSlices after remove noisy regions or smaller regions 
          return volumeSlices;
      }  
 

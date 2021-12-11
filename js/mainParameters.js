@@ -25,7 +25,7 @@
 
     var  allOutputSlices3DCC1DimArray = [];
 
-    //raw Nifti Data and header
+    //Raw Nifti Data and header
     var  rawNiftiData = [];
     //Object    
     var  niftiHeader = [];
@@ -48,7 +48,7 @@
     // Models loaded from browsing window 
     var browserModelList = [];
 
-    // number of overlay added to MRI viewer
+    // Number of overlay added to MRI viewer
     var numOfOverlays;
 
 
@@ -80,7 +80,6 @@
                                        modelName: "Tissue Segmentation",  
                                        labelsPath: "./ModelToLoad/mnm_tfjs_me_test/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json",                                        
-                                   //     batch_input_shape: [null, 38, 38, 38, 1], //[batchSize, batch_D, batch_H, batch_W, numOfChan];  
                                        isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
@@ -92,7 +91,6 @@
                                        modelName:"Tissue Segmentation d", 
                                        labelsPath: "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json", 
-                                   //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
                                        isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
@@ -105,7 +103,6 @@
                                        modelName:"Brain Extraction", 
                                        labelsPath: null, 
                                        colorsPath: null,                                        
-                                   //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
                                        isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
@@ -117,7 +114,6 @@
                                        modelName:"Brain Masking", 
                                        labelsPath: null, 
                                        colorsPath: null,                                         
-                                   //     batch_input_shape:[null, 38, 38, 38, 1],  // [batchSize, batch_D, batch_H, batch_W, numOfChan];  
                                        isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""

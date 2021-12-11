@@ -19,10 +19,6 @@
 
 (function(){
 
-  // defined at parameters file
-  // maxLabel = 0;
-  // maxLabelPredicted = 0;
-
 
 /**
 * Return 1-Dim Array of the slice pixels value, this 1 dim represents one channel  
@@ -41,7 +37,7 @@
 
 
   getSliceData1D = (sliceIdx, niftiHeader, niftiImage) => {
-      // get nifti dimensions
+      // Get nifti dimensions
       let cols = niftiHeader.dims[1]; // Slice width
       let rows = niftiHeader.dims[2]; // Slice height
 
@@ -74,7 +70,7 @@
 
       let data1DimArr = [];
 
-      // draw pixels
+      // Draw pixels
       for (let row = 0; row < rows; row++) {
           let rowOffset = row * cols;
 
@@ -378,17 +374,14 @@
 
   getCanvasImageDataForImgRegion = (sliceData1D,  imgHeight, imgWidth, regionLabel) => {  
       let canvas = document.createElement("CANVAS"); 
-      // let canvas = document.getElementById('canvasOutput');
 
-      // set canvas dimensions to nifti slice dimensions
+      // Set canvas dimensions to nifti slice dimensions
       canvas.width = imgWidth;
       canvas.height = imgHeight;
 
       // make canvas image data
       let ctx = canvas.getContext("2d");
       let canvasImageData = ctx.createImageData(canvas.width, canvas.height);            
-
-      // canvasImageData.data = sliceData1D;
 
       for (let idx = 0; idx < sliceData1D.length; idx++) {
 
@@ -404,7 +397,6 @@
           canvasImageData.data[idx * 4 + 3] = 255; // Alpha channel     
       }
 
-      // return canvasImageData;
       return canvasImageData;
     
   }
@@ -412,7 +404,6 @@
 
    getSliceContours = ( sliceData1D, sliceHeight, sliceWidth,  numSegClasses, isRGBA = false) => {
 
-          //let sliceContoursMask = cv.Mat.zeros(mat.cols, mat.rows, cv.CV_8UC3);  
           let sliceContoursMask = cv.Mat.zeros(sliceWidth, sliceHeight, cv.CV_8UC3); 
 
           let allLabelColors = getCustomContoursColor(numSegClasses); 
@@ -438,14 +429,9 @@
               }
           }
 
-          
-
           if(isRGBA) {
-
               // Convert output contours mask to RGBA  to make background areas transparent. 
               cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGB2RGBA, 0);
-
-              
 
               // Make background areas transparent and keep only edges
               let slicePixelsRGBA1D = sliceContoursMask.data;
@@ -466,8 +452,6 @@
              cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGBA2GRAY, 0);
              return sliceContoursMask.data  
           }  
-        
-
 
   }
 
@@ -1205,7 +1189,7 @@ getCustomColorTableFromUrl = (numSegClasses, colorURL ) => {
 
 
             
-        //Find the threshold grey value of each class
+        // Find the threshold grey value of each class
         for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
               classGreyValue[classIdx] = Math.ceil(classIdx*255/(numSegClasses - 1));
               // if file exist
@@ -1270,9 +1254,7 @@ fetchLabelStructure = (labelsURL) => {
 
     if(labelsURL !== null) {
 
-        //const response = await fetch(labelsURL);
-        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
-
+        let labelsDataObj; 
         $.ajax({
               url: labelsURL,
               async: false,
@@ -1289,7 +1271,7 @@ fetchLabelStructure = (labelsURL) => {
         customAtlas.prototype.getLabelAtCoordinate = function (xWorld, yWorld, zWorld, xIndex, yIndex, zIndex ) {
             let labels = labelsDataObj;
             let voxelValue = papayaContainers[1].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
-            return [labels[voxelValue]]; // [labels[0]] = "background"
+            return [labels[voxelValue]]; //-- [labels[0]] = "background"
 
         };
 
@@ -1318,10 +1300,7 @@ addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
 
     if(labelsURL !== null) {
 
-        // const response = await fetch(labelsURL);
-
-        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
-
+        let labelsDataObj; //-- labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
         $.ajax({
               url: labelsURL,
               async: false,
@@ -1339,8 +1318,6 @@ addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
                 let yIndex = curVoxelPosition["y"];
                 let zIndex = curVoxelPosition["z"];
                 let voxelValue = papayaContainers[papayaContainerIdx].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
-                // console.log(labelsDataObj[voxelValue])
-                // $$("annotOfContainer." + papayaContainerIdx).setValue(labelsDataObj[voxelValue]);
                 document.getElementById("annotOfContainer_" + papayaContainerIdx).value = labelsDataObj[voxelValue];
         }
 
@@ -1521,13 +1498,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                 }
             }            
 
-            // let outVolumeTensor1 = tf.argMax(outVolumeBuffer1.toTensor(), axis); 
-            // let outVolumeTensor2 = tf.argMax(outVolumeBuffer2.toTensor(), axis); 
-
             console.log("argMax in  buffer-2 ..Done")            
-
-            // let outBuffer1 = tensor2Buffer(outVolumeTensor1);
-            // let outBuffer2 = tensor2Buffer(outVolumeTensor2);
             let outFinaleBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32)            
 
             for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
@@ -1553,12 +1524,9 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
             unstackOutVolumeTensor = tf.unstack(outFinaleBuffer.toTensor());
 
-            // outVolumeTensor1.dispose();
-            // outVolumeTensor2.dispose();
-
         }
 
-        // convert all slices into 1 Dim array to download
+        // Convert all slices into 1 Dim array to download
 
         let allOutputSlices3DCC = [];
         let allOutputSlices3DContours = [];
@@ -1570,17 +1538,16 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
         
         if(opts.isPostProcessEnable) {
-            // remove noisy regions using 3d CC   
+            // Remove noisy regions using 3d CC   
             let sliceWidth = niftiHeader.dims[1];
             let sliceHeight = niftiHeader.dims[2];                                
             allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
         }   
 
         if(opts.isContoursViewEnable) { // Enable contour for overlay option
-            // remove noisy regions using 3d CC   
+            // Remove noisy regions using 3d CC   
             let sliceWidth = niftiHeader.dims[1];
             let sliceHeight = niftiHeader.dims[2];                                
-            // allOutputSlices3DContours = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
             allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, numSegClasses ); 
         }  
 
@@ -1605,7 +1572,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                                      }             
                case 'Brain_Extraction':
                                      { 
-                                        // input data or loaded nifti file data 
+                                        // Input data or loaded nifti file data 
                                         let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage); 
                                         let brainExtractionData1DimArr = [];
 
@@ -1678,13 +1645,13 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
                                    papayaContainers[0].viewer.mainImage.sliceDirection == 2? "coronal" : "sagittal";
 
 
-        //add overlay to MRI viewer index 0
+        //Add overlay to MRI viewer index 0
         //remove any existing overlay
         if(numOfOverlays == 1) {
              papaya.Container.removeImage(0, 1);
              numOfOverlays = 0;
         }
-        // add new one
+        // Add new one
         var addImageParams = [];
         addImageParams["binaryImages"] = [labelArrayBuffer];
         papaya.Container.addImage(0, [labelArrayBuffer], addImageParams);  
@@ -1692,9 +1659,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
 
       
         // Label segmenation voxels according to label file
-        // fetchLabelStructure(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"]);      
         console.log("label path: ", inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"])
-      
       
         // set 1 for label viewer 
         papaya.Container.resetViewer(1, params_label);    
@@ -1920,7 +1885,7 @@ isOnline= () => {
   }
 
 
-  //-- inference function   (refine)
+  //-- Inference function   (refine)
  
   runInference = () => {
 
@@ -1956,9 +1921,9 @@ isOnline= () => {
           }                           
 
           // Propose subvolume size as needed by inference model input e.g. 38x38x38
-        //   let batch_D = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][1];
-        //   let batch_H = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][2];
-        //   let batch_W = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][3];  
+          // let batch_D = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][1];
+          // let batch_H = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][2];
+          // let batch_W = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][3];  
 
           let batch_D = batchInputShape[1];
           let batch_H = batchInputShape[2];
@@ -1981,19 +1946,18 @@ isOnline= () => {
 
           let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
 
-          // get slices_3d tensor
+          // Get slices_3d tensor
           let slices_3d = getSlices3D(allSlices_2D);
           tf.dispose(allSlices_2D);               
 
-          // nomalize MRI data to be from 0 to 1
+          // Nomalize MRI data to be from 0 to 1
           slices_3d = normalizeVolumeData(slices_3d);
           
           let allBatches = [];
           let headSubCubesCoords = [];
 
-
           if(isBatchOverlapEnable) {
-              // number of additional batches focus on the brain/head volume
+              // Number of additional batches focus on the brain/head volume
               let numOverlapBatches = inferenceModelsList[$$("selectModel").getValue() - 1]["numOverlapBatches"];
               console.log(" num of overlapped batches: ", numOverlapBatches);
 
@@ -2054,7 +2018,7 @@ isOnline= () => {
                       prediction = res.layers[res.layers.length-1].apply(curTensor);
 
                       tf.dispose(curTensor);
-                      let axis = -1; //4;
+                      let axis = -1; 
                       let prediction_argmax = tf.argMax(prediction, axis);
                       tf.dispose(prediction);                          
                       allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
@@ -2073,27 +2037,15 @@ isOnline= () => {
 
                       document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
                       
-                      // let memoryStatusData=[{ memoryUse: Math.round(tf.memory().numBytesInGPU/(1024*1024*20))}];
-                      // $$("memoryMonitor").clearAll();
-                      // $$("memoryMonitor").parse(memoryStatusData);                      
-
-                      // document.getElementById("progressBar").innerHTML=  Math.floor((j+1)*100/allBatches.length) + "%";
-               
                       if( j == allBatches.length-1 ) {
                            window.clearInterval( timer );
-
                            let numSegClasses = maxLabelPredicted + 1;
                            // Generate output volume or slices                             
                            generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
-
                            document.getElementById("progressBar").style.width = 0;   
-                           //webix.message.hide("waitMessage");
-
                            $$("downloadBtn").enable();   
                            $$("segmentBtn").enable();  
-                        //    $$("imageUploader").enable();                    
                            tf.engine().endScope();
-
                            let stopTime = performance.now();
                            console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
 											                              ((stopTime -startTime)/1000).toFixed(4) + "  Seconds");
@@ -2113,14 +2065,12 @@ isOnline= () => {
                         '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
                     );  
 
-
                     document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green"; 
-
                     document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green"; 
                   }
             }); 
 	            
-	 }// end of runInference
+	 } //-- End of runInference
 
 
 })();
