@@ -313,7 +313,7 @@
                                                   rawNiftiData = getNiftiRawData(event.target.result);
                                                   niftiHeader = readNiftiHeader(rawNiftiData);
                                                   niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
-                                                  
+
                                                   if(niftiHeader.datatypeCode > 2) {
                                                       let alertTxt = "Please normalize image to 1x1x1 mm thickness by using: <br> <b>mri_convert -c your_original_image input.nii.gz </b>";
                                                       webix.alert({
@@ -533,11 +533,11 @@
              },
 
               {  cols: [
-                    {   view: "label", label: "Model Name",  
+                    {   view: "label", label: "Model Name*",  
                         align: "left"
                     },                 
                     { view: "text", 
-                      value: "New Model ",  
+                      placeholder: "New Model ",  
                       id: "proposedModelName", 
                       disabled: false,
                       align: "left"
@@ -572,8 +572,20 @@
 
                                            let newModelName = "New Model " + newId;
                                            if($$("proposedModelName").getValue().length && isLetter($$("proposedModelName").getValue()[0])){
-                                                newModelName =   $$("proposedModelName").getValue();
-                                            }  
+                                                newModelName =   $$("proposedModelName").getValue().trim();
+                                                // Check new imported model name possible redundancy
+                                                if ( inferenceModelsList.filter(entry => entry.modelName == newModelName).length ) {
+                                                      webix.message("Please select unique model name");
+                                                      return 0;
+                                                }
+
+                                            } else if($$("proposedModelName").getValue().length) {
+                                                webix.message("Please select valid model name");
+                                                return 0;
+                                            } else if(isLetter($$("proposedModelName").getValue()[0])) {
+                                                webix.message("Please select model name");
+                                                return 0;
+                                            }
 
                                            inferenceModelsList.push({
                                                  id: newId, 
@@ -594,6 +606,8 @@
                                            $$("selectModel").refresh();
                                            
                                            $$("modelBrowsingWindow").hide(); 
+                                           $$("proposedModelName").setValue("");
+
 
                                     } else if(weightFile) { 
                                            webix.message("Please select the model json file");
@@ -623,6 +637,7 @@
                           { type:"header", template:"Load tfjs Model", css:"windowtitleclass" },
                           { view:"icon", icon:"wxi-close", click:function(){
                               $$("modelBrowsingWindow").hide();
+                              $$("proposedModelName").setValue("");
                           } }
                       ]
                   },                  
