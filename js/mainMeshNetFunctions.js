@@ -1893,13 +1893,13 @@ isOnline= () => {
 	      const numOfChan = opts.numOfChan;
           const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];          
 
-	      if (isNaN(batchSize) || batchSize !=1) {
+	      if (isNaN(batchSize) || batchSize != 1) {
                 webix.alert("The batch Size for input shape must be 1");
                 return 0;
 
 	      }   
 
-	      if (isNaN(numOfChan) || (numOfChan !=1)) {
+	      if (isNaN(numOfChan) || (numOfChan != 1)) {
                 webix.alert("The number of channels for input shape must be 1");
 	            return 0;
 	      }                
@@ -1915,7 +1915,7 @@ isOnline= () => {
 
           console.log(" Model batch input shape : ", batchInputShape)
 
-          if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
+          if (isNaN(batchInputShape[4]) || (batchInputShape[4] != 1)) {
                 webix.alert("The number of channels for input shape must be 1");
                 return 0;
           }                           
@@ -2044,7 +2044,7 @@ isOnline= () => {
                            generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
                            document.getElementById("progressBar").style.width = 0;   
                            $$("downloadBtn").enable();   
-                           $$("segmentBtn").enable();  
+                           $$("segmentBtn").disable();  
                            tf.engine().endScope();
                            let stopTime = performance.now();
                            console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
