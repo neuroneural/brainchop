@@ -103,7 +103,7 @@
                                        modelName:"Brain Extraction", 
                                        labelsPath: null, 
                                        colorsPath: null,                                        
-                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   },
@@ -114,7 +114,7 @@
                                        modelName:"Brain Masking", 
                                        labelsPath: null, 
                                        colorsPath: null,                                         
-                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   }

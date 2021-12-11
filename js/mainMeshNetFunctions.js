@@ -1562,7 +1562,7 @@ generateOutputSlicesV2 = (allPredictions, num_of_slices, numSegClasses, slice_he
         let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
 
         switch ( modelType) {
-                    case 'Brain_Mask':
+                 case 'Brain_Masking':
                                      { 
                                         let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray));
                                         let brainMask = Array.from(brainMaskTensor1d.dataSync());
