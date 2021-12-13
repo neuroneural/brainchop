@@ -4,8 +4,12 @@
 
  We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. [Papaya](https://rii-mango.github.io/Papaya/) integrated for MRI view.  For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/brainchop/wiki).
 
+<div align="center">
+
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/style/brainchop_Arch.png)
 
+**brainchop high-level architecture**
+</div>
 
 ## Live Demo
 
