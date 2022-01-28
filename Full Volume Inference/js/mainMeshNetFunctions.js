@@ -1,0 +1,1987 @@
+/*
+=========================================================
+* 3D xSegmentation Demo - v1.0.0
+=========================================================
+
+* Discription:  A user interface for whole brain segmentation
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                    
+*               Model : Meshnet or similar       
+*
+* Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
+=========================================================
+
+
+
+=========================================================
+                3D Brain Segmentation
+=========================================================*/  
+
+
+(function(){
+
+  // defined at parameters file
+  // maxLabel = 0;
+  // maxLabelPredicted = 0;
+
+
+/**
+* Return 1-Dim Array of the slice pixels value, this 1 dim represents one channel  
+*
+* @since 1.0.0
+* @param {number} sliceIdx- The slice index.
+* @param {object} niftiHeader- The header of nifti file.
+* @param {ArrayBuffer} niftiImage- The image data of nifti file.
+* @returns {Array} Returns the slice data as 1 dim array- Array length = slice width * slice height
+* @example
+*
+* getSliceData1D(100, niftiHeader, niftiImage)
+* // => [0, 0, ...];
+*
+*/  
+
+
+  getSliceData1D = (sliceIdx, niftiHeader, niftiImage) => {
+      // get nifti dimensions
+      let cols = niftiHeader.dims[1]; // Slice width
+      let rows = niftiHeader.dims[2]; // Slice height
+
+      let typedData;
+
+      if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_UINT8) {
+          typedData = new Uint8Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_INT16) {
+          typedData = new Int16Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_INT32) {
+          typedData = new Int32Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_FLOAT32) {
+          typedData = new Float32Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_FLOAT64) {
+          typedData = new Float64Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_INT8) {
+          typedData = new Int8Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_UINT16) {
+          typedData = new Uint16Array(niftiImage);
+      } else if (niftiHeader.datatypeCode === nifti.NIFTI1.TYPE_UINT32) {
+          typedData = new Uint32Array(niftiImage);
+      } else {
+          return;
+      }
+
+      // offset to specified slice
+      let sliceSize = cols * rows;
+
+      let sliceOffset = sliceSize * sliceIdx;
+
+      let data1DimArr = [];
+
+      // draw pixels
+      for (let row = 0; row < rows; row++) {
+          let rowOffset = row * cols;
+
+          for (let col = 0; col < cols; col++) {
+              let offset = sliceOffset + rowOffset + col;
+              let value = typedData[offset];
+              // Create 1Dim Array of pixel value, this 1 dim represents one channel 
+              data1DimArr[(rowOffset + col)] = value & 0xFF;
+              //data1DimArr[(rowOffset + col)] = value;
+
+          }
+      }            
+
+      return data1DimArr;    
+  }
+
+/**
+* Generates number of colors using HSL wheel hsl(hue, saturation, lightness).  
+*
+* @since 1.0.0
+* @param {number} s- The saturation number.
+* @param {number} l- The lightness number.
+* @param {number} num_colors- The number of colors to generate.
+* @returns {Array} Returns colors array of string
+* @example
+*
+* generateColors(100, 50,  3)
+* // => [ "hsla(0,100%,50%)", "hsla(120,100%,50%)", "hsla(240,100%,50%)" ]
+*
+*/  
+
+  generateColors = (s, l,  num_colors) => {
+	  let colors = []
+	  let delta = Math.trunc(360 / num_colors)
+
+	  for (let i = 0; i < num_colors; i++) {
+	    let h = i * delta
+	    colors.push("hsla("+ h + "," + s +"%," + l+ "%"  + ")")	    
+	  }
+
+	  return colors
+  }
+
+/**
+* Convert rgb string to rgb object.  
+*
+* @since 1.0.0
+* @param {string} rgbString- The rgb string.
+* @returns {Object} Returns RGB as object
+* @example
+* 
+* getRgbObject( "rgb(255,0,0)" )
+* // => { r: 255, g: 0, b: 0 }
+*
+*/ 
+
+   getRgbObject = (rgbString) => {
+	  let RGB = {};
+    let rgbArray = rgbString;
+	  rgbArray = rgbArray.replace(/[^\d,]/g, '').split(',');
+	  let rgbKeys=["r","g","b"];
+	  RGB=rgbKeys.reduce((obj, key, index) => ({ ...obj, [key]:parseInt(rgbArray[index]) }), {});
+	  return RGB;
+  }
+
+/**
+* Convert "hsl(hue, saturation, lightness)" string to "rgb(rValue,gValue,bValue)" string.  
+*
+* @since 1.0.0
+* @param {string} hsl- The hsl string.
+* @returns {string} Returns RGB as string
+* @example
+* 
+* hslToRgb( "hsla(0,100%,50%)" )
+* // => "rgb(255,0,0)"
+*
+*/ 
+
+  hslToRgb = (hsl) => {
+	 let sep = hsl.indexOf(",") > -1 ? "," : " ";
+	 hsl = hsl.substr(5).split(")")[0].split(sep);
+
+	 if (hsl.indexOf("/") > -1) {
+	     hsl.splice(3,1);
+     }
+
+	 let h = hsl[0],
+	      s = hsl[1].substr(0,hsl[1].length - 1) / 100,
+	      l = hsl[2].substr(0,hsl[2].length - 1) / 100;
+	
+
+
+     let c = (1 - Math.abs(2 * l - 1)) * s,
+        x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+        m = l - c/2,
+        r = 0,
+        g = 0,
+        b = 0;
+     if (0 <= h && h < 60) {
+       r = c; g = x; b = 0;
+     } else if (60 <= h && h < 120) {
+       r = x; g = c; b = 0;
+     } else if (120 <= h && h < 180) {
+       r = 0; g = c; b = x;
+     } else if (180 <= h && h < 240) {
+       r = 0; g = x; b = c;
+     } else if (240 <= h && h < 300) {
+       r = x; g = 0; b = c;
+     } else if (300 <= h && h < 360) {
+       r = c; g = 0; b = x;
+     }
+     r = Math.round((r + m) * 255);
+     g = Math.round((g + m) * 255);
+     b = Math.round((b + m) * 255);
+
+
+  return "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+
+/**
+* For Dice calculations- find the intersection 
+*
+* @since 1.0.0
+* @param {Array} ar1- The array represents output labels in 1D
+* @param {Array} ar2- The array represents GT data in 1D
+* @returns {Array} Returns intersection 1D array 
+* @example
+*
+* intersect([0,1,1], [0,2,2])
+* // => [0]
+*
+*/ 
+
+ intersect = (ar1, ar2) => {
+      const intersection = [];
+      for(let i = 0; i < ar1.length ; i++) {
+        if(ar1[i] == ar2[i]) {
+          intersection.push(ar1[i]);
+        }
+      }
+
+      return intersection;
+  }
+
+
+/**
+* For Dice calculations- diceCoefficient 
+*
+* @since 1.0.0
+* @param {Array} ar1- The array represents output labels in 1D
+* @param {Array} ar2- The array represents GT data in 1D
+* @returns {number} Returns dice Coefficient number
+* @example
+*
+* diceCoefficient([0,1,1], [0,2,2])
+* // => 0.333
+*
+*/ 
+
+  diceCoefficient = (ar1, ar2) => {
+      return ( 2 * intersect(ar1, ar2).length ) / ( ar1.length + ar2.length );
+  } 
+
+
+/**
+* Get maximum region mask using contour method to filter 2D slice smaller regions
+*
+* @since 1.0.0
+* @param {ImageData} canvasImageData- The imageData object represents slice canvas data e.g. ImageData { width: 100, height: 100, data: Uint8ClampedArray(40000) }
+* @returns {TypedArray} Returns contour pixels value {0, 255}
+* @example
+*
+* ctx = papayaContainers[0].viewer.canvas.getContext("2d")
+*
+* getMaxRegionMaskByContour( ctx.getImageData(0, 0, 255, 255) )
+* // => Uint8Array(65025) [ 0, 0, 0, 0, 0, 0, 0,... , 255, 255, 255, … ]
+*
+*/ 
+
+  getMaxRegionMaskByContour= (canvasImageData) => { // slice matrix
+
+          let mat = cv.matFromImageData(canvasImageData);
+          
+          let mask = cv.Mat.zeros(mat.cols, mat.rows, cv.CV_8UC3);  
+
+          let mask_gray = new cv.Mat ();
+          let mask_binary = new cv.Mat ();
+          let contours = new cv.MatVector();   
+          let hierarchy = new cv.Mat();    
+
+          // Grayscale conversion
+          cv.cvtColor (mat, mask_gray, cv.COLOR_RGBA2GRAY, 0);
+
+          cv.findContours(mask_gray, contours, hierarchy,  cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE); // cv.CHAIN_APPROX_SIMPLE   
+
+  	      let maxContourArea = 0
+  	      let maxContourAreaIdx = -1
+  	      for (let i = 0; i < contours.size(); ++i) {
+  	                  let cnt = contours.get(i);
+  	                  let area = cv.contourArea(cnt, false);
+
+  	                  if(maxContourArea < area) {
+  	                     maxContourArea = area;
+  	                     maxContourAreaIdx = i;
+  	                  } 
+
+  	                  cnt.delete(); 
+  	      }
+
+          let color = new cv.Scalar(255, 255, 255);
+          cv.drawContours(mask, contours, maxContourAreaIdx, color, -1); //cv.LINE_8      
+	      
+	        cv.cvtColor (mask, mask_gray, cv.COLOR_RGBA2GRAY, 0);        
+	        cv.threshold (mask_gray, mask_binary,  0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);        
+             
+
+          mat.delete();
+          mask.delete();
+          mask_gray.delete();
+
+          contours.delete(); 
+          hierarchy.delete(); 
+ 
+          return  mask_binary.data;       
+  } 
+
+
+/////////////******************* 3D Connected Components**************************/////////////////
+/**
+* Post processing the resulted labels from the inference model by removing noisy 3D regions, and keep only largest region
+*
+* @since 1.0.0
+* @param {Array} outputSlices- 2D array[sliceIdx][sliceHeight*sliceWidth] such that outputSlices[i] gives slice data as 1d Array
+* @param {number} sliceHeight- Slice Height
+* @param {number} sliceWidth - Slice Width
+* @returns {Array} Returns 2D labels array outputSlices[sliceIdx][sliceHeight*sliceWidth] after filtering noisy 3d regions
+* @example
+*
+* postProcessSlices3D( [ [0,0,0,0,  0,1,1,0,  0,0,0,0],
+*                        [0,0,0,0,  0,0,1,1,  0,0,0,0],
+*                        [0,0,0,0,  0,0,0,1,  0,1,1,0] ], 3, 4)
+*
+* // =>  [ [0,0,0,0,  0,1,1,0,  0,0,0,0],
+*          [0,0,0,0,  0,0,1,1,  0,0,0,0],
+*          [0,0,0,0,  0,0,0,1,  0,0,0,0] 
+*        ]
+*
+*/  
+
+   postProcessSlices3D = (outputSlices, sliceHeight, sliceWidth) => {
+
+      let cc3d = new ConnectCompFor3D();
+
+      outputSlices = cc3d.findLargest3dRegion(outputSlices, sliceHeight, sliceWidth);
+      
+      // postprocess outputSlices after remove noisy regions or smaller regions 
+      delete cc3d;
+      return outputSlices;
+  }  
+
+
+
+
+///////////////************************3D Contours*********************************////////////////////
+
+   getSliceContoursMaskByLabel = (imgDataForLabel, mask, color) => {
+
+          let mat = cv.matFromImageData( imgDataForLabel );
+          let mask_gray = new cv.Mat ();
+          let mask_binary = new cv.Mat ();
+          let contours = new cv.MatVector();   
+          let hierarchy = new cv.Mat();    
+
+          // Grayscale conversion
+          cv.cvtColor (mat, mask_gray, cv.COLOR_RGBA2GRAY, 0);
+          cv.findContours(mask_gray, contours, hierarchy,  cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE); //cv.RETR_CCOMP cv.CHAIN_APPROX_SIMPLE cv.CHAIN_APPROX_NONE  cv.RETR_EXTERNAL
+
+          // Draw contours on mask
+          for (let i = 0; i < contours.size(); ++i) {
+              cv.drawContours(mask, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+          }
+
+          mask_gray.delete();  contours.delete(); hierarchy.delete();  
+
+          return mask;  
+   }
+
+
+
+  getCustomContoursColor = (numSegClasses) => {
+          let colors = generateColors(100, 50,  numSegClasses);
+          let colorsRgbObj = [];
+           //Find the color object for each class
+           for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+                 colorsRgbObj[classIdx] =  getRgbObject(hslToRgb(colors[classIdx]));
+           }
+
+          return colorsRgbObj;
+  }
+
+
+  getCanvasImageDataForImgRegion = (sliceData1D,  imgHeight, imgWidth, regionLabel) => {  
+      let canvas = document.createElement("CANVAS"); 
+      // let canvas = document.getElementById('canvasOutput');
+
+      // set canvas dimensions to nifti slice dimensions
+      canvas.width = imgWidth;
+      canvas.height = imgHeight;
+
+      // make canvas image data
+      let ctx = canvas.getContext("2d");
+      let canvasImageData = ctx.createImageData(canvas.width, canvas.height);            
+
+      // canvasImageData.data = sliceData1D;
+
+      for (let idx = 0; idx < sliceData1D.length; idx++) {
+
+           if(sliceData1D[idx] ==  regionLabel) {
+              value = 255;                 
+           } else {
+              value = 0;                  
+           }
+
+          canvasImageData.data[idx * 4] = value;
+          canvasImageData.data[idx * 4 + 1] = value;
+          canvasImageData.data[idx * 4 + 2] = value;
+          canvasImageData.data[idx * 4 + 3] = 255; // Alpha channel     
+      }
+
+      // return canvasImageData;
+      return canvasImageData;
+    
+  }
+
+
+   getSliceContours = ( sliceData1D, sliceHeight, sliceWidth,  numSegClasses, isRGBA = false) => {
+
+          //let sliceContoursMask = cv.Mat.zeros(mat.cols, mat.rows, cv.CV_8UC3);  
+          let sliceContoursMask = cv.Mat.zeros(sliceWidth, sliceHeight, cv.CV_8UC3); 
+
+          let allLabelColors = getCustomContoursColor(numSegClasses); 
+          //-- e.g. allLabelColors : [ { r: 255, g: 0, b: 0 }, { r: 0, g: 255, b: 0 }, { r: 0, g: 0, b: 255 } ]
+          
+          // For future use
+          let bgLabel = 0;
+
+          // For each labeled region  find its contours
+          for(let label = 0; label < numSegClasses; label++) {
+
+              if(label != bgLabel) {
+                  
+                  let labelColor;
+
+                  if(isRGBA) {
+                      labelColor = { 0: allLabelColors[label].r , 1: allLabelColors[label].g, 2: allLabelColors[label].b, 3: 0, length: 4 };                                                         
+                  } else { // is Gray
+                      let grayValue = Math.ceil(label*255/(numSegClasses - 1))
+                      labelColor = { 0: grayValue , 1: grayValue, 2: grayValue, 3: 0, length: 4 };                                                         
+                  }
+                  sliceContoursMask = getSliceContoursMaskByLabel( getCanvasImageDataForImgRegion( [...sliceData1D], sliceHeight, sliceWidth, label ), sliceContoursMask, labelColor );
+              }
+          }
+
+          
+
+          if(isRGBA) {
+
+              // Convert output contours mask to RGBA  to make background areas transparent. 
+              cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGB2RGBA, 0);
+
+              
+
+              // Make background areas transparent and keep only edges
+              let slicePixelsRGBA1D = sliceContoursMask.data;
+
+              for (let i = 0; i < slicePixelsRGBA1D.length; i += 4) {
+
+                if( (slicePixelsRGBA1D[i] == 0) && (slicePixelsRGBA1D[i+1] == 0) && (slicePixelsRGBA1D[i+2] == 0) ) {
+                   slicePixelsRGBA1D[i+3] = 0;
+                } 
+              }
+
+              sliceContoursMask.delete();
+
+              return slicePixelsRGBA1D
+
+          } else { // Gray is needed.
+          
+             cv.cvtColor (sliceContoursMask, sliceContoursMask, cv.COLOR_RGBA2GRAY, 0);
+             return sliceContoursMask.data  
+          }  
+        
+
+
+  }
+
+
+  findVolumeContours = (volumeSlices, sliceHeight, sliceWidth, numSegClasses) => {
+       let volumeSlicesWithContours = [];
+
+       for(let sliceIdx = 0; sliceIdx < volumeSlices.length; sliceIdx++) {
+               volumeSlicesWithContours[sliceIdx] =  getSliceContours( [...volumeSlices[sliceIdx]], sliceHeight, sliceWidth,  numSegClasses)
+       }
+
+       return volumeSlicesWithContours;
+  } 
+
+
+////////////*******************************************************************////////////////////
+/**
+* Standard Normal variate using Box-Muller transformation.
+* The transformation simply takes two variables that are uniformly distributed 
+* and sends them to two independent random variables with a standard normal distribution.
+*
+* @since 1.0.0
+* @returns {number} Returns 
+* @example
+*
+* randn_bm()
+*
+* // => 0.2175
+*
+*/ 
+
+    randn_bm = () => {
+          //u and v are random variables, they are uniformly distributed in the interval (0,1)
+          let u = 0, v = 0;
+          while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+          while(v === 0) v = Math.random();
+          // returns independent, random variable that has a standard normal distribution
+          return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+    }
+
+
+/**
+* Check whether the proposed subvolumes coords are feasible
+*
+* @since 1.0.0
+* @param {Array} DHW- Generated Coordinates e.g. [100,150,100]
+* @param {Array} cubeSides - MRI volume sides e.g.[256,256,256]
+* @param {Array} subCubeSides -Batch size e.g. [38,38,38]
+* @returns {boolean} Returns - true or false 
+* @example
+*
+* checkInside([100,150,100], [256,256,256], [38,38,38]) )
+*
+* // => true
+*
+*/ 
+
+
+    checkInside = (DHW, cubeSides, subCubeSides) => {
+        for (let i = 0; i < 3; i++) {
+            if ( (Math.sign(DHW[i]) < 0) || ( (DHW[i] + subCubeSides[i]) > cubeSides[i]) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
+/**
+* Generate feasible overlap coordinates for inference 
+*
+* @since 1.0.0
+* @param {number} numOfSubCubes- Number of ovelap subCubes to generate e.g. 200
+* @param {Array} mean - MRI mean voxel coordinate e.g. [ 123, 145, 127 ]
+* @param {Array} sigma - Variance
+* @param {Array} cubeSides - MRI volume sides e.g.[256,256,256]
+* @param {Array} subCubeSides -Batch size e.g. [38,38,38]
+* @returns {Array} Returns all generated coords
+* @example
+*
+* findCoordsOfAddBrainBatches(200, [ 123, 145, 127 ], [ 1454.45, 1099.23, 1178.78 ],  [256,256,256], [38,38,38])
+*
+* // => [[ 187, 132, 56 ], [ 109, 103, 208 ], ... , [ 54, 97, 29 ]]
+*
+*/ 
+    
+    findCoordsOfAddBrainBatches = (numOfSubCubes, mean, sigma, cubeSides, subCubeSides ) => {
+
+        const allCoords = [];
+        let  coord;
+
+        for (let i = 0; i < numOfSubCubes; i++) {
+            coord = Array(Math.round(mean[0]+randn_bm()*sigma[0]),
+                          Math.round(mean[1]+randn_bm()*sigma[1]),
+                          Math.round(mean[2]+randn_bm()*sigma[2]) );
+            if( !checkInside(coord, cubeSides, subCubeSides) ) {
+                i--;
+                // console.log(coord);
+            } else {
+                allCoords[i] = coord;
+            }
+        }
+
+        return allCoords;
+    }
+
+/**
+*  Return Tensor with binary 3D volume data  0 or 1
+*  Element-wise: (x > 0 ? 1 : alpha * x );  e.g. Tenosr [0, 0.9, 0.8, -3] => Tensor [0, 1, 1, 0]
+*
+* @since 1.0.0
+* @param {tf.Tensor|TypedArray|Array} volumeDataTensor- e.g. tf.tensor1d([0, 0.2, 0.1, 0.3])
+* @returns {tf.Tensor} Returns Binary value tensor {0,1}
+* @example
+*
+* binarizeVolumeDataTensor(tf.tensor1d([0, 2, -1, -3])
+*
+* // => Tensor  [0, 1, 0, 0]
+*
+*/ 
+
+
+  binarizeVolumeDataTensor = (volumeDataTensor) => {
+
+   let alpha = 0;
+   // element-wise: (x > 0 ? 1 : alpha * x );  e.g. Tenosr [0, 0.9, 0.8, -3] => Tensor [0, 1, 1, 0]   
+   return   volumeDataTensor.step(alpha); 
+
+  }
+
+
+/**
+*  Convert tensor to buffer so immutable tensor can be mutable buffer with get() and set()
+*  To convert buffer to tensor use bufferObj.toTensor()
+*  
+* @since 1.0.0
+* @param {tf.Tensor|TypedArray|Array} tensor- e.g. tf.tensor1d([0, 0.2, 0.1, 0.3])
+* @returns {tf.buffer} Returns mutable tf.buffer object
+* @example
+*
+* tensor2Buffer(  tf.tensor1d( [0, 2, -1, -3] ) )
+*
+* // => tf.buffer:  Object { dtype: "float32", shape: (1) […], size: 4, values: Float32Array(4), strides: [] }
+* 
+*/ 
+
+  tensor2Buffer = (tensor) => {
+     return tf.buffer(tensor.shape, tensor.dtype, tensor.dataSync());
+  } 
+
+
+/**
+*  Convert single/multi dimensional tensor to single/multi dimensional Array
+*  
+* @since 1.0.0
+* @param {tf.Tensor} tensor- e.g. tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] )
+* @returns {Array} Returns mutable  single/multi dimensional Array
+* @example
+*
+* tensor2Array(  tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] ) )
+*
+* // =>Array  [ [ [1,2],
+*                 [3,4] ],
+*
+*               [ [5,6],
+*                 [7,8] ]
+*             ]
+* 
+*/ 
+
+  tensor2Array = (tensor) => {
+    return tensor.arraySync();
+  }
+
+
+/**
+*  Convert single/multi dimensional array to single/multi tensor
+*  
+* @since 1.0.0
+* @param {Array} array- e.g. [1,2,3,4,5,6,7,8]
+* @returns {tf.tensor} Returns tf.tensor  
+* @example
+*
+* t = array2Tensor([[ [1,2],
+*                     [3,4] ],
+* 
+*                   [ [5,6],
+*                     [7,8] ]
+*                 ])
+*
+* t.print()
+* // =>tensor [ [ [1,2],
+*                 [3,4] ],
+*
+*               [ [5,6],
+*                 [7,8] ]
+*             ]
+* 
+*/ 
+
+  array2Tensor = (array) => {
+    return tf.tensor(array);
+  }
+
+
+/**
+*  Convert single/multi dimensional tensor to flatten 1d dimensional Array
+*  
+* @since 1.0.0
+* @param {tf.Tensor} tensor- e.g. tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] )
+* @returns {Array} Returns mutable  flatten 1d dimensional Array
+* @example
+*
+* tensor2FlattenArray(  tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] ) )
+*
+* // =>Array  [ 1, 2, 3, 4, 5, 6, 7, 8 ]
+* 
+*/ 
+
+  tensor2FlattenArray = (tensor) => {
+    return Array.from(tensor.dataSync());
+  }
+
+
+
+
+/**
+*  Calculate the mements of the MRI volume to find mean and variance
+*  
+* @since 1.0.0
+* @param {tf.Tensor} cube3d- e.g slice3d repesents the MRI volume
+* @param {number} threshold- filter  voxels based on the threshold value
+* @returns {Array} Returns [meanArray, varArray]
+* @example
+*
+* cubeMoments(  tf.tensor( [1,2,3,4,5,6,7,8], [2, 2, 2] ) , 0.5)
+*
+* // => Array [[0, 0, 0],[0.25, 0.25, 0.25]]
+* 
+*/ 
+
+
+  cubeMoments = (cube3d, threshold) => {
+      // mean and variance of a normalized cube data [0, 1]
+      let cube = tensor2Buffer(cube3d);
+      let coords = [];
+      for(let i = 0; i < cube3d.shape[0]; i++) {
+          for(let j = 0; j < cube3d.shape[1]; j++) {
+              for(let k = 0; k < cube3d.shape[2]; k++) {
+                  if (cube.get(i,j,k) > threshold) {
+                      coords.push([i, j, k]);
+                  }
+              }
+          }
+      }
+      let coordsTensor = tf.tensor2d(coords);
+      let moments = tf.moments(coordsTensor, 0, false);
+      let meanArray = Array.from(tf.round(moments['mean']).dataSync());
+      let varArray = Array.from(moments['variance'].dataSync());
+      coordsTensor.dispose();
+      return [meanArray, varArray];
+  };
+
+
+
+
+/**
+*  For all MRI volume values > 0 , find the Centroid voxel Array [d, h, w]
+*  
+* @since 1.0.0
+* @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
+* @param {number} num_of_slices- Total Number of slices aka z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @returns {Array} Returns centroid voxel Array [d, h, w]
+* @example
+*
+* [0.. 7] <==> Array.from({length: 8}, (x, i) => i)
+*
+* findHeadCentroid(  tf.tensor( Array.from({length: 27}, (x, i) => i) , [3, 3, 3] ), 3, 3, 3 )
+*
+* // => Array [ 1, 1, 1 ]
+* 
+*/ 
+
+
+  findHeadCentroid = (slices_3d, num_of_slices, slice_height, slice_width) => {
+    // Threshold tensor volume values to 0 or 1 such that if (voxelVal > 0 ? 1 : 0 )
+     let binarizeVolumeTensor = binarizeVolumeDataTensor(slices_3d);
+     let binarizeVolumeBuffer = tensor2Buffer(binarizeVolumeTensor);
+
+     const grid_coords = [];
+     let counter = 0;
+                  
+                     
+      // Find coordinates of nonzero voxels as (x_i, y_i, z_i) vectors
+      for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+            for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+
+                 let voxelValue = binarizeVolumeBuffer.get(depthIdx, rowIdx, colIdx);
+                 if(voxelValue == 1) {
+                         grid_coords[counter] = Array(depthIdx, rowIdx, colIdx);
+                         counter += 1;  
+                 }
+            }
+        }
+      }  
+      
+      // Create 2D Tesnor with three columns for depth, row, col index 
+      let gridCoordsTensor = tf.tensor2d(grid_coords);
+      let axis = 0;
+
+      let headCentroidTensor = tf.round(gridCoordsTensor.mean(axis));
+
+      // Find the Centroid voxel Array [d, h, w]
+      let headCentroidArray = Array.from(headCentroidTensor.dataSync());
+      tf.dispose(gridCoordsTensor);
+      tf.dispose(headCentroidTensor);
+
+      return headCentroidArray;
+
+  }
+
+
+/**
+*  Creates batches with the volume of slices each of D,H,W sub_volume and
+*  focus on brain area for the additional sub_volumes 
+*  
+* @since 1.0.0
+* @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
+* @param {number} num_of_slices- Total Number of slices aka z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @param {number} batch_D- batch depth-dim a.k.a z-dim
+* @param {number} batch_H- batch height 
+* @param {number} batch_W- batch width
+* @param {Array}  headSubCubesCoords - coordinates of overlap batches centered around the head 
+* @returns {Array} Returns Array of objects for all Slices Batch e.g. {id: number, coordinates:[Array], data: tf.Tensor }
+*
+* [0.. 7] <==> Array.from({length: 8}, (x, i) => i)
+*  headSubCubesCoords = []
+*
+* sliceVolumeIntoOverlappedBatches(  tf.tensor( Array.from({length: 27}, (x, i) => i) , [3, 3, 3] ), 3, 3, 3, 2, 2, 2, [] )
+*
+* // => Array [ {id:1, coordinates:[0,0,0], data:{ kept: false, isDisposedInternal: false, dtype: "float32", … } }, {...}, ... ]
+* 
+*/ 
+
+  sliceVolumeIntoOverlappedBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W, headSubCubesCoords ) => {
+
+      let allSlicedBatches = [];
+      let batch_id = 1;
+
+      for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += batch_D) {        
+        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += batch_H) {      
+            for(let colIdx = 0; colIdx < slice_width; colIdx += batch_W) {
+                  // for overlap calculations of last batches 
+                  let depthIdxDiff = 0;
+                  let rowIdxDiff = 0;              
+                  let colIdxDiff = 0;
+
+                  if((depthIdx + batch_D) > num_of_slices) {
+                    depthIdxDiff = (depthIdx + batch_D) - num_of_slices;
+                  }
+
+                  if((rowIdx + batch_H) > slice_height) {
+                    rowIdxDiff = (rowIdx + batch_H) - slice_height;
+                  }
+
+                  if((colIdx + batch_W) > slice_width) {
+                    colIdxDiff = (colIdx + batch_W) - slice_width;
+                  }                                
+
+                  let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
+                  let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+
+                  allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+                  batch_id += 1;
+            } 
+        }
+      }
+
+      // Additional sub_volumes or batches focus around the head centroid 
+      for(let cubeIdx = 0; cubeIdx < headSubCubesCoords.length; cubeIdx++) {
+
+            let startIndex = [headSubCubesCoords[cubeIdx][0], headSubCubesCoords[cubeIdx][1], headSubCubesCoords[cubeIdx][2]];
+            let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+            allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+            batch_id += 1;            
+      }
+
+
+     return   allSlicedBatches;
+  }    
+
+/**
+*  Try to create batches with the volume of slices each of D,H,W sub_volume  with minimum overlap option
+*  
+* @since 1.0.0
+* @param {tf.Tensor} slices_3d - e.g slice_3d repesents the MRI volume slices as tensor
+* @param {number} num_of_slices- Total Number of slices aka z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @param {number} batch_D- batch depth-dim a.k.a z-dim
+* @param {number} batch_H- batch height 
+* @param {number} batch_W- batch width
+* @returns {Array} Returns Array of objects for all Slices Batch e.g. {id: number, coordinates:[Array], data: tf.Tensor }
+*
+* [0.. 7] <==> Array.from({length: 8}, (x, i) => i)
+*  
+* sliceVolumeIntoBatches(  tf.tensor( Array.from({length: 27}, (x, i) => i) , [3, 3, 3] ), 3, 3, 3, 2, 2, 2 )
+*
+* // => Array [ {id:1, coordinates:[0,0,0], data:{ kept: false, isDisposedInternal: false, dtype: "float32", … } }, {...}, ... ]
+* 
+*/ 
+
+
+	sliceVolumeIntoBatches = (slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W ) => {
+	    let allSlicedBatches = [];
+	    let batch_id = 1;
+
+	    for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += batch_D) {        
+	      for(let rowIdx = 0; rowIdx < slice_height; rowIdx += batch_H) {      
+	          for(let colIdx = 0; colIdx < slice_width; colIdx += batch_W) {
+	                // for overlap calculations of last batches 
+	                let depthIdxDiff = 0;
+	                let rowIdxDiff = 0;              
+	                let colIdxDiff = 0;
+
+	                if((depthIdx + batch_D) > num_of_slices) {
+	                  depthIdxDiff = (depthIdx + batch_D) - num_of_slices;
+	                }
+
+	                if((rowIdx + batch_H) > slice_height) {
+	                  rowIdxDiff = (rowIdx + batch_H) - slice_height;
+	                }
+
+	                if((colIdx + batch_W) > slice_width) {
+	                  colIdxDiff = (colIdx + batch_W) - slice_width;
+	                }                                
+
+	                let startIndex = [depthIdx - depthIdxDiff, rowIdx - rowIdxDiff, colIdx - colIdxDiff];
+	                let batch = slices_3d.slice(startIndex, [batch_D, batch_H, batch_W]);
+
+	                allSlicedBatches.push({id: batch_id , coordinates: startIndex, data: batch});
+	                batch_id += 1;
+	          } 
+	      }
+	    }
+
+	   return   allSlicedBatches;
+	}
+
+
+  normalizeAllSlicesData1D = (allSlices1D) => {
+        maxVoxelVal = 0;
+        minVoxelVal = Infinity;
+
+        for (let idx = 0; idx < allSlices1D.length; idx++) {
+             let tempMin = Math.min(...allSlices1D[idx]);
+             let tempMax = Math.max(...allSlices1D[idx]);
+
+             if(tempMax > maxVoxelVal) {
+                 maxVoxelVal = tempMax;
+             }
+         
+             if(tempMin < minVoxelVal) {
+                 minVoxelVal = tempMin;
+             }
+        }
+
+        let allNormSlices = [];  
+
+        for (let i = 0; i < allSlices1D.length; i++) {
+           let temp = new Float64Array(allSlices1D[0].length);
+
+           for (let j = 0; j < allSlices1D[0].length; j++) {
+              temp[j] = (allSlices1D[i][j] -  minVoxelVal) / (maxVoxelVal - minVoxelVal);
+           }
+
+
+           allNormSlices.push([...temp]);
+        }
+
+        return allNormSlices;
+  }
+
+
+/**
+* Return 2-Dim Array of the all slices data where each slice data is a 1d array
+*
+* @since 1.0.0
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {object} niftiHeader- The header of nifti file.
+* @param {ArrayBuffer} niftiImage- The image data of nifti file.
+* @returns {Array} Returns All slices data where each slice data is a 1-dim array- e.g. allSlices[0] = [0,0,0, ..., 0]
+* @example
+*
+* getAllSlicesData1D(256, niftiHeader, niftiImage)
+* // => [ [0,0, 0, ...], [0,0,...,0], ... ];
+*
+*/  
+
+
+	getAllSlicesData1D = (num_of_slices, niftiHeader, niftiImage) => {
+	      let allSlices = [];
+	      for(let sliceIdx = 0; sliceIdx < num_of_slices; sliceIdx++) {
+	          let slice = getSliceData1D(sliceIdx, niftiHeader, niftiImage);
+	          allSlices.push(slice);
+	      }        
+
+	     return   allSlices; 
+	}
+
+
+/**
+* Return 2-Dim Array of the all slices data where each slice data is a 2d array
+*
+* @since 1.0.0
+* @param {Array} allSlices- Array of all slices data as 1D
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @returns {Array}  Returns All slices data where each slice data is tensor2d.  e.g. allSlices[0] = Tensor [[0,0,0, ..., 0], .. [..]]
+* @example
+*
+* arrSlices2d = getAllSlices2D([ [0,0,0,255,255,255,255,255,255,0,0,0], [0,0,0,255,255,255,255,255,255,0,0,0] ], 4, 3)
+* // => Array of tensors [ { kept: false, isDisposedInternal: false, dtype: "float32", … }, {...}];
+*
+* arrSlices2d[0].print()
+*  // =>   Tensor
+*            [[0  , 0  , 0  ],
+*             [255, 255, 255],
+*             [255, 255, 255],
+*             [0  , 0  , 0  ]]
+*
+*/ 
+
+	getAllSlices2D = (allSlices, slice_height, slice_width) => {
+	    let allSlices_2D = [];
+	    for(let sliceIdx = 0; sliceIdx < allSlices.length; sliceIdx ++){
+	        allSlices_2D.push(tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]));
+	    }   
+
+	    return   allSlices_2D;   
+	}
+
+
+/**
+* Return volumatric 3-Dim tensor of all slices data
+* @since 1.0.0
+* @param {Array} allSlices_2D- Array of 2d tensors of all slices data 
+* @returns {tf.Tensor}  Returns Tensor of all slices data 
+* @example
+*
+* slices3d = getSlices3D([ tf.tensor( Array.from({length: 16}, (x, i) => i) , [4, 4]),  
+*                          tf.tensor( Array.from({length: 16}, (x, i) => i) , [4, 4])
+*                       ])
+*
+* // => object { kept: false, isDisposedInternal: false, shape: (3) […], dtype: "float32", 
+*                size: 32, strides: (2) […], dataId: {…}, id: 355, rankType: "3", scopeId: 29 
+*              }
+*
+* slices3d.print()
+*  // =>   Tensor
+*                [[[0 , 1 , 2 , 3 ],
+*                  [4 , 5 , 6 , 7 ],
+*                  [8 , 9 , 10, 11],
+*                  [12, 13, 14, 15]],
+*
+*                 [[0 , 1 , 2 , 3 ],
+*                  [4 , 5 , 6 , 7 ],
+*                  [8 , 9 , 10, 11],
+*                  [12, 13, 14, 15]]]
+*
+*/ 
+
+	getSlices3D = (allSlices_2D) => {
+   	    return tf.stack(allSlices_2D);  
+	}
+
+
+/**
+* Normalize the tensor data to the range 0 - 1 using min-max scaling
+* @since 1.0.0
+* @param {tf.Tensor} volumeData- Tensor1d/Tensor2d/Tensor3d,  e.g. Tensor3d of all MRI volume data 
+* @returns {tf.Tensor}  Returns Tensor of all normalized data 
+* @example
+*
+* normSlices = normalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
+*
+* // => Object { kept: false, isDisposedInternal: false, shape: (3) […], dtype: "float32", 
+*                size: 8, strides: (2) […], dataId: {…}, id: 369, rankType: "3", scopeId: 39 }
+*
+* normSlices.print()
+*  // =>   Tensor
+*             [[[0        , 0.1428571],
+*               [0.2857143, 0.4285715]],
+*
+*              [[0.5714286, 0.7142857],
+*               [0.8571429, 1        ]]]
+*
+*/ 
+
+	normalizeVolumeData = (volumeData) => {
+	    //Normalize the data to the range 0 - 1 using min-max scaling
+	    const volumeData_Max = volumeData.max();
+      const volumeData_Min = volumeData.min();
+            // const volumeData_Min = 1
+	    const normalizedSlices_3d = volumeData.sub(volumeData_Min).div(volumeData_Max.sub(volumeData_Min));
+	    return  normalizedSlices_3d;      
+	}
+
+/**
+* load pre-trained model from local drive
+*
+* @since 1.0.0
+* @param {string} modelUrl - the model URL e.g. "./ModelToLoad/mnm_tfjs_me_test/model.json"
+* @returns {promise} Promise object represents the model to load
+* @example
+*
+* load_model("./ModelToLoad/mnm_tfjs_me_test/model.json")
+* // => Promise { <state>: "fulfilled", <value>: {…} }
+*
+*/  
+
+	load_model = async( modelUrl) => {
+        return await tf.loadLayersModel(modelUrl);
+	}
+
+/**
+* load uploaded pre-trained model from local drive 
+*
+* @since 1.0.0
+* @param {File} modelFile - the model File e.g. { name: "model.json", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
+* @param {File} weightFile - the weight File e.g. { name: "weight.bin", lastModified: 1625122369308, webkitRelativePath: "", size: 250, type: "" }
+* @returns {promise} Promise object represents the model to load
+* @example
+*
+* load_browser_model(uploadJSONInput.files[0], uploadWeightsInput.files[0])
+* // => Promise { <state>: "fulfilled", <value>: {…} }
+*
+*/  
+
+    load_browser_model = async( modelFile, weightFile) => {
+        return await tf.loadLayersModel(tf.io.browserFiles( [ modelFile, weightFile ]));
+    }
+
+/**
+* Generates range of colors for Segmentation classes -- (refine)
+*
+* @since 1.0.0
+* @param {number} numSegClasses - The number of segmentation classes.
+* @returns {function} Returns custom color table function
+* @example
+*
+* getCustomColorTable(3)
+* // => function customColorTable()
+*
+*/  
+getCustomColorTable = (numSegClasses) => {
+
+        var customColorTable = function() { };  
+        let colors = []; 
+
+        if( (!opts.isAutoColors) && (numSegClasses <= manualColorsRange.length) ) {
+            //Manual coloring
+            colors = manualColorsRange;
+        } else {
+            //Auto coloring 
+            colors = generateColors(100, 50,  numSegClasses);
+            
+            if(!opts.isAutoColors) { // if manual coloring was requested but failed
+                if(numSegClasses > manualColorsRange.length) {
+                     console.log("number of Segmentation classes > manualColorsRange --> Auto coloring enabled");
+                     webix.message("number of Segmentation classes > manualColorsRange --> Auto coloring enabled");
+                }
+            
+            }
+        }
+
+
+        let colorsRgbObj = [];
+
+        // Array of threshold grey value of each class
+        let classGreyValue = [];
+
+        if(opts.isColorEnable) {
+            
+            //Find the threshold grey value of each class
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+                      classGreyValue[classIdx] = Math.ceil(classIdx*255/(numSegClasses - 1));
+                      colorsRgbObj[classIdx] =  getRgbObject(hslToRgb(colors[classIdx]));
+
+            }
+
+
+            customColorTable.prototype.lookupRed = function (screenVal, imageVal) {
+                for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                    if (screenVal == 0) {
+                        return 0; 
+                    } else  if (screenVal == classGreyValue[classIdx]) {
+                        return colorsRgbObj[classIdx].r; 
+                    }
+
+                 }   
+
+            };
+
+            customColorTable.prototype.lookupGreen = function (screenVal, imageVal) {
+                for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                    if (screenVal == 0) {
+                        return 0; 
+                    } else  if (screenVal == classGreyValue[classIdx]) {
+                        return colorsRgbObj[classIdx].g; 
+                    }
+
+                 }    
+            };
+
+            customColorTable.prototype.lookupBlue = function (screenVal, imageVal) {
+                for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                    if (screenVal == 0) {
+                        return 0; 
+                    } else  if (screenVal == classGreyValue[classIdx]) {
+                        return colorsRgbObj[classIdx].b; 
+                    }
+
+                 }   
+            };            
+
+        } 
+
+        return customColorTable;
+}
+
+
+
+getCustomColorTableFromUrl = (numSegClasses, colorURL ) => { 
+
+
+        var customColorTable = function() { }; 
+
+        let colors; 
+        // read json file in sync mode
+        $.ajax({
+              url: colorURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                colors = response
+                //-- colors : {0: "rgb(0,0,0)", 1: "rgb(0,255,0)", 2: "rgb(255,0,255)"} 
+              }
+            });
+
+
+
+        console.log("colors: ", colors)
+        
+
+        let colorsRgbObj = [];
+
+        // Array of threshold grey value of each class
+        let classGreyValue = [];
+
+
+            
+        //Find the threshold grey value of each class
+        for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+              classGreyValue[classIdx] = Math.ceil(classIdx*255/(numSegClasses - 1));
+              // if file exist
+              colorsRgbObj[classIdx] =  getRgbObject(colors[classIdx]);
+              console.log(" colorsRgbObj[classIdx] ", colorsRgbObj[classIdx])
+        }
+
+
+        customColorTable.prototype.lookupRed = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].r; 
+                }
+
+             }   
+
+        };
+
+        customColorTable.prototype.lookupGreen = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].g; 
+                }
+
+             }    
+        };
+
+        customColorTable.prototype.lookupBlue = function (screenVal, imageVal) {
+            for(let classIdx = 0; classIdx < numSegClasses; classIdx ++ ) {
+
+                if (screenVal == 0) {
+                    return 0; 
+                } else  if (screenVal == classGreyValue[classIdx]) {
+                    return colorsRgbObj[classIdx].b; 
+                }
+
+             }   
+        };            
+
+        return customColorTable;
+}
+
+
+/**
+* Fetch Labels data from labels.json file  -- (refine)
+*
+* @since 1.0.0
+* @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
+* @example
+*
+* fetchLabelStructure("./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json")
+*
+*/  
+
+fetchLabelStructure = (labelsURL) => {
+
+    if(labelsURL !== null) {
+
+        //const response = await fetch(labelsURL);
+        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+
+        $.ajax({
+              url: labelsURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                labelsDataObj = response  
+                //-- labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+              }
+            });
+
+
+        var customAtlas = function() { };
+
+        customAtlas.prototype.getLabelAtCoordinate = function (xWorld, yWorld, zWorld, xIndex, yIndex, zIndex ) {
+            let labels = labelsDataObj;
+            let voxelValue = papayaContainers[1].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
+            return [labels[voxelValue]]; // [labels[0]] = "background"
+
+        };
+
+        papaya.Container.atlas =  new customAtlas();
+
+    } else {
+       console.log(" No labels file found for this model")
+    }    
+}
+
+
+
+/**
+* Fetch Labels data from labels.json file and annotate while mouse moving  --(refine)
+*
+* @since 1.0.0
+* @param {string} labelsURL - label url e.g. "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json".
+* @param {number} papayaContainerIdx - 0 for MRI viewer and 1 for laber viewer.
+* @example
+*
+* addMouseMoveHandler("./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 0)
+*
+*/  
+
+addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
+
+    if(labelsURL !== null) {
+
+        // const response = await fetch(labelsURL);
+
+        let labelsDataObj; //= await response.json();   // labelsDataObj { 0: "background", 1: "Grey Matter", 2: "White Matter" }   
+
+        $.ajax({
+              url: labelsURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                labelsDataObj = response
+              }
+            });        
+
+        let canvasMain  = papayaContainers[papayaContainerIdx].viewer.canvas;
+
+        mouseMoveHandler = () => {
+                let curVoxelPosition = papayaContainers[papayaContainerIdx].viewer.cursorPosition;
+                let xIndex = curVoxelPosition["x"];
+                let yIndex = curVoxelPosition["y"];
+                let zIndex = curVoxelPosition["z"];
+                let voxelValue = papayaContainers[papayaContainerIdx].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
+                // console.log(labelsDataObj[voxelValue])
+                // $$("annotOfContainer." + papayaContainerIdx).setValue(labelsDataObj[voxelValue]);
+                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = labelsDataObj[voxelValue];
+        }
+
+        canvasMain.addEventListener('mousemove', mouseMoveHandler);   
+
+        mouseOutHandler = () => {
+                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = "";
+        }
+
+        canvasMain.addEventListener('mouseout', mouseOutHandler);
+
+
+    } else {
+       console.log(" No labels file found for this model")
+    }    
+}
+
+/**
+* Generate output labels of all slices. (refine)
+* Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers,
+* one for each seg classes 0, 1, 2
+*  
+* @since 1.0.0
+* @param {Array} allPredictions - Array of objects {"id": number, "coordinates": Array,  "data":1dArray }) 
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {number} numSegClasses- The number of segmentation classes
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @param {number} batch_D- batch depth-dim a.k.a z-dim
+* @param {number} batch_H- batch height 
+* @param {number} batch_W- batch width
+*
+*/ 
+
+ 
+generateOutputSlicesV2 = (prediction_argmax,  num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+
+
+        // convert all slices into 1 Dim array to download
+
+        let unstackOutVolumeTensor = tf.unstack(prediction_argmax);
+
+        let allOutputSlices3DCC = [];
+        let allOutputSlices3DContours = [];
+
+        // dataSync() using to flatten array
+        for(let sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
+              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
+        }
+
+        
+        if(opts.isPostProcessEnable) {
+            console.log("Post processing enabled ... ")
+            // remove noisy regions using 3d CC   
+            let sliceWidth = niftiHeader.dims[1];
+            let sliceHeight = niftiHeader.dims[2];                                
+            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+        }   
+
+        if(opts.isContoursViewEnable) { // Enable contour for overlay option
+            // remove noisy regions using 3d CC   
+            let sliceWidth = niftiHeader.dims[1];
+            let sliceHeight = niftiHeader.dims[2];                                
+            // allOutputSlices3DContours = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+            allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, numSegClasses ); 
+        }  
+
+
+        allOutputSlices3DCC1DimArray = [];
+        // Use this conversion to download output slices as nii file
+        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
+              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
+        } 
+
+        var labelArrayBuffer;
+        let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
+
+        switch ( modelType) {
+                    case 'Brain_Mask':
+                                     { 
+                                        let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray));
+                                        let brainMask = Array.from(brainMaskTensor1d.dataSync());
+                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainMask);  
+                                        allOutputSlices3DCC1DimArray = brainMask;
+                                        break;             
+                                     }             
+               case 'Brain_Extraction':
+                                     { 
+                                        // input data or loaded nifti file data 
+                                        let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage); 
+                                        let brainExtractionData1DimArr = [];
+
+                                        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
+                                            for(pixelIdx = 0; pixelIdx < (slice_height * slice_width); pixelIdx++) {
+                                                 //Filter smaller regions original MRI data 
+                                                 if(allOutputSlices3DCC[sliceIdx][pixelIdx] == 0) {
+                                                    allSlices[sliceIdx][pixelIdx] = 0;
+                                                 } 
+                                             }               
+                                             brainExtractionData1DimArr.push.apply(brainExtractionData1DimArr, allSlices[sliceIdx])
+                                        }           
+                                       
+                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainExtractionData1DimArr); 
+                                        allOutputSlices3DCC1DimArray = brainExtractionData1DimArr;
+                                        break;             
+                                    }  
+                             default:
+                                    {
+                                      labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, allOutputSlices3DCC1DimArray); 
+                                      break;             
+                                    }                                        
+        }
+
+
+        if(opts.isColorEnable) {   
+            let blob = new Blob([labelArrayBuffer], {type: "application/octet-binary;charset=utf-8"});
+            let file = new File([blob], "temp.nii");
+            params_label["files"] = [file];
+
+            switch ( modelType) {
+                        case 'Brain_Mask':
+                                         { 
+                                            params_label[file["name"]] = {lut: "Grayscale", interpolation: false};  
+                                            break;             
+                                         }             
+                   case 'Brain_Extraction':
+                                         { 
+                                            params_label[file["name"]] = {lut: "Grayscale", interpolation: false};  
+                                            break;             
+                                        }  
+                                 default:
+                                        {
+                                            let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
+                                            if(colorURL) { // colorURL file exists
+                                                    let customColorTable = getCustomColorTableFromUrl(numSegClasses, colorURL);  
+                                                     params_label[file["name"]] = {lut:  new customColorTable(), interpolation: false}
+
+                                            } else {// No colorURL file 
+                                                if(numSegClasses > 3) {
+                                                    params_label[file["name"]] = {lut: opts.atlasSelectedColorTable, interpolation: false};                  
+
+                                                } else {
+                                                    let customColorTable = getCustomColorTable(numSegClasses);  
+                                                    params_label[file["name"]] = {lut: new customColorTable(), interpolation: false};                 
+                                                }
+                                            }
+
+                                          break;             
+                                        }                                        
+            }
+
+
+        } else {
+            params_label["binaryImages"] = [labelArrayBuffer];
+        }   
+
+        // Set the view of container-2 as container-1
+        params_label["mainView"] = papayaContainers[0].viewer.mainImage.sliceDirection == 1? "axial" :
+                                   papayaContainers[0].viewer.mainImage.sliceDirection == 2? "coronal" : "sagittal";
+
+
+        //add overlay to MRI viewer index 0
+        //remove any existing overlay
+        if(numOfOverlays == 1) {
+             papaya.Container.removeImage(0, 1);
+             numOfOverlays = 0;
+        }
+        // add new one
+        var addImageParams = [];
+        addImageParams["binaryImages"] = [labelArrayBuffer];
+        papaya.Container.addImage(0, [labelArrayBuffer], addImageParams);  
+        numOfOverlays += 1; 
+
+      
+        // Label segmenation voxels according to label file
+        // fetchLabelStructure(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"]);      
+        console.log("label path: ", inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"])
+      
+      
+        // set 1 for label viewer 
+        papaya.Container.resetViewer(1, params_label);    
+
+        //Activate annotation for papaya container 0
+        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 0);
+
+        //Activate annotation for papaya container 1        
+        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+
+        // To sync swap view button 
+        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
+              papayaContainers[1].viewer.rotateViews()
+
+        })
+
+        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
+              papayaContainers[0].viewer.rotateViews()
+
+        })                  
+
+  }
+
+
+/**
+* Threshold canvas of the viewer
+*
+* @since 1.0.0
+* @param {CanvasRenderingContext2D } ctx - renderContext e.g.  papayaContainers[0].viewer.canvas.getContext("2d")
+* @param {number} Threshold - To threshold the canvas context 
+* @param {object} RGB - e.g. { r: 110, g: 255, b: 182 }
+*
+*/ 
+
+  thresholdRenderContext = (ctx,Threshold, RGB ={ r: 110, g: 255, b: 182 }) => {
+
+        let imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let pixels = imgData.data;
+        for (var i = 0; i < pixels.length; i += 4) {
+
+          if(pixels[i] <= Threshold) {
+             pixels[i] = pixels[i + 1] = pixels[i + 2] = 0
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+  }
+
+
+
+  refreshDiv = (divId) => { 
+      $( "#"+ divId ).load(window.location.href + " #"+ divId );
+  }
+    
+
+/**
+* Function to use with checking output file name, it must start with letter a-z or A-Z
+*
+* @since 1.0.0
+* @param {*} ch - character to check
+* @returns {boolean} Returns - true or false
+* @example
+*
+* isLetter(3)
+* // => false
+*
+* isLetter("A")
+* // => true
+*
+* isLetter("$")
+* // => false
+*/
+ 
+  isLetter = (ch) => {
+      return (/[a-zA-Z]/).test(ch)
+  }    
+
+
+/**
+* Function to find maximum array value
+*
+* @since 1.0.0
+* @param {Array} array - character to check
+* @returns {number} 
+* @example
+*
+* findArrayMax([3, 0, 2])
+* // => 3
+*/
+
+  findArrayMax = (array) => {
+    return array.reduce( (e1, e2) => {
+      return ( e1 > e2 ? e1 : e2 );
+    });
+  }
+
+
+
+
+/**
+* Function to check if GPU installed
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+  checkGPU = () => {
+          let runActivateFlag = true;
+
+          if( ! checkWebGl2() ) {
+
+             document.getElementById("webGl2Status").style.backgroundColor =  "red";
+
+             if( ! checkWebGl1() ) {
+                   webix.alert(" WebGL2 and WebGL1 are not supported<br> Run deactivated");
+                   runActivateFlag = false;
+
+             } else {
+                  webix.confirm("WebGL2 is not supported<br> Run process will be very slow").then(function(result){
+                         runActivateFlag = true;
+                    }).fail(function() {
+                        runActivateFlag = false;
+                  });
+             } 
+          } else {
+                  console.log("webGl2Status Ok")
+                  document.getElementById("webGl2Status").style.backgroundColor =  "green";
+          }
+
+          return runActivateFlag;
+  } 
+
+
+/**
+* Function to check if browser is chrome
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+isChrome = () => {
+   return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+}
+
+
+/**
+* Function to online connection is established 
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+isOnline= () => {
+   return navigator.onLine;
+}
+
+
+
+/**
+* Function to check if checkWebGl1 is supported
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+  checkWebGl1 = () => {
+      const gl = document.createElement('canvas').getContext('webgl');
+      if (!gl) {
+                if (typeof WebGLRenderingContext !== 'undefined') {
+                  console.log('WebGL1 may be disabled. Please try updating video card drivers');
+                } else {
+                  console.log('WebGL1 is not supported'); 
+                }
+
+                return false;
+      } else {
+          console.log('WebGl1 is enabled');
+          return true;
+      }
+
+  }
+
+
+/**
+* Function to check if WebGL context is lost
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+  isWebGL2ContextLost = () => {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      return gl.isContextLost();
+  }
+
+/**
+* Function to check if checkWebGl2 is supported
+*
+* @since 1.0.0
+* @returns {boolean} Returns - true or false
+*
+*/
+
+  checkWebGl2 = () => {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      if (!gl) {
+                if (typeof WebGL2RenderingContext !== 'undefined') {
+                  console.log('WebGL2 may be disabled. Please try updating video card drivers');
+                  webix.alert("WebGL2 may be disabled. Please try updating video card drivers");
+                } else {
+                  console.log('WebGL2 is not supported'); 
+                }
+                return false;
+      } else {
+        console.log('WebGl2 is enabled');
+        return true;
+      }
+  }
+
+
+  //-- inference function   (refine)
+ 
+  runInference = () => {
+
+	      const batchSize = opts.batchSize;
+	      const numOfChan = opts.numOfChan;
+          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];          
+
+	      if (isNaN(batchSize) || batchSize !=1) {
+                webix.alert("The batch Size for input shape must be 1");
+                return 0;
+
+	      }   
+
+	      if (isNaN(numOfChan) || (numOfChan !=1)) {
+                webix.alert("The number of channels for input shape must be 1");
+	            return 0;
+	      }                
+
+          tf.engine().startScope()
+
+          console.log("Batch size: ", batchSize);
+          console.log("Num of Channels: ", numOfChan);
+
+          let batchInputShape = [];    
+          // read input shape from model.json object 
+          batchInputShape = modelObject.layers[0].batchInputShape; 
+
+          console.log(" Model batch input shape : ", batchInputShape)
+
+          if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
+                webix.alert("The number of channels for input shape must be 1");
+                return 0;
+          }                           
+
+          // Propose subvolume size as needed by inference model input e.g. 38x38x38
+        //   let batch_D = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][1];
+        //   let batch_H = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][2];
+        //   let batch_W = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][3];  
+
+          // let batch_D = batchInputShape[1];
+          // let batch_H = batchInputShape[2];
+          // let batch_W = batchInputShape[3];  
+
+          let batch_D = niftiHeader.dims[3];
+          let batch_H = niftiHeader.dims[2];
+          let batch_W = niftiHeader.dims[1];             
+          
+          console.log("Batch Input Shape: ", batchInputShape);          
+
+          // if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
+          //       webix.alert("The subvolume dimension in z-axis shouldn't exceed 30 number of slices for browser limitation");
+          //       return 0;
+          // }  
+          
+          let slice_width = niftiHeader.dims[1];
+          let slice_height = niftiHeader.dims[2];
+          let num_of_slices = niftiHeader.dims[3];
+
+          let input_shape = [batchSize,  batch_D, batch_H, batch_W, numOfChan];              
+
+          let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
+
+          // allSlices = normalizeAllSlicesData1D(allSlices);
+
+          let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
+
+          // get slices_3d tensor
+          let slices_3d = getSlices3D(allSlices_2D);
+
+          tf.dispose(allSlices_2D); 
+          
+          // nomalize MRI data to be from 0 to 1
+          slices_3d = normalizeVolumeData(slices_3d)          
+
+          // Transpose MRI data to be match pytorch/keras input output
+          slices_3d = slices_3d.transpose()
+          console.log("Input transposed");
+                    
+
+                    // let startIndex = [125, 125, 125];
+                    // let batch = slices_3d.slice(startIndex, [10, 10, 10]);
+                    // batch.print()
+
+              // let startIndex = [100, 144, 100]; //--[D, H OR Rows, W OR Cols];
+              // let smallBatchSize = [40, 1, 20];
+              // let reshapeSize = [40,20];
+              // let batch = slices_3d.slice(startIndex, smallBatchSize);
+              // console.log("batch before normalize :")
+              // batch.print()                  
+
+              
+
+          // nomalize MRI data to be from 0 to 1
+          // slices_3d = normalizeVolumeData(slices_3d.toFloat()).toFloat(); // Converted to float for more accurate processing during prediction;
+          
+ 
+            console.log(tf.getBackend());
+            tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
+
+            // allPredictions = [];
+
+            model.then(function (res) {
+
+                 try {
+                      let startTime = performance.now();
+                      // maxLabelPredicted in whole volume of the brain
+                      let maxLabelPredicted = 0;
+                     
+
+                      let curTensor = [];  
+                      curTensor[0] = slices_3d.reshape(input_shape);
+                      // console.log("curTensor[0] :", curTensor[0].dataSync());
+
+                      let i = 1;
+    
+                      let timer = window.setInterval(function() {
+                            curTensor[i] = res.layers[i].apply( curTensor[i-1].toFloat() );
+                            console.log("layer ", i);            
+                            console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
+                            // xxx console.log("layer count params ", res.layers[i].countParams());
+                            res.layers[i].dispose();
+                            curTensor[i-1].dispose();
+
+                            document.getElementById("progressBar").style.width = (i + 1)*100/res.layers.length + "%";
+                            let memStatus = tf.memory().unreliable ? "Red" : "Green";     
+                            let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
+                            document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
+
+                        
+                            if( i == res.layers.length-1) {
+
+                                window.clearInterval( timer );   
+                                console.log("res.layers.length ", res.layers.length);                                                            
+                                                                                                                                     
+
+                                // prediction = res.layers[res.layers.length-1].apply(curTensor[i]);
+                                // curTensor[i].print(); 
+                                //outputDataBeforArgmx = Array.from(curTensor[i].dataSync())
+
+                                let axis = -1; 
+                                console.log(" find argmax ")
+                                console.log("last Tenosr shape : ", curTensor[i].shape);
+                                //-- curTensor[i].shape  : [ 1, 256, 256, 256, 3 ]
+                                let prediction_argmax = tf.argMax(curTensor[i], axis);
+                                console.log(" prediction_argmax shape : ", prediction_argmax.shape);
+                                //-- prediction_argmax.shape  : [ 1, 256, 256, 256]
+
+                                //outputDataBeforArgmx = Array.from(prediction_argmax.dataSync())
+                                tf.dispose(curTensor[i]);                          
+                                // allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
+                                console.log(" find array max ")
+                                let curBatchMaxLabel =  findArrayMax(Array.from(prediction_argmax.dataSync()));
+
+                                if( maxLabelPredicted < curBatchMaxLabel ) {
+                                      maxLabelPredicted = curBatchMaxLabel;
+                                } 
+
+                                let numSegClasses = maxLabelPredicted + 1;
+                                console.log("numSegClasses", numSegClasses);
+
+                                //-- Transpose back to fit Papaya display settings
+                                let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]).transpose();
+                                tf.dispose(prediction_argmax);
+
+                                // Generate output volume or slices      
+                                console.log("Generating output");                       
+                                generateOutputSlicesV2(outLabelVolume , num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
+
+                                document.getElementById("progressBar").style.width = 0;   
+                                //webix.message.hide("waitMessage");
+
+                                $$("downloadBtn").enable();   
+                                $$("segmentBtn").disable();  
+                                //    $$("imageUploader").enable();                    
+                                tf.engine().endScope();
+
+                                let stopTime = performance.now();
+                                console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
+    											                              ((stopTime -startTime)/1000).toFixed(4) + "  Seconds");
+                                
+                            }  
+                        i++;
+
+                     }, 1000);                            
+
+                  } catch(err) {
+                        webix.alert(err.message);
+                        console.log( err.message );
+                        console.log(
+                            "If webgl context is lost, try to restore webgl context by visit the link " + 
+                            '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
+                        );  
+
+
+                        document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green"; 
+
+                        document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green"; 
+                  }
+            }); 
+	            
+	 }// end of runInference
+
+
+})();

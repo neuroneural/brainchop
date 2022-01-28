@@ -1,0 +1,65 @@
+@switchHeight:24px;
+
+.webix_switch_toggle {
+  position: absolute;
+  visibility: hidden;
+}
+.webix_switch_box {
+  display: block;
+  position: relative;
+  top: 50%;
+  margin-top: -(@switchHeight/2);
+  height: @switchHeight;
+  cursor: pointer;
+
+  background-color: #f1f1f1;
+  border:1px solid @borderColor;
+  border-radius: 60px;
+  box-sizing:border-box;
+  transition: background-color 0.4s ease;
+  color:#666;
+  text-align:center;
+  float:left;
+}
+
+.webix_el_switch .webix_label_right{
+  display:block;
+  padding-top:3px;
+  margin-top:4px;
+}
+
+.webix_switch_handle{
+  height: @switchHeight - 2px;
+  width: @switchHeight - 2px;
+  border-radius: 100%;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+  border:1px solid #eee;
+  position: absolute;
+  top:0px;
+  background-color: #fff;
+  transition: left 0.3s ease;
+  cursor:pointer;
+  box-sizing:border-box;
+}
+.webix_switch_handle:focus,
+.webix_switch_box:active .webix_switch_handle{
+    box-shadow: 0 0px 2px 2px rgba(0,0,0,0.2);
+}
+
+.webix_switch_text{
+  #box >.noselect;
+  padding: 1px 0 0 18px;
+  display: inline-block;
+  box-sizing: border-box;
+  width:100%;
+}
+.webix_switch_on .webix_switch_text{
+  padding: 1px 18px 0 0;
+}
+
+.webix_switch_box.webix_switch_on {
+    background-color:@buttonColor;
+    color:#fff;
+}
+
+
