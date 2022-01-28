@@ -251,7 +251,7 @@
                    { view: "label", label: "Brainchop", css: "titleclass",  inputWidth: 100, align: "left" },
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
-                   { view: "button", id: "About", value: "Mahdy", css:"bt_1",  width: 100, align: "right", click: aboutClick },
+                   { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
                    { view: "label", label: '<i id="githubId" class="fa fa-github"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: githubClick, tooltip:"GitHub" },                   
                   ]
@@ -756,13 +756,14 @@
                           { 
                             view: "switch", label: "", 
                             css:"bt_1",
-                            disabled: false,
+                            disabled: true,
                             id: "enhanceAcc", 
                             align: "right",
                             on:{        
                                 onChange: function(newValue, oldValue, config) {   
                                            if(newValue) {
                                                     console.log(newValue);
+
                                            } else {
                                                   
                                                     console.log(newValue);
