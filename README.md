@@ -17,6 +17,8 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 
+For whole MRI volume inference without partitioning, please click [here](https://neuroneural.github.io/brainchop/FullVolumeInference)
+
 ## Funding
 
 This work was funded by the NIH grant RF1MH121885.
