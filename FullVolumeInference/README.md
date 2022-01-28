@@ -4,6 +4,12 @@
 
  For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/brainchop/wiki).
 
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/FullVolumeInference/style/brainchop_FullVolInf_Arch.png)
+
+**brainchop high-level architecture**
+</div>
 
 
 ## Live Demo
