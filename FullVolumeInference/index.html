@@ -138,6 +138,19 @@
       }    
 
 
+    .icon {
+      display: inline-block;
+      width: 1.6em;
+      height: 1.6em;
+      vertical-align: middle;
+      }
+
+
+    .icon--brain {
+      background-image: url(style/brain.svg);
+      background-size: auto 110%;
+      }      
+
     </style>
 
       
@@ -247,7 +260,7 @@
           id: "myToolbar",
           rows:[{ cols: 
                   [
-                   { view: "label", label: '<i class="fa fa-snowflake-o"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
+                   { view: "label", label: '<span class="icon icon--brain"></span>', css: {"color":"black !important", "font-weight": "bold"}, width: 40 },                   
                    { view: "label", label: "Brainchop", css: "titleclass",  inputWidth: 100, align: "left" },
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
