@@ -1780,13 +1780,113 @@ isOnline= () => {
   }
 
 
-  //-- inference function   (refine)
+/**
+* Function to detect browser 
+*
+* @since 1.0.0
+* @returns {String} Returns - e.g.: Firefox etc. 
+*
+*/
+
+  detectBrowser = () => {
+
+        if ( navigator.userAgent.indexOf("OP") > -1) {
+            return "Opera";
+                                     
+        } else if (navigator.userAgent.indexOf("Chrome") > -1) {
+            return "Chrome";
+
+        } else if (navigator.userAgent.indexOf("Firefox") > -1) {
+            return "Firefox";
+
+        } else if (navigator.userAgent.indexOf("Safari") > -1) {
+            return "Safari";
+
+        } else if (navigator.userAgent.indexOf("MSIE") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
+            return "IExplorer";
+
+        } else {
+
+          return "Unknown";
+        }
+   }
+
+/**
+* Function to detect Operating System 
+*
+* @since 1.0.0
+* @returns {String} Returns - e.g.: Linux
+*
+*/
+
+detectOperatingSys = () => {
+
+        if (navigator.userAgent.indexOf("Win") > -1) {
+            return "Windows";
+                                     
+        } else if (navigator.userAgent.indexOf("Mac") > -1) {
+            return "MacOS";
+
+        } else if (navigator.userAgent.indexOf("Linux") > -1) {
+            return "Linux";
+
+        } else if (navigator.userAgent.indexOf("UNIX") > -1) {
+            return "UNIX";
+
+        } else {
+            return "Unknown";
+ 
+        }  
+}
+
+
+
+
+/**
+* Function to submit data to google sheet
+*
+* @since 1.0.0
+* @param {object} dataObj - e.g. { Brainchop_Ver: 1.0.0, Data_Load: 10, ... }
+*
+*/
+
+submitTiming2GoogleSheet = (dataObj) => {
+
+        // -- Fill form with data to submit
+        Object.keys(dataObj).forEach(dataKey =>{
+             document.getElementById(dataKey).value = dataObj[dataKey];
+        }) 
+
+        //-- Settings of submission
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz_upISiPpQ4CWL2B2oRGcF416RFEvCc6bRKAbM-xvAkMuTGRz8SFoq41vHxIKYWM2c/exec'
+        const form = document.forms['google-sheet']
+      
+        //-- Add event handler to the form.
+        form.addEventListener('submit', e => {
+              e.preventDefault()
+              fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+                .then(response => console.log("time recorded"))
+                .catch(error => console.error('Error!', error.message))
+        })    
+
+        //-- Submit the form 
+        document.getElementById("SubmitStatisticalData").click();            
+
+}
+
+
+/**
+* Inference Function 
+* @since 1.0.0
+*
+*/
  
   runInference = () => {
+        let startTime = performance.now();
 
 	      const batchSize = opts.batchSize;
 	      const numOfChan = opts.numOfChan;
-          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];          
+        const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];          
 
 	      if (isNaN(batchSize) || batchSize !=1) {
                 webix.alert("The batch Size for input shape must be 1");
@@ -1858,6 +1958,8 @@ isOnline= () => {
           // Transpose MRI data to be match pytorch/keras input output
           slices_3d = slices_3d.transpose()
           console.log("Input transposed");
+
+          let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
                     
 
                     // let startIndex = [125, 125, 125];
@@ -1885,7 +1987,8 @@ isOnline= () => {
             model.then(function (res) {
 
                  try {
-                      let startTime = performance.now();
+                      startTime = performance.now();
+                      let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
                      
@@ -1928,6 +2031,8 @@ isOnline= () => {
                                 console.log(" prediction_argmax shape : ", prediction_argmax.shape);
                                 //-- prediction_argmax.shape  : [ 1, 256, 256, 256]
 
+                                let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
+
                                 //outputDataBeforArgmx = Array.from(prediction_argmax.dataSync())
                                 tf.dispose(curTensor[i]);                          
                                 // allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
@@ -1945,9 +2050,12 @@ isOnline= () => {
                                 let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]).transpose();
                                 tf.dispose(prediction_argmax);
 
+                                startTime = performance.now();
                                 // Generate output volume or slices      
                                 console.log("Generating output");                       
                                 generateOutputSlicesV2(outLabelVolume , num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
+        
+                                let Postprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                 document.getElementById("progressBar").style.width = 0;   
                                 //webix.message.hide("waitMessage");
@@ -1957,9 +2065,30 @@ isOnline= () => {
                                 //    $$("imageUploader").enable();                    
                                 tf.engine().endScope();
 
-                                let stopTime = performance.now();
                                 console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
-    											                              ((stopTime -startTime)/1000).toFixed(4) + "  Seconds");
+    											                              ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
+
+                                
+                                //-- Timing data to collect
+                                statData["Preprocess_t"] = Preprocess_t;
+                                statData["Inference_t"] = Inference_t;
+                                statData["Postprocess_t"] = Postprocess_t;
+                                statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                                statData["Browser"] = detectBrowser();
+                                statData["OS"] = detectOperatingSys();
+                                 
+                                let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
+                                          checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+                                if(gl) {
+                                    statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
+                                } else {
+                                    statData["Texture_Size"] = null;
+                                } 
+
+                                submitTiming2GoogleSheet(statData);        
+                                
+
+
                                 
                             }  
                         i++;

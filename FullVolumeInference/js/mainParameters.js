@@ -70,6 +70,9 @@
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
 
+   // Statistical data to analysis client performance
+   var statData = { Brainchop_Ver: "FullVolume", Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
+                    Model: null, Browser: null, OS: null, Texture_Size: null};
 
    // Inference Models
    var inferenceModelsList = [
