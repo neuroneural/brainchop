@@ -1912,6 +1912,21 @@ submitTiming2GoogleSheet = (dataObj) => {
 
 }
 
+/**
+* For adjust time by adding 0  
+* @since 1.0.0
+* @param {number} timeValue - e.g. 0 to 59
+* @returns {String} Returns - e.g.: 00
+* @example
+*
+* checkZero( 2 )
+* // => 02
+*/
+
+checkZero = (timeValue) => {
+    return timeValue < 10 ? timeValue : "0" + timeValue;
+}
+
 
 /**
 * Inference Function 
@@ -2022,6 +2037,9 @@ submitTiming2GoogleSheet = (dataObj) => {
             tf.env().set('WEBGL_PACK', false);
 
             //-- Timing data to collect
+            let today = new Date();
+            statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
+            statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
             statData["Preprocess_t"] = Preprocess_t;
             statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
             statData["Browser"] = detectBrowser();
