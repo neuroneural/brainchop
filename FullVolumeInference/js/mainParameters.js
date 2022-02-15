@@ -95,8 +95,8 @@
                                        type: "Segmentation", 
                                        path:"./ModelToLoad/model11_gw_ae/model.json", 
                                        modelName:"Model_11 Segmentation", 
-                                       labelsPath: null, 
-                                       colorsPath: null,                                        
+                                       labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
+                                       colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",                                      
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference                                          
                                        description: ""
