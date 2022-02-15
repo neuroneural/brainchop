@@ -72,7 +72,8 @@
 
    // Statistical data to analysis client performance
    var statData = { Brainchop_Ver: "FullVolume", Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
-                    Model: null, Browser: null, OS: null, Texture_Size: null};
+                    Model: null, Browser: null, OS: null, Texture_Size: null, Error_Type: null, WebGL1: null, WebGL2: null, 
+                    TF_Backend: null, Status: null};
 
    // Inference Models
    var inferenceModelsList = [

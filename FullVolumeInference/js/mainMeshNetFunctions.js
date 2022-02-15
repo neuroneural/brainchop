@@ -1983,16 +1983,24 @@ submitTiming2GoogleSheet = (dataObj) => {
             tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
             tf.env().set('WEBGL_PACK', false);
 
-            // let canvas = document.createElement('canvas');
+            //-- Timing data to collect
+            statData["Preprocess_t"] = Preprocess_t;
+            statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+            statData["Browser"] = detectBrowser();
+            statData["OS"] = detectOperatingSys();
+            statData["WebGL1"] = checkWebGl1();
+            statData["WebGL2"] = checkWebGl2();     
+            statData["TF_Backend"] = tf.getBackend();                  
             
-            // if(canvas.getContext('webgl2') || canvas.getContext('webgl1') ) {
-            //     console.log("Webgl supported ..")
-            //     canvas.addEventListener('webglcontextlost', (event) => {
-            //       console.log(event);
-            //       alert("context lost");
-            //       return 0;
-            //     });   
-            // }
+
+             
+            let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
+                      checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+            if(gl) {
+                statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
+            } else {
+                statData["Texture_Size"] = null;
+            } 
          
 
             // allPredictions = [];
@@ -2026,9 +2034,16 @@ submitTiming2GoogleSheet = (dataObj) => {
                                   } else {
                                       webix.alert(err.message);
                                   }
-
+                                 
                                   window.clearInterval( timer ); 
                                   tf.engine().endScope();
+
+                                  statData["Inference_t"] = Infinity;
+                                  statData["Postprocess_t"] = Infinity;
+                                  statData["Status"] = "Fail";
+                                  statData["Error_Type"] = err.message;
+                                  submitTiming2GoogleSheet(statData);
+
                                   return 0;
                             }      
 
@@ -2101,25 +2116,11 @@ submitTiming2GoogleSheet = (dataObj) => {
 
                                 
                                 //-- Timing data to collect
-                                statData["Preprocess_t"] = Preprocess_t;
                                 statData["Inference_t"] = Inference_t;
                                 statData["Postprocess_t"] = Postprocess_t;
-                                statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
-                                statData["Browser"] = detectBrowser();
-                                statData["OS"] = detectOperatingSys();
-                                 
-                                let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
-                                          checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
-                                if(gl) {
-                                    statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
-                                } else {
-                                    statData["Texture_Size"] = null;
-                                } 
+                                statData["Status"] = "OK"
 
                                 submitTiming2GoogleSheet(statData);        
-                                
-
-
                                 
                             }  
                         i++;
