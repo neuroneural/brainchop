@@ -1779,6 +1779,47 @@ isOnline= () => {
       }
   }
 
+/**
+* Function to detect GPU Vendor
+*
+* @since 1.0.0
+* @returns {String} Returns - e.g.: 'NVIDIA Corporation'. 
+*
+*/
+
+  detectGPUVendor = () => {
+          let  gl = document.createElement('canvas').getContext('webgl');
+
+          if(gl) {
+              let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+              return debugInfo ?  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : null; 
+
+          } else {
+               return null;
+          }
+   }
+
+/**
+* Function to detect GPU renderer or card type
+*
+* @since 1.0.0
+* @returns {String} Returns - e.g.: 'GeForce'. 
+*
+*/
+
+  detectGPUCardType = () => {
+          let  gl = document.createElement('canvas').getContext('webgl');
+
+          if(gl) {
+              let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+              return debugInfo ?  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null; 
+
+          } else {
+               return null;
+          }      
+   }
+
+
 
 /**
 * Function to detect browser version
@@ -2033,8 +2074,11 @@ checkZero = (timeValue) => {
           
  
             console.log(tf.getBackend());
+            //-- set this flag so that textures are deleted when tensors are disposed.
             tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
-            tf.env().set('WEBGL_PACK', false);
+            console.log("tf env() features :", tf.env().features);
+
+            // tf.env().set('WEBGL_PACK', false);
 
             //-- Timing data to collect
             let today = new Date();
@@ -2046,7 +2090,9 @@ checkZero = (timeValue) => {
             statData["Browser_Ver"] = detectBrowserVersion();
             statData["OS"] = detectOperatingSys();
             statData["WebGL1"] = checkWebGl1();
-            statData["WebGL2"] = checkWebGl2();     
+            statData["WebGL2"] = checkWebGl2();  
+            statData["GPU_Vendor"] = detectGPUVendor();
+            statData["GPU_Card"] = detectGPUCardType();                
             statData["TF_Backend"] = tf.getBackend();                  
         
             if(isChrome()) {
@@ -2058,6 +2104,15 @@ checkZero = (timeValue) => {
              
             let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
                       checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+            
+            console.log("MAX_TEXTURE_SIZE :",  gl.getParameter(gl.MAX_TEXTURE_SIZE));
+            console.log("MAX_RENDERBUFFER_SIZE :",  gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+                
+            //-- check to see   if  machine has two graphics card: one is the builtin e.g. Intel Iris Pro, the other is NVIDIA GeForce GT 750M.             
+            //-- check browser use which one, if debugInfo is null then installed  GPU is not used
+            let  debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            console.log("VENDOR WEBGL:",  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) );      
+
             if(gl) {
                 statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
             } else {
@@ -2081,6 +2136,8 @@ checkZero = (timeValue) => {
                       // console.log("curTensor[0] :", curTensor[0].dataSync());
 
                       let i = 1;
+                      let layersLength = res.layers.length;
+                      console.log("res.layers.length ", layersLength);  
     
                       let timer = window.setInterval(function() {
                             try {
@@ -2111,21 +2168,20 @@ checkZero = (timeValue) => {
 
                             console.log("layer ", i);            
                             console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
-                            // xxx console.log("layer count params ", res.layers[i].countParams());
+                            console.log("layer count params ", res.layers[i].countParams());
+
                             res.layers[i].dispose();
                             curTensor[i-1].dispose();
 
-                            document.getElementById("progressBar").style.width = (i + 1)*100/res.layers.length + "%";
+                            document.getElementById("progressBar").style.width = (i + 1)*100/layersLength + "%";
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";     
                             let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons : "";            
                             document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
 
                         
-                            if( i == res.layers.length-1) {
+                            if( i == layersLength - 1) {
 
                                 window.clearInterval( timer );   
-                                console.log("res.layers.length ", res.layers.length);                                                            
-                                                                                                                                     
 
                                 // prediction = res.layers[res.layers.length-1].apply(curTensor[i]);
                                 // curTensor[i].print(); 

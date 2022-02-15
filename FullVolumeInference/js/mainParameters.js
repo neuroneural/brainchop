@@ -73,7 +73,7 @@
    // Statistical data to analysis client performance
    var statData = { Brainchop_Ver: "FullVolume", Date: null, Time: null,  Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
-                    WebGL1: null, WebGL2: null, TF_Backend: null, Status: null, Error_Type: null };
+                    WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Card: null, Status: null, Error_Type: null };
 
    // Inference Models
    var inferenceModelsList = [
