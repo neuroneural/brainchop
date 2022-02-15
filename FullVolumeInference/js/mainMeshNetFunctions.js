@@ -1781,6 +1781,41 @@ isOnline= () => {
 
 
 /**
+* Function to detect browser version
+*
+* @since 1.0.0
+* @returns {String} Returns - e.g.: 96. 
+*
+*/
+
+  detectBrowserVersion = () => {
+
+        if ( navigator.userAgent.indexOf("OP") > -1) {
+            return navigator.userAgent.split('OP/')[1];
+                                     
+        } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
+            return  parseInt(navigator.userAgent.split('Chrome/')[1]);
+
+        } else if (navigator.userAgent.indexOf("Firefox/") > -1) {
+            return  parseInt(navigator.userAgent.split('Firefox/')[1]);
+
+        } else if (navigator.userAgent.indexOf("Safari/") > -1) {
+            return  parseInt(navigator.userAgent.split('Safari/')[1]);
+
+        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
+            return  parseInt(navigator.userAgent.split('Edg/')[1]);              
+
+        } else if (navigator.userAgent.indexOf("MSIE/") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
+            return  parseInt(navigator.userAgent.split('MSIE/')[1]);
+
+        } else {
+
+          return Infinity;
+        }
+   }
+
+
+/**
 * Function to detect browser 
 *
 * @since 1.0.0
@@ -1793,16 +1828,19 @@ isOnline= () => {
         if ( navigator.userAgent.indexOf("OP") > -1) {
             return "Opera";
                                      
-        } else if (navigator.userAgent.indexOf("Chrome") > -1) {
+        } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
             return "Chrome";
 
-        } else if (navigator.userAgent.indexOf("Firefox") > -1) {
+        } else if (navigator.userAgent.indexOf("Firefox/") > -1) {
             return "Firefox";
 
-        } else if (navigator.userAgent.indexOf("Safari") > -1) {
+        } else if (navigator.userAgent.indexOf("Safari/") > -1) {
             return "Safari";
 
-        } else if (navigator.userAgent.indexOf("MSIE") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
+        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
+            return "Edge";            
+
+        } else if (navigator.userAgent.indexOf("MSIE/") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
             return "IExplorer";
 
         } else {
@@ -1987,11 +2025,17 @@ submitTiming2GoogleSheet = (dataObj) => {
             statData["Preprocess_t"] = Preprocess_t;
             statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
             statData["Browser"] = detectBrowser();
+            statData["Browser_Ver"] = detectBrowserVersion();
             statData["OS"] = detectOperatingSys();
             statData["WebGL1"] = checkWebGl1();
             statData["WebGL2"] = checkWebGl2();     
             statData["TF_Backend"] = tf.getBackend();                  
-            
+        
+            if(isChrome()) {
+                statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
+                statData["Used_Heap_MB"] = window.performance.memory["usedJSHeapSize"]/(1024*1024).toFixed(2);
+                statData["Heap_Limit_MB"] = window.performance.memory["jsHeapSizeLimit"]/(1024*1024).toFixed(2);
+            }
 
              
             let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
