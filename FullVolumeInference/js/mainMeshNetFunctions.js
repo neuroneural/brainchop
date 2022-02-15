@@ -1981,6 +1981,19 @@ submitTiming2GoogleSheet = (dataObj) => {
  
             console.log(tf.getBackend());
             tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
+            tf.env().set('WEBGL_PACK', false);
+
+            // let canvas = document.createElement('canvas');
+            
+            // if(canvas.getContext('webgl2') || canvas.getContext('webgl1') ) {
+            //     console.log("Webgl supported ..")
+            //     canvas.addEventListener('webglcontextlost', (event) => {
+            //       console.log(event);
+            //       alert("context lost");
+            //       return 0;
+            //     });   
+            // }
+         
 
             // allPredictions = [];
 
@@ -2000,7 +2013,25 @@ submitTiming2GoogleSheet = (dataObj) => {
                       let i = 1;
     
                       let timer = window.setInterval(function() {
-                            curTensor[i] = res.layers[i].apply( curTensor[i-1].toFloat() );
+                            try {
+                                curTensor[i] = res.layers[i].apply( curTensor[i-1].toFloat() );
+                            } catch(err) {
+
+                                  if( err.message === "Failed to compile fragment shader.") {
+                                      if( isChrome() ) {
+                                          webix.alert("Context lost due to limited Memory available, try please to use Firefox instead of Chrome ");
+                                      } else {
+                                          webix.alert("Context lost due to limited Memory available ");
+                                      }
+                                  } else {
+                                      webix.alert(err.message);
+                                  }
+
+                                  window.clearInterval( timer ); 
+                                  tf.engine().endScope();
+                                  return 0;
+                            }      
+
                             console.log("layer ", i);            
                             console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
                             // xxx console.log("layer count params ", res.layers[i].countParams());
@@ -2009,7 +2040,7 @@ submitTiming2GoogleSheet = (dataObj) => {
 
                             document.getElementById("progressBar").style.width = (i + 1)*100/res.layers.length + "%";
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";     
-                            let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
+                            let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons : "";            
                             document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
 
                         
