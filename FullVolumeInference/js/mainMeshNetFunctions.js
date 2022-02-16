@@ -1831,8 +1831,11 @@ isOnline= () => {
 
   detectBrowserVersion = () => {
 
-        if ( navigator.userAgent.indexOf("OP") > -1) {
-            return navigator.userAgent.split('OP/')[1];
+        if ( navigator.userAgent.indexOf("OPR/") > -1) {
+            return navigator.userAgent.split('OPR/')[1];
+
+        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
+            return  parseInt(navigator.userAgent.split('Edg/')[1]);              
                                      
         } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
             return  parseInt(navigator.userAgent.split('Chrome/')[1]);
@@ -1842,9 +1845,6 @@ isOnline= () => {
 
         } else if (navigator.userAgent.indexOf("Safari/") > -1) {
             return  parseInt(navigator.userAgent.split('Safari/')[1]);
-
-        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
-            return  parseInt(navigator.userAgent.split('Edg/')[1]);              
 
         } else if (navigator.userAgent.indexOf("MSIE/") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
             return  parseInt(navigator.userAgent.split('MSIE/')[1]);
@@ -1909,9 +1909,12 @@ isOnline= () => {
 
   detectBrowser = () => {
 
-        if ( navigator.userAgent.indexOf("OP") > -1) {
+        if ( navigator.userAgent.indexOf("OPR/") > -1) {
             return "Opera";
-                                     
+
+        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
+            return "Edge";   
+
         } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
             return "Chrome";
 
@@ -1920,9 +1923,6 @@ isOnline= () => {
 
         } else if (navigator.userAgent.indexOf("Safari/") > -1) {
             return "Safari";
-
-        } else if (navigator.userAgent.indexOf("Edg/") > -1) {
-            return "Edge";            
 
         } else if (navigator.userAgent.indexOf("MSIE/") > -1 || navigator.userAgent.indexOf("rv:") > -1) {
             return "IExplorer";
@@ -2146,6 +2146,7 @@ checkZero = (timeValue) => {
             //-- set this flag so that textures are deleted when tensors are disposed.
             tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
             console.log("tf env() features :", tf.env().features);
+            console.log("tf env total features: ", Object.keys(tf.env().features).length);
 
             // tf.env().set('WEBGL_PACK', false);
 
