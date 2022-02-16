@@ -1832,7 +1832,7 @@ isOnline= () => {
   detectBrowserVersion = () => {
 
         if ( navigator.userAgent.indexOf("OPR/") > -1) {
-            return navigator.userAgent.split('OPR/')[1];
+            return parseInt(navigator.userAgent.split('OPR/')[1]);
 
         } else if (navigator.userAgent.indexOf("Edg/") > -1) {
             return  parseInt(navigator.userAgent.split('Edg/')[1]);              
