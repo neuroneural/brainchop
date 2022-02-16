@@ -1855,6 +1855,49 @@ isOnline= () => {
         }
    }
 
+/**
+* Function to find browser Location Info
+*
+* @since 1.0.0
+* @returns {Object} Returns 
+*
+*/
+
+  getBrowserLocationInfo = () => {
+      let LocationDataObj = {}; 
+
+      try {
+          $.ajax({
+                url: 'https://api.ipregistry.co/?key=tryout',
+                async: false,
+                dataType: 'json',
+                success: function (response) {
+                  LocationDataObj = {Country: response.location.country.name, Region: response.location.region.name, City: response.location.city};
+                }
+              });
+      } catch(err) {
+            console.log("Resource for browser info not available ");
+            try {
+                  $.ajax({
+                        url: "https://geolocation-db.com/jsonp",
+                        jsonpCallback: "callback",
+                        dataType: "jsonp",
+                        success: function(location) {
+                            LocationDataObj = {Country: location.country_name, Region: location.state, City: location.city};
+                        }
+                  });
+            } catch(err2) {
+                console.log("Online resources for browser info currently not available ");
+                return null;
+            }
+
+
+      }
+
+       return LocationDataObj;
+}
+
+
 
 /**
 * Function to detect browser 
@@ -1944,7 +1987,7 @@ submitTiming2GoogleSheet = (dataObj) => {
         form.addEventListener('submit', e => {
               e.preventDefault()
               fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => console.log("time recorded"))
+                .then(response => console.log("Timing recorded"))
                 .catch(error => console.error('Error!', error.message))
         })    
 
@@ -1967,6 +2010,25 @@ submitTiming2GoogleSheet = (dataObj) => {
 checkZero = (timeValue) => {
     return timeValue < 10 ? timeValue : "0" + timeValue;
 }
+
+
+/**
+* Function to check whether the model channel bin is last
+*
+* @since 1.0.0
+* @param {Object} modelObj - Model to check
+* @returns {boolean} Returns - true or false e.g. if true:  [batchSize, batch_D, batch_H, batch_W, numOfChan]
+*
+*/
+
+ isModelChnlLast = (modelObj) => {
+     for(let layerIdx = 0; layerIdx < modelObj.layers.length; layerIdx ++ ) {
+          if(modelObj.layersByDepth[layerIdx][0]["dataFormat"]) {
+             return modelObj.layersByDepth[layerIdx][0]["dataFormat"] === "channelsLast"? true : false;
+          }
+     }
+ }
+
 
 
 /**
@@ -2004,36 +2066,42 @@ checkZero = (timeValue) => {
 
           console.log(" Model batch input shape : ", batchInputShape)
 
-          if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
-                webix.alert("The number of channels for input shape must be 1");
-                return 0;
-          }                           
+          let batch_D, batch_H, batch_W;
+          let input_shape;
 
-          // Propose subvolume size as needed by inference model input e.g. 38x38x38
-        //   let batch_D = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][1];
-        //   let batch_H = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][2];
-        //   let batch_W = inferenceModelsList[$$("selectModel").getValue() - 1]["batch_input_shape"][3];  
+          let slice_width = batch_W = niftiHeader.dims[1];
+          let slice_height = batch_H = niftiHeader.dims[2];
+          let num_of_slices = batch_D = niftiHeader.dims[3];
 
-          // let batch_D = batchInputShape[1];
-          // let batch_H = batchInputShape[2];
-          // let batch_W = batchInputShape[3];  
 
-          let batch_D = niftiHeader.dims[3];
-          let batch_H = niftiHeader.dims[2];
-          let batch_W = niftiHeader.dims[1];             
-          
-          console.log("Batch Input Shape: ", batchInputShape);          
+          if(isModelChnlLast(modelObject)) {
+              console.log("Model Channel Last")
+              if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
+                    webix.alert("The number of channels for input shape must be 1");
+                    return 0;
+              } 
 
-          // if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
-          //       webix.alert("The subvolume dimension in z-axis shouldn't exceed 30 number of slices for browser limitation");
-          //       return 0;
-          // }  
-          
-          let slice_width = niftiHeader.dims[1];
-          let slice_height = niftiHeader.dims[2];
-          let num_of_slices = niftiHeader.dims[3];
+              // batch_D = batchInputShape[1];
+              // batch_H = batchInputShape[2];
+              // batch_W = batchInputShape[3]; 
 
-          let input_shape = [batchSize,  batch_D, batch_H, batch_W, numOfChan];              
+              input_shape = [batchSize, batch_D, batch_H, batch_W, numOfChan];               
+
+          } else {
+              console.log("Model Channel First")
+              if (isNaN(batchInputShape[1]) || (batchInputShape[1] !=1)) {
+                    webix.alert("The number of channels for input shape must be 1");
+                    return 0;
+              } 
+
+              // batch_D = batchInputShape[2];
+              // batch_H = batchInputShape[3];
+              // batch_W = batchInputShape[4]; 
+
+              input_shape = [batchSize, numOfChan,  batch_D, batch_H, batch_W];                  
+
+          }      
+
 
           let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
 
@@ -2074,6 +2142,7 @@ checkZero = (timeValue) => {
           
  
             console.log(tf.getBackend());
+
             //-- set this flag so that textures are deleted when tensors are disposed.
             tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
             console.log("tf env() features :", tf.env().features);
@@ -2082,6 +2151,21 @@ checkZero = (timeValue) => {
 
             //-- Timing data to collect
             let today = new Date();
+            statData["Brainchop_Ver"] = "FullVolume";
+            
+            let geoData = getBrowserLocationInfo();
+            if(geoData) {
+                statData["Country"] = geoData["Country"];
+                statData["State"] = geoData["Region"];
+                statData["City"] = geoData["City"];
+            } else {
+                statData["Country"] = "";
+                statData["State"] = "";
+                statData["City"] = "";
+            }
+                 
+
+
             statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
             statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
             statData["Preprocess_t"] = Preprocess_t;
@@ -2141,7 +2225,7 @@ checkZero = (timeValue) => {
     
                       let timer = window.setInterval(function() {
                             try {
-                                curTensor[i] = res.layers[i].apply( curTensor[i-1].toFloat() );
+                                curTensor[i] = res.layers[i].apply( curTensor[i-1]);
                             } catch(err) {
 
                                   if( err.message === "Failed to compile fragment shader.") {
