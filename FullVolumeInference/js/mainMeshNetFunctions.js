@@ -1787,7 +1787,7 @@ isOnline= () => {
 *
 */
 
-  detectGPUVendor = () => {
+  detectGPUVendor_v0 = () => {
           let  gl = document.createElement('canvas').getContext('webgl');
 
           if(gl) {
@@ -1799,6 +1799,29 @@ isOnline= () => {
           }
    }
 
+  detectGPUVendor = () => {
+          let  gl = document.createElement('canvas').getContext('webgl');
+          let debugInfo;
+
+          if(gl) {
+              debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+
+              if (debugInfo) {
+                       let result =  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                        //--e.g. : NVIDIA Corporation
+
+                        if( (result.indexOf( "(" ) > -1) && (result.indexOf( ")" ) > -1) ) {
+                               return result.substring( result.indexOf( '(' ) + 1, result.indexOf( ')' ) );
+                        } 
+                        
+                        return result;  
+              } 
+          } 
+
+          return null;
+   }
+
+
 /**
 * Function to detect GPU renderer or card type
 *
@@ -1807,7 +1830,7 @@ isOnline= () => {
 *
 */
 
-  detectGPUCardType = () => {
+  detectGPUCardType_v0 = () => {
           let  gl = document.createElement('canvas').getContext('webgl');
 
           if(gl) {
@@ -1819,6 +1842,43 @@ isOnline= () => {
           }      
    }
 
+
+  detectGPUCardType = () => {
+          let  gl = document.createElement('canvas').getContext('webgl');
+          let debugInfo;
+
+          if(gl) {
+              if(detectBrowser() === "Firefox" ) {
+                    //-- return e.g: "GeForce GTX 980/PCIe/SSE2"
+                    return gl.getParameter(gl.RENDERER);
+
+              } 
+              
+              debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+
+              if (debugInfo) {
+
+                       let result =  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                        //--e.g. : ANGLE (NVIDIA Corporation, GeForce GTX 1050 Ti/PCIe/SSE2, OpenGL 4.5.0 NVIDIA 390.144) as with Chrome
+                        // Or:  GeForce GTX 1050 Ti/PCIe/SSE2    as with fireFox
+
+                        if( (result.indexOf( "(" ) > -1) && (result.indexOf( ")" ) > -1) ) {
+
+                               result = result.substring( result.indexOf( '(' ) + 1, result.indexOf( ')' ) );
+
+                               if (  result.split(',').length == 3) {
+                                     return result.split(',')[1];
+                               } 
+
+                        } 
+                        
+                        return result;  
+
+              } 
+          } 
+
+          return null;
+   }
 
 
 /**
