@@ -2130,8 +2130,13 @@ checkZero = (timeValue) => {
           let batchInputShape = [];    
           // read input shape from model.json object 
           batchInputShape = modelObject.layers[0].batchInputShape; 
-
           console.log(" Model batch input shape : ", batchInputShape)
+
+          //-- Verify input shape
+          if(batchInputShape.length != 5) {
+                webix.alert("The model input shape must be 5D ");
+                return 0;
+          }
 
           let batch_D, batch_H, batch_W;
           let input_shape;
@@ -2140,7 +2145,7 @@ checkZero = (timeValue) => {
           let slice_height = batch_H = niftiHeader.dims[2];
           let num_of_slices = batch_D = niftiHeader.dims[3];
 
-
+          //--Check model channel 
           if(isModelChnlLast(modelObject)) {
               console.log("Model Channel Last")
               if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
