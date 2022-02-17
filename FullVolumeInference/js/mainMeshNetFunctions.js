@@ -1834,6 +1834,13 @@ isOnline= () => {
           let  gl = document.createElement('canvas').getContext('webgl');
 
           if(gl) {
+
+              if(detectBrowser() === "Firefox" ) {
+                    //-- return e.g: "GeForce GTX 980/PCIe/SSE2"
+                    return gl.getParameter(gl.RENDERER);
+
+              }
+
               let debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
               return debugInfo ?  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null; 
 
@@ -2237,7 +2244,9 @@ checkZero = (timeValue) => {
             statData["WebGL1"] = checkWebGl1();
             statData["WebGL2"] = checkWebGl2();  
             statData["GPU_Vendor"] = detectGPUVendor();
-            statData["GPU_Card"] = detectGPUCardType();                
+            statData["GPU_Card"] = detectGPUCardType();  
+            statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
+            statData["GPU_Card_Full"] = detectGPUCardType_v0();                           
             statData["TF_Backend"] = tf.getBackend();                  
         
             if(isChrome()) {
