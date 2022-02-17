@@ -1869,12 +1869,12 @@ isOnline= () => {
                         //--e.g. : ANGLE (NVIDIA Corporation, GeForce GTX 1050 Ti/PCIe/SSE2, OpenGL 4.5.0 NVIDIA 390.144) as with Chrome
                         // Or:  GeForce GTX 1050 Ti/PCIe/SSE2    as with fireFox
 
-                        if( (result.indexOf( "(" ) > -1) && (result.indexOf( ")" ) > -1) ) {
+                        if( (result.indexOf( "(" ) > -1) && (result.indexOf( ")" ) > -1) && (result.indexOf( "(R)" ) == -1) ) {
 
                                result = result.substring( result.indexOf( '(' ) + 1, result.indexOf( ')' ) );
 
                                if (  result.split(',').length == 3) {
-                                     return result.split(',')[1];
+                                     return result.split(',')[1].trim();
                                } 
 
                         } 
