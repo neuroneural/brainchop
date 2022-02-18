@@ -1,0 +1,1197 @@
+<!--
+=========================================================
+* 3D xSegmentation Demo - v1.0.0
+=========================================================
+
+* Discription:  A user interface for whole brain segmentation
+*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                
+*               Model : Meshnet or similar     
+*
+* Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
+=========================================================
+
+
+
+=========================================================
+                3D Brain Segmentation
+=========================================================
+--> 
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>3D MRI Segmentation </title>
+  <link type="text/css" href="style/index2.css" rel="stylesheet"/>
+  <link rel="shortcut icon" href="#"/>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>  
+  <link rel="stylesheet" type="text/css" href="lib/webix/codebase/webix.css"/> 
+  <link rel="stylesheet" type="text/css" href="lib/papaya_lib/papaya.css" />
+
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-selection-multi.v0.4.min.js"></script>
+  <script src="lib/webix/codebase/webix.js"></script>
+<!--   <script src="https://cdn.webix.com/edge/webix.js" type="text/javascript"></script> -->
+
+  <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+
+
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>  -->
+  
+  <script src="lib/tf.min.js"></script> 
+
+  <script src="https://docs.opencv.org/3.4.0/opencv.js"></script> 
+  <script src="https://www.lactame.com/lib/image-js/0.21.2/image.min.js"></script>  
+  <script type="text/javascript" src="lib/papaya_lib/papaya.js"></script>
+  <script type="text/javascript" src="js/nifti-reader.js"></script>
+  <script type="text/javascript" src="js/nifti-reader-min.js"></script>
+  <script type="text/javascript" src="js/connectedComponents3DAll.js"></script>
+  <script type="text/javascript" src="js/mainParameters.js"></script>  
+  <script type="text/javascript" src="js/mainMeshNetFunctions.js"></script>
+  <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
+  <script type="text/javascript" src="js/checkCompatibility.js"></script> 
+
+
+
+    <style>
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto;
+        padding: 1vh;
+      }
+      .grid-item {
+        background-color: rgba(255, 255, 255, 0.8);
+        border: 0px solid rgba(0, 0, 0, 0.8);
+        padding: 1vh;
+        width: 40vw;
+        height: auto;
+        font-size: 15px;
+        text-align: center;
+      }
+
+
+      .toolbarclass {
+        background-color: #ccc !important;
+        font-weight: bold;
+        box-shadow: 5px 5px;
+      } 
+
+      .titleclass {
+        font-style: italic;
+        font-weight: bold;
+        color: black !important;
+      }  
+
+      .headerclass {
+        background-color: #ccc !important;
+        box-shadow: 5px 5px;
+      }
+
+      .windowtitleclass {
+        background-color: #ccc !important;
+        box-shadow: none,
+      }      
+
+      .webixbg .webix_view{
+        background-color:black !important;
+        box-shadow:none;
+        }
+
+      #feedbackId{
+        cursor: pointer;
+        margin-right: 20px;
+      }
+
+      #githubId{
+        cursor: pointer;
+        margin-right: 20px;
+      }
+      .customTheme {
+          font-weight: bold;
+          background-color: black;
+          color:  white;
+      }
+
+      #annotOfContainer_0 {
+          /*font-weight: bold;*/
+          background-color: black;
+          color:  white;
+          text-align: center;
+          height: 3vh;
+      }
+
+      #annotOfContainer_1 {
+          /*font-weight: bold;*/
+          background-color: black;
+          color:  white;
+          text-align: center;
+          height: 3vh;
+      }
+
+      .bt_1 button.webix_button{
+        background: #396D9E;
+        background: -moz-linear-gradient(top, #5D91C3 0% , #396D9E 100%);
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0,#5D91C3), color-stop(1, black));
+        border:1px solid #396D9E;
+        text-shadow: 0 -1px #134471;
+        box-shadow: inset 0px 1px 10px #8eb3d5;
+        -webkit-box-shadow: inset 0px 1px 1px #8eb3d5;
+        color:#FFFFFF;
+        font-size: 13px;
+      }
+      .bt_1 button:active{
+        background: #396D9E !important;
+      }    
+
+/*      .material .webix_icon{
+        font-family:"Webix Material Icons";
+        font-size:20px;
+        margin:0px 10px;
+      }
+      .webix_icon:hover{
+        color:#1CA1C1;
+      } */       
+
+    </style>
+
+      
+</head>
+   
+<body>
+ 
+ <script type="text/javascript">
+
+  webix.ready(function () {
+
+
+      let body = d3.select("body");
+      body.append("div").attr("id","osdLayers");
+      body.append("div").attr("id","osdLayers2");
+
+
+      let canvas = d3.select("#"+"osdLayers")       /// can be any other selection 
+      .append("canvas")
+      .attr("width", "0%")
+      .attr("height", "0%")
+      .attr("id","inputCanvas")
+      .style('display', 'none');
+
+
+      let canvas2 = d3.select("#"+"osdLayers2")       
+      .append("canvas")
+      .attr("width", "0%")
+      .attr("height", "0%")
+      .attr("id","out3dCC")
+      .style('display', 'none');
+
+
+      // About Window
+      let aboutWindowForm = {view: "form", id: "aboutWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable you to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the nifti format. The output may also be downloaded as a nifti file. <br><br> <b>Input Data:</b> Normalized T1 volume with 1x1x1 mm voxels as created by  the <a href='https://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert'><b>FreeSurfer's</b></a> command : <br> <b><center>mri_convert -c your_original_T1.nii    normalized_T1.nii.gz </center></b><br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2021).<br> <b>Version:</b> 1.0.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='style/TReNDS_logo.jpg' width='100' height='50'></img></center>" 
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("aboutWindow").hide();
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+
+
+      // About Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "aboutWindow",
+                  height:600,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"About", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("aboutWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: aboutWindowForm
+
+      })
+
+      
+      let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis (2021) <br> Grant:  NIH RF1MH121885 ";
+       
+      aboutClick = () => {
+            // webix.alert({
+            //   title:"",
+            //   ok:"Ok",
+            //   text: about
+            // })
+            $$("aboutWindow").show()
+
+      }
+
+
+
+
+
+      feedbackClick = () => {
+                   window.open("https://forms.gle/WzUyVEzgCCY2bHo79");
+      }
+
+      githubClick = () => {
+                   window.open("https://github.com/neuroneural/brainchop");
+      }
+
+      toolbar = {
+          view: "toolbar",
+          css: "toolbarclass",
+          // css:"webix_shadow_medium",
+          id: "myToolbar",
+          rows:[{ cols: 
+                  [
+                   // { view: "label", label: '<i class="fas fa-brain"/>', width: 30 },
+                   { view: "label", label: '<i class="fa fa-snowflake-o"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
+                   { view: "label", label: "Brainchop", css: "titleclass",  inputWidth: 100, align: "left" },
+                   { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
+                   // { view: "button", id: "feedback", value: "feedback", width: 100, align: "right", click: feedbackClick },
+                   { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
+                   { view: "label", label: '<i id="githubId" class="fa fa-github"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: githubClick, tooltip:"GitHub" },                   
+                  ]
+                }
+          ]
+      }
+
+ 
+      let referenceImage = { view: "form",  id: "referenceImage", elements: [ 
+              { type:"header", template:"Open Brain T1 MRI", 
+                // css: "customTheme"
+                css: "headerclass"
+              },
+
+              { cols:[ 
+                      {  view: "label", label: "Select NIfTI file",  
+                          align: "left"
+                      }, 
+
+                      { 
+                       view: "uploader" , value: "Browse", width: 100, id:"imageUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "image/nii, image/nii.gz",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                     let file = upload.file;
+                                     refFileName = file;
+                                     console.log("refFileName :", refFileName)
+                                      //file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(refFileName["name"].search(".nii") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  // params_mri["files"] = [file]; 
+                                                  // Or
+                                                  params_mri["binaryImages"] = [event.target.result];
+
+
+
+                                                  // Set 0 for MRI viewer 
+                                                  papaya.Container.resetViewer(0, params_mri);
+                                                  papaya.Container.atlas = null;
+                                                  // Set 1 for label viewer, need this step to remove startup image
+                                                  // papaya.Container.resetViewer(1);
+                                                  papayaContainers[1].viewer.resetViewer();
+                                                  try {
+                                                     papayaContainers[1].viewer.canvas.removeEventListener('mousemove', mouseMoveHandler);
+                                                     papayaContainers[1].viewer.canvas.removeEventListener('mouseout', mouseOutHandler);
+                                                  } catch (err) {
+                                                     console.log("No mouse handler defined to be removed") ;
+                                                  }
+
+                                                  
+                                                  let startTime = performance.now();
+
+                                                  // decompress/check uploaded Nifti data
+                                                  rawNiftiData = getNiftiRawData(event.target.result);
+                                                  niftiHeader = readNiftiHeader(rawNiftiData);
+                                                  niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
+
+                                                  statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);
+
+                                                  if(niftiHeader.datatypeCode > 2) {
+                                                      let alertTxt = "Please normalize image to 1x1x1 mm thickness by using: <br> <b>mri_convert -c your_original_image input.nii.gz </b>";
+                                                      webix.alert({
+                                                        type:"alert-error",
+                                                         width:"35%",
+                                                        text: alertTxt
+                                                      });                                                      
+                                                  }
+
+
+                                                  numOfOverlays = 0;                                                                                             
+                                              
+                                                  // $$("imageUploader").disable();
+                                                  
+                                                  if(checkGPU()) {
+                                                     $$("segmentBtn").enable();
+                                                  }
+
+                                                  $$("downloadBtn").disable(); 
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select Nifti file *.nii / *.nii.gz")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+                    ] 
+               }
+         ]
+      }
+
+
+      let modelBrowsingForm = {view: "form", id: "modelBrowsingFormId", elements: [ 
+              // { type:"header", template:"Load tfjs Model", 
+              //   // css: "customTheme"
+              //   css:"headerclass"
+              // },
+
+              {  cols: [
+                    { view: "label", label: "Model*", align: "left"},                 
+                    { view:"icon", id: "modelIconId", icon:"", align: "left"},
+                    // {css:"material", template:" <span class='webix_icon wxi-check'></span>", autoheight:true}, 
+
+
+                      { 
+                       view: "uploader" , value: "Load", width: 100, id:"modelUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                     let file = upload.file;
+                                     modelFile = file;
+                                     console.log("modelFile :", modelFile)
+                                     //file{name: "model.json", lastModified: 1548792883000, webkitRelativePath: "", size: 5030, type: ""}
+                                     if(modelFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+                                          let blob = makeSlice(file, 0, file.size);
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  $$("modelIconId").config.icon = "wxi-check";
+                                                  $$("modelIconId").refresh();                                                  
+
+
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select model json file *.json")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+
+
+                ]    
+             },             
+
+              {  cols: [
+                    { view: "label", label: "Weights*", align: "left"},                 
+                    { view:"icon", id: "weightsIconId", icon:"", align: "left"},
+                    // {css:"material", template:" <span class='webix_icon wxi-check'></span>", autoheight:true}, 
+
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"weightUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/bin",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      weightFile = file;
+                                      console.log("weightFile :", weightFile)
+                                      //file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(weightFile["name"].search(".bin") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  $$("weightsIconId").config.icon = "wxi-check";
+                                                  $$("weightsIconId").refresh();
+
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select weights binary file *.bin")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    { view: "label", label: "Labels", align: "left"},                 
+                    { view:"icon", id: "labelsIconId", icon:"", align: "left"},
+                    // {css:"material", template:" <span class='webix_icon wxi-check'></span>", autoheight:true}, 
+
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"labelUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      labelFile = file;
+                                      console.log("labelFile :", labelFile)
+                                      //file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(labelFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  $$("labelsIconId").config.icon = "wxi-check";
+                                                  $$("labelsIconId").refresh();
+
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select labels json file *.json")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    { view: "label", label: "Colors", align: "left"},                 
+                    { view:"icon", id: "colorsIconId", icon:"", align: "left"},
+                    // {css:"material", template:" <span class='webix_icon wxi-check'></span>", autoheight:true}, 
+
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"colorUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      colorFile = file;
+                                      console.log("colorFile :", colorFile)
+                                      //file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(colorFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  $$("colorsIconId").config.icon = "wxi-check";
+                                                  $$("colorsIconId").refresh();
+
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select colors json file *.json")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    {   view: "label", label: "Model Name",  
+                        align: "left"
+                    },                 
+                    { view: "text", 
+                      value: "New Model ",  
+                      id: "proposedModelName", 
+                      disabled: false,
+                      align: "left"
+                      // on: {
+                      //   onChange: function(newValue, oldValue, config) {
+                      //     if(newValue.length && isLetter(newValue[0])) {
+                      //          // $$("downloadBtn").enable();
+                      //     } else {
+                      //          // $$("downloadBtn").disable();
+                      //     }
+
+                      //   }
+                      // }
+                    }
+                ]    
+             },              
+              {  cols: [
+                        {}, 
+                          { view:"button", value:"Confirm", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+
+                                    if(modelFile && weightFile) {
+
+                                           // modelObject = {};
+                                           // model =  load_browser_model( modelFile, weightFile); 
+                                           // model.then(function(res) {
+                                           //   modelObject = res;
+                                           // })  
+
+
+                                           let newId = parseInt(inferenceModelsList.at(-1)["id"]) + 1;
+                                           newId = newId.toString();
+
+                                           // Model list loaded from browsing
+                                           browserModelList.push({id: newId, modelFile:modelFile, weightFile: weightFile, colorFile: colorFile, labelFile: labelFile });
+
+                                           let labelFileUrl = null;
+
+                                           if(browserModelList.at(-1)["labelFile"]) {
+                                                labelFileUrl = URL.createObjectURL(browserModelList.at(-1)["labelFile"]);
+                                           } 
+
+                                           let colorFileUrl = null;
+
+                                           if(browserModelList.at(-1)["colorFile"]) {
+                                                colorFileUrl = URL.createObjectURL(browserModelList.at(-1)["colorFile"]);
+                                           } 
+
+                                           let newModelName = "New Model " + newId;
+                                           if($$("proposedModelName").getValue().length && isLetter($$("proposedModelName").getValue()[0])){
+                                                newModelName =   $$("proposedModelName").getValue();
+                                            }  
+
+                                           inferenceModelsList.push({
+                                                 id: newId, 
+                                                 type: "Segmentation", 
+                                                 path: null, 
+                                                 modelName: newModelName, 
+                                                 labelsPath: labelFileUrl, 
+                                                 colorsPath: colorFileUrl,  
+                                                 isBatchOverlapEnable: false, 
+                                                 numOverlapBatches: 0, 
+                                                 description: ""                                            
+                                           })
+
+
+                                           selectModelOptions = getSegmentationFormOptions(inferenceModelsList);
+                                           $$("selectModel").config.options = selectModelOptions;
+                                           $$("selectModel").config.value = parseInt(newId);
+                                           $$("selectModel").refresh();
+                                           
+                                           $$("modelBrowsingWindow").hide(); 
+
+                                    } else if(weightFile) { 
+                                           webix.message("Please select the model json file");
+                                    
+                                    } else {
+                                           webix.message("Please select the model weights file");
+                                    }  
+                               }
+                           },
+                          {}
+                       ]
+              }      
+
+          ]
+       }
+
+
+
+      // Model Browsing Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "modelBrowsingWindow",
+                  height:350,
+                  width:300,
+
+                  // head:{ type:"header", template:"Load tfjs Model", css:"headerclass" },
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Load tfjs Model", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("modelBrowsingWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  // head:{
+                  //     view:"toolbar", css: "toolbarclass", elements:[
+                  //         { template:"Browse to tfjs Model", css: "windowtitleclass" },
+                  //         { view:"icon", icon:"wxi-close", click:function(){
+                  //             $$("modelBrowsingWindow").hide();
+                  //         } }
+                  //     ]
+                  // },
+
+                  position:"center",
+                  body: modelBrowsingForm
+      })
+
+      // reset check icon
+      $$("modelBrowsingWindow").attachEvent("onShow", function(){
+          $$("weightsIconId").config.icon = "";
+          $$("modelIconId").config.icon = "";
+          $$("weightsIconId").refresh();
+          $$("modelIconId").refresh();
+          modelFile = null;
+          weightFile = null;
+          labelFile = null;
+          colorFile = null;
+      });
+
+
+      getSegmentationFormOptions = (modelsList) => {
+          let selectedOptions = [];
+
+          modelsList.forEach( function(modelEntry) {
+             selectedOptions.push({id: modelEntry["id"], value: modelEntry["modelName"], path: modelEntry["path"] });
+          })
+
+          selectedOptions.push({id: "Browse...", value: "Browse...", path: null });
+
+          return selectedOptions
+      }
+
+      // To load models dynamically from  inferenceModelsList
+      let selectModelOptions = getSegmentationFormOptions(inferenceModelsList);
+
+
+
+
+      let Segmentation = {view: "form", id: "Segmentation", elements: [ 
+              { type:"header", template:"Segmentation Options",
+                // css: "customTheme"
+                css: "headerclass"
+              },
+              { view:"select", 
+                label:"Model", 
+                id: "selectModel",
+                value:1, 
+                options: selectModelOptions,
+                on:{        
+                    onChange: function(newValue, oldValue, config) {   
+                       // const modelEntry = selectModelOptions.find( ({ id }) => id == this.getValue() ); 
+                       const selectedModelEntry = selectModelOptions[this.getValue() - 1]; 
+                       if(newValue == "Browse...") {
+                              console.log("Browse selected ..")
+                              $$("modelBrowsingWindow").show();
+                            
+                       } else if (selectedModelEntry["path"]) {
+                                     modelObject = {};
+                                     const modelEntry = selectModelOptions[this.getValue() - 1]; 
+                                     model =  load_model(modelEntry["path"]);
+                                     // get model object data e.g. layers etc
+                                     model.then(function(res) {
+                                       modelObject = res;
+                                     })
+                       } else {
+                              let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                              if(modelEntry.modelFile && modelEntry.weightFile) {
+
+                                     modelObject = {};
+                                     model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile); 
+                                     model.then(function(res) {
+                                       modelObject = res;
+                                     })
+                              } else {
+                                     $$("segmentBtn").disable();
+                              } 
+
+                       }
+
+                   }, 
+                    onAfterRender: function() {
+                     
+                       // const modelEntry = selectModelOptions.find( ({ id }) => id == this.getValue() ); 
+                       const modelEntry = selectModelOptions[this.getValue() - 1]; 
+                       if(modelEntry["path"]) {
+
+                       // } else {
+                           modelObject = {};                          
+                           model =  load_model(modelEntry["path"]);
+                           // get model object data e.g. layers etc
+                           model.then(function(res) {
+                             modelObject = res;
+                           })                             
+                       } else {
+                              let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                              if(modelEntry.modelFile && modelEntry.weightFile) {
+
+                                     modelObject = {};
+                                     model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile); 
+                                     model.then(function(res) {
+                                       modelObject = res;
+                                     })
+                              } else {
+                                     $$("segmentBtn").disable();
+                              }         
+                       }
+
+                   }                   
+                }                
+              }, 
+     
+              {  cols: [
+                          {   
+                            view: "label", label: "Inference",  
+                            id: "segmentBtnLabel", 
+                            align: "left"
+                          },                 
+                          { 
+                            view: "button", label: "Run", 
+                            // css: "webix_secondary ", 
+                            css:"bt_1",
+                            disabled: true,
+                            id: "segmentBtn", 
+                            align: "left",
+                            click: function() {
+                                      // webix.message("Please Wait .. ","info", -1/*No Expiration*/, "waitMessage");
+                                       $$("downloadBtn").disable();
+                                       $$("segmentBtn").disable();
+                                       runInference()
+                            }
+                          }
+                      ]    
+              }, 
+              { content: "progressBarDiv" , height:50}
+          ]
+       }
+
+
+
+      // Welcome Window
+
+      let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: " You're viewing a sample T1 (Left)  and its tissue segmentation (Right). To use your own sample please normalize your T1  first to 1x1x1 mm thickness by using <a href='https://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert'><b>FreeSurfer</b></a> command : <br> <b><center>mri_convert -c your_original_T1.nii    normalized_T1.nii.gz </center></b> <br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show this again</label>",  
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("welcomeWindow").hide();
+                                     webix.storage.local.put("showWelcomeScreen", ! document.getElementById("noShowWelcomeWindow").checked);
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+
+
+      // Welcome Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "welcomeWindow",
+                  height:270,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Welcome", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("welcomeWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: welcomeWindowForm
+
+      })
+
+      fetchWelcomeScreenStatus = () => {
+          return webix.storage.local.get("showWelcomeScreen");
+      } 
+
+      if(fetchWelcomeScreenStatus() == null || fetchWelcomeScreenStatus()) {
+          $$("welcomeWindow").show();
+      } else  {
+          $$("welcomeWindow").hide();
+      }
+
+
+
+
+      let downloadNiftiFile = {view: "form", id: "downloadNiftiFileId", elements: [ 
+              { type:"header", template:"Save Labels", 
+                // css: "customTheme"
+                css:"headerclass"
+              },
+
+              {  cols: [
+                    {   view: "label", label: "File Name",  
+                        align: "left"
+                    },                 
+                    { view: "text", 
+                      value: "labels.nii",  
+                      id: "fileNameToDL", 
+                      disabled: false,
+                      align: "left",
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue.length && allOutputSlices3DCC1DimArray.length && isLetter(newValue[0])) {
+                               $$("downloadBtn").enable();
+                          } else {
+                               $$("downloadBtn").disable();
+                          }
+
+                        }
+                      }
+                    }
+                ]    
+             },             
+
+              {  cols: [
+                    {   view: "label", label: "Labels",  
+                        align: "left"
+                    },                 
+                    { view: "button", label: "Save",  
+                      id: "downloadBtn", 
+                      css: "bt_1",
+                      disabled: true,
+                      align: "left",
+                      click: function() {  
+
+                            if(allOutputSlices3DCC1DimArray.length) {
+                                 let downloadFileName = $$("fileNameToDL").getValue();
+                                 
+                                 if(downloadFileName.search(".nii") < 0) { 
+                                      // if nii extension doesn't exist, then search will return -1
+                                      downloadFileName = downloadFileName + ".nii";
+                                 }
+
+                                 downloadNifti(allOutputSlices3DCC1DimArray, rawNiftiData, downloadFileName);
+
+                            } else {
+                                webix.message("No download Data");
+                            }   
+                      }  
+                    }
+                ]    
+             }
+          ]
+       }
+
+
+
+
+     let memoryView = {
+                      view:"chart",
+                      type:"barH",
+                      id:"memoryMonitor",
+                      width:120,
+                      height:10,
+                      value:"#memoryUse#",
+                      gradient:function(gradient){
+                        gradient.addColorStop(1.0,"#FF0000");
+                        gradient.addColorStop(0.5,"#FFFF00");
+                        gradient.addColorStop(0.0,"#00FF22");
+                      },
+                      alpha:0.8,
+                      radius:2,
+                      border:false,
+                      xAxis:{
+                        start:0,
+                        end:100,
+                        step:10,    
+                        template:""
+                      },
+                      yAxis:{
+                        template:""
+                      }
+                      // data: [{ memoryUse:0}]
+                  }
+    
+
+      let hardwareStatus = {view: "form", id: "hardwareStatusId", elements: [ 
+              { type:"header", template:"Status", 
+                // css: "customTheme"
+                css: "headerclass"
+              },
+
+              {  cols: [
+                    {   view: "label", label: "WebGL-2",  
+                        align: "left"
+                    },                 
+                    { 
+                      view: "label", label: "<span id='webGl2Status' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>",  align: "right" 
+                    }
+                ]    
+             }, 
+             // {  cols: [
+             //        {   view: "label", label: "WebGL-1",  
+             //            align: "left"
+             //        },                 
+             //        { 
+             //          view: "label", label: "<span id='webGl1Status' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>",  align: "right" 
+             //        }
+             //    ]    
+             // },              
+
+             {  cols: [
+                    {   view: "label", label: "Memory",  
+                        align: "left"
+                    },  // memoryView              
+                    { 
+                      view: "label", label: "<span id='memoryStatus' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>", align: "right"  
+                    }
+                ]    
+             }             
+          ]
+       }
+
+
+       webix.ui({
+          margin:5,
+          // css: "webixbg", // for black bg
+          rows:[toolbar,
+          {
+              margin:20,
+              padding: 20,
+              cols: [
+                       { width: 250, margin:10,  rows:[
+                                                        referenceImage,
+                                                        Segmentation,
+                                                        downloadNiftiFile,
+                                                        hardwareStatus,
+                                                        {}
+                                                      ]
+                       },
+                       { rows: [ 
+                                  { type:"header", template:"MRI  Viewer",
+                                    // css: "customTheme"
+                                    css:"headerclass"
+                                  },
+                                  { view: "template", content: "papayaMriDiv", borderless:true},
+                                
+                               ]
+                                     
+                        },
+                        {rows: [ 
+                                      { type:"header", template:"Labels Viewer", 
+                                        // css: "customTheme"
+                                        css: "headerclass"
+                                      },
+                                      { view: "template", content: "papayaLabelDiv", borderless:true},
+                                                                          
+                               ]
+                      }                              
+                  ]
+            }],
+
+        });
+
+
+        // To excutes immediately after window loading
+        // 0 for MRI viewer, 1 for Label viewer
+        papayaContainers[0].preferences.smoothDisplay = 'Yes';
+        papayaContainers[1].preferences.smoothDisplay = 'No';
+
+
+        // fetchLabelStructure(inferenceModelsList[0]["labelsPath"]);
+        papaya.Container.restartViewer(0, ["MRI/t1_c.nii.gz"], true);
+        papaya.Container.restartViewer(1, ["MRI/labels.nii.gz"], true);  
+
+        //Activate annotation for papaya container 1- default    
+        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+
+
+        // To sync swap view button 
+        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
+              papayaContainers[1].viewer.rotateViews()
+
+      })
+
+      document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
+              papayaContainers[0].viewer.rotateViews()
+
+      })           
+
+
+     })  
+
+
+
+  </script>
+
+
+    <div class="grid-container" id ="papayaMriDiv">
+      <div class="grid-item" id="divMri">
+        <div  class="papaya" data-params="params_mri"></div>
+     </div>
+      <div class="grid-item">
+        <input type="text" id="annotOfContainer_0" disabled></div>
+      </div>        
+    </div>  
+
+    <div class="grid-container" id ="papayaLabelDiv">
+      <div class="grid-item">
+        <div  class="papaya" data-params="params_label"></div>
+      </div>
+      <div class="grid-item">
+        <input type="text" id="annotOfContainer_1" disabled></div>
+      </div>      
+    </div>  
+
+
+    <div class="w3-container" style="margin-top: 1vh;" id="progressBarDiv" >
+        <div class="w3-border" >
+          <div class="w3-blue" style="height:2vh;width:0%;" id="progressBar"></div>
+        </div>
+    </div>
+
+   <div style="height: 0vh; width: 0vw;" >
+    <form method="post" autocomplete="off" name="google-sheet" id="googleSubForm" style="visibility: hidden;">
+       <input type="text" name="Brainchop_Ver" id= "Brainchop_Ver"   />
+       <input type="text" name="Country" id= "Country"   />
+       <input type="text" name="State" id= "State"   />
+       <input type="text" name="City" id= "City"   />       
+       <input type="text" name="Date" id= "Date"   />
+       <input type="text" name="Time" id= "Time"   />
+       <input type="number" step=any  name="Data_Load" id= "Data_Load"   />
+       <input type="number" step=any  name="Preprocess_t" id= "Preprocess_t"  />
+       <input type="number" step=any  name="Inference_t" id= "Inference_t"   />
+       <input type="number" step=any  name="Postprocess_t" id= "Postprocess_t"   />
+       <input type="text" name="Model" id= "Model"   />
+       <input type="text" name="Browser" id= "Browser"   />
+       <input type="number" step=any  name="Browser_Ver" id= "Browser_Ver"   />       
+       <input type="text" name="OS" id= "OS"   />
+       <input type="number" step=any  name="Texture_Size" id= "Texture_Size" />
+       <input type="number" step=any  name="Heap_Size_MB" id= "Heap_Size_MB" />
+       <input type="number" step=any  name="Used_Heap_MB" id= "Used_Heap_MB" />
+       <input type="number" step=any  name="Heap_Limit_MB" id= "Heap_Limit_MB" />                     
+       <input type="text"  name="Status" id= "Status" />    
+       <input type="text"  name="WebGL1" id= "WebGL1" />  
+       <input type="text"  name="WebGL2" id= "WebGL2" />  
+       <input type="text"  name="TF_Backend" id= "TF_Backend" />
+       <input type="text"  name="GPU_Vendor" id= "GPU_Vendor" />  
+       <input type="text"  name="GPU_Card" id= "GPU_Card" />   
+       <input type="text"  name="GPU_Vendor_Full" id= "GPU_Vendor_Full" />  
+       <input type="text"  name="GPU_Card_Full" id= "GPU_Card_Full" />                
+       <input type="text"  name="Error_Type" id= "Error_Type" />                          
+       <input type="submit" id="SubmitStatisticalData"  />
+     </form>
+    </div>
+
+
+
+ </body>
+</html>

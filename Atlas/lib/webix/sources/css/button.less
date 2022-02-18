@@ -1,0 +1,154 @@
+.buttonBackground(@background:@buttonColor, @color:@buttonFontColor){
+	background: @background;
+	color: @color;
+	.buttonBorderStyle(@background);
+
+	&:hover{
+		.darkHoverRule(@background);
+	}
+	&:focus{
+		.darkFocusRule(@background);
+	}
+	&:active{
+		.darkActiveRule(@background);
+		.activeShadow;
+	}
+}
+
+//button customization
+.webixCustomButton(@background:@buttonColor, @color:@buttonFontColor){
+	.webix_button{
+		.buttonBackground(@background, @color);
+		.webix_icon, .webix_img_btn_text, .webix_icon_btn{
+			color: @color;
+		}
+	}
+	.webix_pressed .webix_button{
+		.darkActiveRule(@background);
+	}
+}
+.webix_secondary{
+	.webixCustomButton;
+}
+.webix_primary{
+	.webixCustomButton(@formButtonColor, @formButtonFontColor);
+}
+.webix_danger{
+	.webixCustomButton(@dangerColor, #ffffff);
+}
+.webix_transparent{
+	.webix_button{
+		color: @fontColor;
+		background: transparent;
+		border: none;
+		.webix_img_btn_text{
+			color: @fontColor;
+		}
+		.webix_icon, .webix_icon_btn{
+			color: @transparentButtonIconColor;
+		}
+
+		&:hover{
+			.darkHoverRuleA;
+		}
+		&:focus{
+			.darkHoverRuleA;
+		}
+		&:active{
+			.darkActiveRuleA;
+			.activeShadow;
+		}
+	}
+	.webix_pressed .webix_button{
+		.darkActiveRuleA;
+	}
+}
+
+.webix_button, .webixbutton{
+ 	border-radius:@skin_input_radius;
+	height:100%; width:100%;
+ 	cursor:pointer;
+	.buttonStyle;
+	-webkit-appearance: none;
+
+	// anti-twitching text
+	padding: 0 6px;
+}
+.webix_el_button .webix_el_box, .webix_el_toggle .webix_el_box{
+	position:relative;
+}
+
+// /*Image buttons*/
+.webix_img_btn, .webix_img_btn_top{
+	vertical-align:top;
+	border: none;
+	width:100%;
+	padding: 0;
+}
+.webix_img_btn .webix_icon{
+	.buttonIconStyle;
+	margin-right: 4px;
+}
+.webix_img_btn_top .webix_icon, .webix_img_btn_top .webix_image{
+	font-size: 20px;
+	position: absolute;
+	top: 8px;
+	display: inline-block;
+	left: 50%;
+	-webkit-transform: translateX(-50%);
+	transform: translateX(-50%)
+}
+.webix_img_btn .webix_image{
+	display: inline-block;
+	margin-right: 4px;
+	vertical-align: middle;
+}
+
+.webix_img_btn_text{
+	position:absolute;
+	left:0;
+	bottom: @skin_input_y_padding + 1;
+	width:100%;
+	text-align: center;
+	cursor: pointer;
+	color: @buttonFontColor;
+}
+
+
+
+//Toggle
+.webix_pressed .webix_button{
+	box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
+	.activeShadow;
+}
+
+.webix_view.webix_control{
+	.webix_disabled_box{
+		.webix_button{
+			.buttonDisabled;
+		}
+		.webix_img_btn_text{
+			color: @disabledFontColor;
+		}
+		.webix_image{
+			opacity:0.4;
+		}
+	}
+}
+.webix_disabled_view.webix_control{
+	.webix_icon_btn, .webix_icon {
+		color: @disabledFontColor;
+	}
+}
+.webix_toolbar .webix_disabled_view.webix_control{
+	.webix_icon, .webix_disabled_box .webix_img_btn_text, .webix_icon_btn{
+		color: @disabledFontColor;
+	}
+}
+
+
+.webixbutton{
+	width:auto;
+	height:auto;
+	padding:8px 15px;
+}
