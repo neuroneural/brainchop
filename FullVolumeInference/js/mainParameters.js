@@ -83,7 +83,7 @@
                                        id: "1", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
-                                       modelName: "Model_5 Segmentation",  
+                                       modelName: "Segment_GWM (Light)",  
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
                                        colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -95,7 +95,7 @@
                                        id: "2", 
                                        type: "Segmentation", 
                                        path:"./ModelToLoad/model11_gw_ae/model.json", 
-                                       modelName:"Model_11 Segmentation", 
+                                       modelName:"Segment_GWM (Large)", 
                                        labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
                                        colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",                                      
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
