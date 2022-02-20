@@ -2210,6 +2210,7 @@ checkZero = (timeValue) => {
           slices_3d = normalizeVolumeData(slices_3d)          
 
           // Transpose MRI data to be match pytorch/keras input output
+
           slices_3d = slices_3d.transpose()
           console.log("Input transposed");
 

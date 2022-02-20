@@ -67,8 +67,20 @@
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
+            enableTranpose:                       false, // Keras and tfjs input orientation may need a tranposing step to be matched
+
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
+
+   // Statistical data to analysis client performance
+   var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null,  
+                    Input_Shape: null, Output_Shape: null, Channel_Last: null, No_SubVolumes: null,  
+                    Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
+                    Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
+                    Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
+                    WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Vendor_Full: null, 
+                    GPU_Card: null, GPU_Card_Full:null, Status: null, Error_Type: null };
+
 
 
    // Inference Models

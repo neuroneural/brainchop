@@ -2486,14 +2486,14 @@ checkZero = (timeValue) => {
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
                       let expected_Num_labels;
-                     
+                      
+                      let layersLength = res.layers.length;
+                      console.log("res.layers.length ", layersLength);                       
+
                       let j = 0;
                       let timer = window.setInterval(function() {
                             let curTensor = []; 
                             curTensor[0] = tf.tensor(allBatches[j].data.dataSync(), input_shape);
-                            
-                            let layersLength = res.layers.length;
-                            console.log("res.layers.length ", layersLength);      
 
                             let lastIdx = 0; 
 
