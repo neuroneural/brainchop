@@ -74,8 +74,8 @@
 
    // Statistical data to analysis client performance
    var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null,  
-                    Input_Shape: null, Output_Shape: null, Channel_Last: null, No_SubVolumes: null,  
-                    Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
+                    Img_Size: null, Input_Shape: null, Output_Shape: null, Channel_Last: null, Model_Param: Infinity, Model_Layers: Infinity, 
+                    No_SubVolumes: null, Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
                     Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
                     WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Vendor_Full: null, 

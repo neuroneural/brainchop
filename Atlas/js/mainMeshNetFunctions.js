@@ -2262,6 +2262,38 @@ checkZero = (timeValue) => {
           return null;
  }
 
+/**
+* Function to calculate the model total number of parameters 
+*
+* @since 1.0.0
+* @param {Object} modelObj - Model to check
+* @returns {number} Returns - e.g.: 5000 
+*
+*/
+
+ getModelNumParameters = (modelObj) => {
+     let numParameters = 0;
+
+     for(let layerIdx = 0; layerIdx < modelObj.layers.length; layerIdx ++ ) {
+            numParameters += modelObj.layers[layerIdx].countParams();
+     }
+
+     return numParameters;
+ }
+
+/**
+* Function to calculate the model total number of layers 
+*
+* @since 1.0.0
+* @param {Object} modelObj - Model to check
+* @returns {number} Returns - e.g.: 20
+*
+*/
+
+ getModelNumLayers= (modelObj) => {
+     return modelObj.layers.length;
+ }
+
 
 /**
 * Inference Function 
@@ -2433,10 +2465,15 @@ checkZero = (timeValue) => {
             statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
             statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
 
+            statData["Img_Size"] = JSON.stringify([num_of_slices, slice_height, slice_width]);  
             statData["Input_Shape"] = JSON.stringify(batchInputShape);
             statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
             statData["Channel_Last"] = isChannelLast;
+            statData["Model_Param"] = getModelNumParameters(modelObject);
+            statData["Model_Layers"] = getModelNumLayers(modelObject);   
+                        
             statData["No_SubVolumes"] = allBatches.length;
+
 
             statData["Preprocess_t"] = Preprocess_t;
             statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
