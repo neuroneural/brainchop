@@ -4,7 +4,7 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                
+*               Input shape : [1, D, H, W, 1] e.g. [1, 256, 256, 256, 1]                
 *               Model : Meshnet or similar     
 *
 * Authors:  Mohamed Masoud  and Sergey Plis  - 2021
@@ -13,7 +13,7 @@
 
 
 =========================================================
-           Brainchop for 3D Brain Segmentation
+        3D Brain Segmentation- Full Volume Version
 =========================================================
 --> 
 <!DOCTYPE html>
@@ -251,7 +251,7 @@
       }
 
       githubClick = () => {
-                   window.open("https://github.com/neuroneural/brainchop");
+                   window.open("https://github.com/neuroneural/brainchop/tree/master/FullVolumeInference");
       }
 
       toolbar = {
@@ -1104,6 +1104,13 @@
        <input type="text" name="City" id= "City"   />       
        <input type="text" name="Date" id= "Date"   />
        <input type="text" name="Time" id= "Time"   />
+       <input type="text" name="Input_Shape" id= "Input_Shape"   />
+       <input type="text" name="Output_Shape" id= "Output_Shape"   />
+       <input type="text" name="Channel_Last" id= "Channel_Last"   />       
+       <input type="number" step=any name="No_SubVolumes" id= "No_SubVolumes"   />
+       <input type="number" step=any name="Actual_Labels" id= "Actual_Labels"   />
+       <input type="number" step=any name="Expect_Labels" id= "Expect_Labels"   />       
+       <input type="text" name="NumLabels_Match" id= "NumLabels_Match"   />         
        <input type="number" step=any  name="Data_Load" id= "Data_Load"   />
        <input type="number" step=any  name="Preprocess_t" id= "Preprocess_t"  />
        <input type="number" step=any  name="Inference_t" id= "Inference_t"   />

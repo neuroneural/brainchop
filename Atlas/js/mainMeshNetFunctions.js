@@ -4,7 +4,7 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                    
+*               Input shape : [1, D, H, W, 1] e.g. [1, 30, 256, 256, 1]                     
 *               Model : Meshnet or similar       
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
@@ -13,7 +13,7 @@
 
 
 =========================================================
-                3D Brain Segmentation
+        3D Brain Segmentation - Atlas Version
 =========================================================*/  
 
 
@@ -2242,6 +2242,27 @@ checkZero = (timeValue) => {
      }
  }
 
+
+/**
+* Function to find output segmentation total number
+* Can be used to test browser feasibility before run the inference, e.g: test buffer of that size
+*
+* @since 1.0.0
+* @param {Object} modelObj - Model to check
+* @returns {number} Returns - e.g.: 3 or 50
+*
+*/
+
+ getModelOutputNumLabels = (modelObj) => {
+          if(modelObject.output.shape.length >= 4) {
+               return isModelChnlLast(modelObj) ? modelObject.output.shape[ modelObject.output.shape.length-1 ] : 
+                                                  modelObject.output.shape[1];
+          } 
+
+          return null;
+ }
+
+
 /**
 * Inference Function 
 * @since 1.0.0
@@ -2289,8 +2310,9 @@ checkZero = (timeValue) => {
           let slice_height = niftiHeader.dims[2];
           let num_of_slices = niftiHeader.dims[3];
 
+          let isChannelLast = isModelChnlLast(modelObject);
 
-          if(isModelChnlLast(modelObject)) {
+          if(isChannelLast) {
               console.log("Model Channel Last")
               if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
                     webix.alert("The number of channels for input shape must be 1");
@@ -2410,6 +2432,12 @@ checkZero = (timeValue) => {
 
             statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
             statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
+
+            statData["Input_Shape"] = JSON.stringify(batchInputShape);
+            statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
+            statData["Channel_Last"] = isChannelLast;
+            statData["No_SubVolumes"] = allBatches.length;
+
             statData["Preprocess_t"] = Preprocess_t;
             statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
             statData["Browser"] = detectBrowser();
@@ -2457,6 +2485,7 @@ checkZero = (timeValue) => {
                       let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
+                      let expected_Num_labels;
                      
                       let j = 0;
                       let timer = window.setInterval(function() {
@@ -2505,9 +2534,15 @@ checkZero = (timeValue) => {
                             
 
 
-                            let axis = -1; //4;
+                            let axis =  isChannelLast ? -1 : 1; 
                             let prediction_argmax = tf.argMax(curTensor[lastIdx], axis);
-                            tf.dispose(curTensor[lastIdx]);                          
+                            
+                            if( j == allBatches.length - 1 ) {
+                                 expected_Num_labels = isChannelLast ? curTensor[lastIdx].shape[4] : curTensor[lastIdx].shape[1];
+                            }  
+
+                            tf.dispose(curTensor[lastIdx]);   
+
                             allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) }) 
                             let curBatchMaxLabel =  findArrayMax(Array.from(prediction_argmax.dataSync()));
 
@@ -2536,9 +2571,13 @@ checkZero = (timeValue) => {
                                  let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                  let numSegClasses = maxLabelPredicted + 1;
+
+                                 statData["Actual_Labels"] = numSegClasses;
+                                 statData["Expect_Labels"] = expected_Num_labels;
+                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
                                  
 
-                                  startTime = performance.now();
+                                 startTime = performance.now();
                                  // Generate output volume or slices   
                                  console.log("Generating output");                          
                                  generateOutputSlicesV2(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);

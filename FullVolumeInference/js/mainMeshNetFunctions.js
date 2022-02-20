@@ -4,7 +4,7 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                    
+*               Input shape : [1, D, H, W, 1] e.g. [1, 256, 256, 256, 1]                    
 *               Model : Meshnet or similar       
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
@@ -13,7 +13,7 @@
 
 
 =========================================================
-                3D Brain Segmentation
+         3D Brain Segmentation- Full Volume Version
 =========================================================*/  
 
 
@@ -2097,6 +2097,25 @@ checkZero = (timeValue) => {
  }
 
 
+/**
+* Function to find output segmentation total number
+* Can be used to test browser feasibility before run the inference, e.g: test buffer of that size
+*
+* @since 1.0.0
+* @param {Object} modelObj - Model to check
+* @returns {number} Returns - e.g.: 3 or 50
+*
+*/
+
+ getModelOutputNumLabels = (modelObj) => {
+          if(modelObject.output.shape.length >= 4) {
+               return isModelChnlLast(modelObj) ? modelObject.output.shape[ modelObject.output.shape.length-1 ] : 
+                                                  modelObject.output.shape[1];
+          } 
+
+          return null;
+ }
+
 
 /**
 * Inference Function 
@@ -2145,8 +2164,9 @@ checkZero = (timeValue) => {
           let slice_height = batch_H = niftiHeader.dims[2];
           let num_of_slices = batch_D = niftiHeader.dims[3];
 
-          //--Check model channel 
-          if(isModelChnlLast(modelObject)) {
+          let isChannelLast = isModelChnlLast(modelObject);
+
+          if(isChannelLast) {
               console.log("Model Channel Last")
               if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
                     webix.alert("The number of channels for input shape must be 1");
@@ -2240,7 +2260,13 @@ checkZero = (timeValue) => {
 
 
             statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
-            statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
+            statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds()); 
+            
+            statData["Input_Shape"] = JSON.stringify(batchInputShape);
+            statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
+            statData["Channel_Last"] = isChannelLast;
+            statData["No_SubVolumes"] = 1;
+
             statData["Preprocess_t"] = Preprocess_t;
             statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
             statData["Browser"] = detectBrowser();
@@ -2346,10 +2372,12 @@ checkZero = (timeValue) => {
                                 // curTensor[i].print(); 
                                 //outputDataBeforArgmx = Array.from(curTensor[i].dataSync())
 
-                                let axis = -1; 
+                                let axis = isChannelLast ? -1 : 1; 
                                 console.log(" find argmax ")
                                 console.log("last Tenosr shape : ", curTensor[i].shape);
                                 //-- curTensor[i].shape  : [ 1, 256, 256, 256, 3 ]
+                                let expected_Num_labels = isChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
+
                                 let prediction_argmax = tf.argMax(curTensor[i], axis);
                                 console.log(" prediction_argmax shape : ", prediction_argmax.shape);
                                 //-- prediction_argmax.shape  : [ 1, 256, 256, 256]
@@ -2368,6 +2396,9 @@ checkZero = (timeValue) => {
 
                                 let numSegClasses = maxLabelPredicted + 1;
                                 console.log("numSegClasses", numSegClasses);
+                                statData["Actual_Labels"] = numSegClasses;
+                                statData["Expect_Labels"] = expected_Num_labels;
+                                statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
 
                                 //-- Transpose back to fit Papaya display settings
                                 let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]).transpose();

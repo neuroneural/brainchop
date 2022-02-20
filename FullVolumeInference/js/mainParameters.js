@@ -4,7 +4,7 @@
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
-*               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                 
+*               Input shape : [1, D, H, W, 1] e.g. [1, 256, 256, 256, 1]                  
 *               Model : Meshnet or similar     
 *
 * Author:  Mohamed Masoud , (Sergey Plis Lab) - 2021
@@ -13,7 +13,7 @@
 
 
 =========================================================
-                3D Brain Segmentation
+       3D Brain Segmentation- Full Volume Version
 =========================================================*/ 
 
 
@@ -71,7 +71,10 @@
     }
 
    // Statistical data to analysis client performance
-   var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null,  Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
+   var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null,  
+                    Input_Shape: null, Output_Shape: null, Channel_Last: null, No_SubVolumes: null,  
+                    Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
+                    Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
                     WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Vendor_Full: null, 
                     GPU_Card: null, GPU_Card_Full:null, Status: null, Error_Type: null };
