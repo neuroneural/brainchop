@@ -1,40 +1,32 @@
-# 3D Brain Segmentation  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]()
-Mohamed Masoud - Sergey Plis - 2021
+# Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/ModelToLoad/mnm_tfjs_me_test) 
 
+ Brainchop.org brings automatic 3D MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
 
-## Whole Brain Inference at the Browser
-Demo shows segmenation of 3D brain MRI at the browser based on a pretrained MeshNet model.
+ We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. [Papaya](https://rii-mango.github.io/Papaya/) integrated for MRI view.  For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/brainchop/wiki).
 
-Main settings
-	-input_shape=(1, 38, 38, 38, 1)
-    
+<div align="center">
 
-To run the server:
-	-Open a terminal window.
-	-Navigate to the directory root directory .
-	-Execute the command to start the server.
-		For Python 2 run server with free port 80xx (e.g.  `python -m SimpleHTTPServer 8020` )
-		For Python 3 run server with free port 80xx (e.g.  `python -m http.server 8020` )
+![Interface](https://github.com/neuroneural/brainchop/blob/master/style/brainchop_Arch.png)
 
-
-       
-       -In the browser url
-      
-           `http://localhost:8020/`
-
-
-       - Open browser console by press F12 to see the sample outputs 
-
-       - click on Browse File button, and navigate to "MRI Sample" folder
-
-       - Please DON'T change batch size, it is static to 1 for now.
+**brainchop high-level architecture**
+</div>
 
 ## Live Demo
 
-To see the tool in action please visit this [link!](https://neuroneural.github.io/brainchop/)
+To see the tool in action please click  [here](https://neuroneural.github.io/brainchop).
 
-## Visual Guidelines
+Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 
-#### Integrated with Papaya viewers
+For whole MRI volume inference [without partitioning](https://github.com/neuroneural/brainchop/tree/master/FullVolumeInference), please click [here](https://neuroneural.github.io/brainchop/FullVolumeInference)
 
-![Interface](https://github.com/Mmasoud1/Portfolios/blob/master/ShowMe/BrainInference/SimpleUI_Demo.gif)
+## Funding
+
+This work was funded by the NIH grant RF1MH121885.
+
+<br />
+<div align="center">
+
+<img src='https://github.com/neuroneural/brainchop/blob/master/style/TReNDS_logo.jpg' width='300' height='100'></img>
+
+**Mohamed Masoud - Sergey Plis - 2021**
+</div>

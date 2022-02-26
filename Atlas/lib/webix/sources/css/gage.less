@@ -1,0 +1,63 @@
+.webix_gage_box{
+    display:table;
+    height: 100%;
+    width: 100%;
+}
+.webix_gage_box > div{
+    display:table-cell;
+    vertical-align:middle;
+}
+.webix_gage_body {
+    height: 100%;
+    width: 100%;
+    transform: rotate(180deg);
+}
+.webix_gage_label {
+    font-size: 0.9em;
+    text-align: center;
+    margin-top: 10px;
+}
+.webix_gage_placeholder {
+    margin-top: -20px;
+}
+.webix_gage_info {
+    text-align: center;
+    font-size: 0.7em;
+    position: relative;
+    margin: 0 auto 10px auto;
+}
+.webix_gage_min_range {
+    left: -74px;
+}
+.webix_gage_max_range {
+    right: -74px;
+}
+.webix_gage_min_range,
+.webix_gage_max_range {
+    display: inline-block;
+    margin-top: 20px;
+    position: absolute;
+    text-align: center;
+    width: 150px;
+}
+.webix_gage_range_info {
+    font-size: 1.2em;
+    line-height: 1;
+}
+.webix_gage_value {
+    font-size: 2.2em;
+    color: #404040;
+}
+.webix_gage_gradient_point_animated {
+    transition: transform 1.3s linear;
+} 
+.webix_gage_animated {
+    stroke: hsl(120, 100%, 50%); 
+    animation: gage_dash 1.3s linear forwards;
+    transition: stroke 1.3s linear, stroke-dasharray 1.3s linear;
+}
+@keyframes gage_dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

@@ -1,0 +1,61 @@
+@dblistBg: #ededed;
+@dblistButtonBg: @buttonColor;
+@dblistButtonIconColor: @buttonFontColor;
+
+.webix_dbllist{
+	.bottom_label{
+		text-align: center;
+		font-size: 10px;
+	}
+	.webix_list, .bottom_label{
+		background: @dblistBg;
+	}
+	.webix_list_item{
+		background: @backColor;
+		margin: 3px 4px 0px 4px;
+		box-sizing: border-box;
+		border:1px solid @borderColor;
+		&.webix_selected{
+			border-bottom-color: @borderColor;
+			background-color: @selectColor;
+			color: @dblistSelColor;
+		}
+	}
+	.dbllist_button{
+		width: 45%;
+		height:30px;
+		margin-top: 4px;
+		padding: 0;
+		border-radius:@skin_input_radius;
+		border:1px solid @borderColor;
+		cursor:pointer;
+		font-size: @fontSize;
+		font-family: @fontFamily;
+		background-color: @dblistButtonBg;
+		.webix_icon{
+			color: @dblistButtonIconColor;
+			font-size: 20px;
+			width: 26px;
+		}
+		&:active{
+			.activeShadow;
+		}
+		&:first-child{
+			margin-top: @inputHeight - 2px;
+			margin-right: 4px;
+		}
+		&:last-child{
+			margin-left: 4px;
+		}
+		&:hover, &:focus, &:active{
+			.darkHoverRule(@dblistButtonBg);
+		}
+	}
+}
+
+.webix_invalid .webix_list{
+	background: #f8e2e2;
+}
+.dbllist_buttons .webix_template{
+	padding: 0 0 0 4px;
+}

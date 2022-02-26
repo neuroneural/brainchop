@@ -1,0 +1,218 @@
+@import "inputs.less";
+
+.webix_message_area{
+	position:fixed;
+	right:5px;
+	width:250px;
+	z-index:1000;
+}
+
+.webix_message{
+	min-width: 120px;
+
+	font-family: @fontFamily;
+	z-index: 10000;
+	overflow: hidden;
+
+	margin: 4px 4px 12px;
+
+	-webkit-transition: all .5s ease;
+	-moz-transition: all .5s ease;
+	-o-transition: all .5s ease;
+	transition: all .5s ease;
+}
+.webix_no_transition{
+	-webkit-transition: none;
+	-moz-transition: none;
+	transition: none;
+}
+.webix_message.hidden{
+	height:0px;
+	min-height: 0px;
+	padding-top:0px;
+	padding-bottom:0px;
+	border-width:0px;
+	margin-top:0px;
+	margin-bottom:0px;
+	box-shadow:none;
+	overflow:hidden;
+}
+
+.webix_modal_box{
+	pointer-events:auto;
+	overflow:hidden;
+	display: inline-block;
+	min-width: 250px;
+	width: 250px;
+	text-align: center;
+	position:fixed;
+	background-color: @backColor;
+	box-shadow: @mediumShadow;
+	font-family: @fontFamily;
+	z-index:20000;
+	border-radius: @windowRadius;
+	border: 1px solid @borderColor;
+	outline:none;
+	.webix_popup_button{
+		margin-top:8px;
+	}
+}
+
+.webix_message, .webix_popup_button{
+	cursor:pointer;
+}
+
+.webix_popup_controls{
+	padding: 4px 12px 12px;
+}
+@modalButtonHeight: @inputHeight - (@skin_input_y_padding * 2) - 2;
+
+.webix_popup_button{
+	height:@modalButtonHeight;
+	line-height:@modalButtonHeight;
+
+	display: inline-block;
+	margin: 0 4px;
+	border-radius: @skin_input_radius;
+}
+.webix_popup_button{
+	min-width: 100px;
+}
+
+div.webix_modal_cover {
+	background-color:#000;
+	cursor:default;
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=10);
+	opacity: 0.1;
+	position: fixed;
+	z-index:19999;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	border: none;
+	zoom: 1;
+}
+
+.webix_message img, .webix_modal_box img{
+	float:left;
+	margin-right:8px;
+}
+
+/*Skin section*/
+.webix_popup_button{
+	font-size: @fontSize;
+	.buttonStyle;
+	.buttonBackground;
+	outline: none;
+}
+
+.webix_popup_button.confirm{
+	.buttonStyle;
+	.buttonBackground(@formButtonColor, @formButtonFontColor);
+}
+
+
+.webix_popup_input.webix_el_text{
+	outline: none;	
+	overflow: hidden;
+	padding:@skin_input_y_padding @skin_input_x_padding;
+	input{
+		box-sizing: border-box;
+		width:100%;
+		height:@modalButtonHeight;
+		font-size: @formFontSize;
+		.inputStyle;
+	}
+	&.webix_required::before{
+		position: absolute;
+		right: @skin_input_x_padding + 16;
+		padding-top: 1px;
+		content: "*";
+		color: red;
+	}
+}
+
+
+.webix_popup_input.webix_el_text.webix_popup_invalid{
+	input{
+		background-color: tint(@invalidColor, 80%);
+		border-color:@invalidColor;
+		.invalidStyle;
+	}
+}
+
+.webix_popup_title{
+	color: @fontColor;
+	line-height: 20px;
+	padding: 20px 16px 12px 16px;
+	font-size: @barFontSize;
+	font-weight: @boldStyle;
+	& + div.webix_popup_text{
+		padding-top: 0;
+		box-shadow: none;
+	}
+}
+
+@modalboxLineHeight: 20px;
+.webix_popup_text{
+	overflow:hidden;
+	padding: 24px 16px 0px 16px;
+	font-size: @fontSize;
+	color: @fontColor;
+	line-height: @modalboxLineHeight;
+	&.webix_popup_label{
+		text-align: left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+.webix_alert, .webix_confirm, .webix_prompt{
+	.webix_popup_title, .webix_popup_text{
+		box-shadow: inset 0 4px @baseColor;
+	}
+} 
+.webix_alert-warning, .webix_confirm-warning, .webix_prompt-warning {
+	.webix_popup_title, .webix_popup_text{
+		box-shadow: inset 0 4px @infoColor;
+	}
+}
+.webix_alert-error, .webix_confirm-error, .webix_prompt-error {
+	.webix_popup_title, .webix_popup_text{
+		box-shadow: inset 0 4px @dangerColor;
+	}
+}
+
+@messageLineHeight: 20px;
+@messageColor: @altFontColor;
+@messageBorderRadius: @skin_input_radius;
+.webix_message{
+	font-size: @fontSize;
+	color: @fontColor;
+	box-shadow: @bigShadow;
+	line-height: @messageLineHeight;
+	border-radius: @messageBorderRadius;
+	border: 1px solid @borderColor;
+	background-color: @backColor;
+
+	&.webix_debug{
+		color: @messageColor;
+		border-color: tint(@infoColor, 30%);
+		background-color: tint(@infoColor, 80%);
+	}
+	&.webix_error{
+		color: @messageColor;
+		border-color: tint(@dangerColor, 30%);
+		background-color: tint(@dangerColor, 80%);
+	}
+	&.webix_success{
+		color: @messageColor;
+		border-color: tint(@accentColor, 30%);
+		background-color: tint(@accentColor, 80%);
+	}
+	div{
+		padding:@messagePadding;
+	}
+}
