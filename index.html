@@ -44,7 +44,7 @@
   <script type="text/javascript" src="js/mainMeshNetFunctions.js"></script>
   <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
   <script type="text/javascript" src="js/checkCompatibility.js"></script> 
-
+  <link rel="stylesheet" type="text/css" href="style/style.css">
 
 
     <style>
@@ -65,7 +65,7 @@
 
 
       .toolbarclass {
-        background-color: #ccc !important;
+        background-color: white !important;
         font-weight: bold;
         box-shadow: 5px 5px;
       } 
@@ -77,8 +77,13 @@
       }  
 
       .headerclass {
-        background-color: #ccc !important;
-        box-shadow: 5px 5px;
+            border-left: 10px solid black!important;
+            background: #f3f3f6a3!important;
+            margin-left: 0!important;
+            width: 100%!important;
+            color: black!important;
+            font-weight: bold;
+            border-left-color: black!important;
       }
 
       .windowtitleclass {
@@ -247,8 +252,8 @@
           id: "myToolbar",
           rows:[{ cols: 
                   [
-                   { view: "label", label: '<i class="fa fa-snowflake-o"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
-                   { view: "label", label: "Brainchop", css: "titleclass",  inputWidth: 100, align: "left" },
+                   { view: "label", label: '<img src="Artboard 2.svg"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
+                   { view: "label", label: '<p>Brain<span>chop</span></p>', css: {"margin":"0!important"},  inputWidth: 100, align: "left" },
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
                    { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
