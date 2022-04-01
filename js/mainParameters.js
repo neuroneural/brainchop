@@ -67,7 +67,7 @@
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
-            enableTranpose:                       false, // Keras and tfjs input orientation may need a tranposing step to be matched
+            enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
@@ -96,6 +96,7 @@
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
                                   },
+
                                   {
                                        id: "2", 
                                        type: "Segmentation", 
@@ -106,7 +107,8 @@
                                        isBatchOverlapEnable: true, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
-                                  },                                  
+                                  }, 
+
 
                                   {
                                        id: "3", 
@@ -119,7 +121,8 @@
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
                                   },
-                                                                                                      {
+
+                                  {
                                        id: "4", 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
@@ -129,7 +132,19 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
-                                  }
+                                  },
+
+                                  {
+                                       id: "5", 
+                                       type: "Segmentation", 
+                                       path:"./ModelToLoad/model21_3class/model.json", 
+                                       modelName:"Model Cube64", 
+                                       labelsPath: null, 
+                                       colorsPath: null,                                         
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
+                                       description: ""
+                                  }                                  
                                  
                             ];   
 

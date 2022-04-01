@@ -2117,6 +2117,9 @@ checkZero = (timeValue) => {
  }
 
 
+
+
+
 /**
 * Function to calculate the model total number of parameters 
 *
@@ -2266,8 +2269,9 @@ checkZero = (timeValue) => {
 
           // nomalize MRI data to be from 0 to 1
           // slices_3d = normalizeVolumeData(slices_3d.toFloat()).toFloat(); // Converted to float for more accurate processing during prediction;
-          
- 
+           
+                                                                 
+            //--tf.setBackend('cpu');
             console.log(tf.getBackend());
 
             //-- set this flag so that textures are deleted when tensors are disposed.
@@ -2303,7 +2307,7 @@ checkZero = (timeValue) => {
             statData["Channel_Last"] = isChannelLast;
             statData["Model_Param"] = getModelNumParameters(modelObject);
             statData["Model_Layers"] = getModelNumLayers(modelObject);
-            
+
             statData["No_SubVolumes"] = 1;
 
             statData["Preprocess_t"] = Preprocess_t;
@@ -2317,7 +2321,19 @@ checkZero = (timeValue) => {
             statData["GPU_Card"] = detectGPUCardType();  
             statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
             statData["GPU_Card_Full"] = detectGPUCardType_v0();                           
-            statData["TF_Backend"] = tf.getBackend();                  
+            statData["TF_Backend"] = tf.getBackend();      
+           
+            //-- Init 
+            statData["Actual_Labels"] = Infinity;
+            statData["Expect_Labels"] = Infinity;
+            statData["NumLabels_Match"] = null;       
+            statData["Inference_t"] = Infinity;
+            statData["Postprocess_t"] = Infinity;
+            statData["Status"] = null;
+            statData["Error_Type"] = null;  
+
+
+
         
             if(isChrome()) {
                 statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
@@ -2343,7 +2359,6 @@ checkZero = (timeValue) => {
                 statData["Texture_Size"] = null;
             } 
          
-
             // allPredictions = [];
 
             model.then(function (res) {
