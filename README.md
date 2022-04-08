@@ -2,7 +2,7 @@
 
  Brainchop.org brings automatic 3D MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
 
- <img src="https://github.com/neuroneural/brainchop/blob/master/style/BRAINCHOP.svg"  width="25%" align="right">
+ <img src="https://github.com/neuroneural/brainchop/blob/master/style/BRAINCHOP-cropped.svg"  width="25%" align="right">
 
  We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. [Papaya](https://rii-mango.github.io/Papaya/) integrated for MRI view.  For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/brainchop/wiki).
 
