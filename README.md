@@ -1,8 +1,10 @@
 # Brainchop.org  [![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/ModelToLoad/mnm_tfjs_me_test) 
 
+ <img src="https://github.com/neuroneural/brainchop/blob/master/style/BRAINCHOP-cropped.svg"  width="25%" align="right">
+ 
  Brainchop.org brings automatic 3D MRI segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
 
- <img src="https://github.com/neuroneural/brainchop/blob/master/style/BRAINCHOP-cropped.svg"  width="25%" align="right">
+
 
  We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. [Papaya](https://rii-mango.github.io/Papaya/) integrated for MRI view.  For more information on brainchop please refer to this [wiki](https://github.com/neuroneural/brainchop/wiki).
 
