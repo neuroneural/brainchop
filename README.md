@@ -7,8 +7,8 @@
  </p>
 
  <p align="justify">
- We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation.</p> [Papaya](https://rii-mango.github.io/Papaya/) <p align="justify"> integrated for MRI view.  For more information on brainchop please refer to this </p> [Wiki](https://github.com/neuroneural/brainchop/wiki).
-
+ We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> integrated for MRI view.  For more information on brainchop please refer to this [Wiki](https://github.com/neuroneural/brainchop/wiki).
+ </p>
 
 <div align="center">
 
