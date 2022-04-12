@@ -38,5 +38,5 @@ This work was funded by the NIH grant RF1MH121885.
 
 <img src='https://github.com/neuroneural/brainchop/blob/master/style/TReNDS_logo.jpg' width='300' height='100'></img>
 
-**Mohamed Masoud - Sergey Plis - 2021**
+**Mohamed Masoud - Sergey Plis - 2022**
 </div>
