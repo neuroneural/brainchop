@@ -89,7 +89,7 @@
                                        id: "1", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName: "Segment_GWM SubVol38",  
+                                       modelName: "Segment_GWM SubVol-38",  
                                        labelsPath: "./ModelToLoad/mnm_tfjs_me_test/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json",                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -101,7 +101,7 @@
                                        id: "2", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model21_3class/model.json", 
-                                       modelName: "Segment_GWM SubVol64",  
+                                       modelName: "Segment_GWM SubVol-64",  
                                        labelsPath: "./ModelToLoad/model21_3class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -113,7 +113,7 @@
                                        id: "3", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
-                                       modelName: "Segment_GWM FullVol",  
+                                       modelName: "Segment_GWM FullVolume",  
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
                                        colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
