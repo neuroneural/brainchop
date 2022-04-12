@@ -89,29 +89,41 @@
                                        id: "1", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName: "Tissue Segmentation",  
+                                       modelName: "Segment_GWM SubVol38",  
                                        labelsPath: "./ModelToLoad/mnm_tfjs_me_test/labels.json", 
                                        colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json",                                        
-                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
+                                       description: ""
+                                  }, 
+                                    
+                                  {
+                                       id: "2", 
+                                       type: "Segmentation", 
+                                       path: "./ModelToLoad/model21_3class/model.json", 
+                                       modelName: "Segment_GWM SubVol64",  
+                                       labelsPath: "./ModelToLoad/model21_3class/labels.json", 
+                                       colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",                                        
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
                                        description: ""
                                   },
 
                                   {
-                                       id: "2", 
+                                       id: "3", 
                                        type: "Segmentation", 
-                                       path:"./ModelToLoad/meshnet_dropout/mnm_dropout/model2.json", 
-                                       modelName:"Tissue Segmentation d", 
-                                       labelsPath: "./ModelToLoad/meshnet_dropout/mnm_dropout/labels.json", 
-                                       colorsPath: "./ModelToLoad/mnm_tfjs_me_test/colorLUT.json", 
-                                       isBatchOverlapEnable: true, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
+                                       path: "./ModelToLoad/model5_gw_ae/model.json", 
+                                       modelName: "Segment_GWM FullVol",  
+                                       labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
+                                       colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference                                         
                                        description: ""
-                                  }, 
+                                  },
 
 
                                   {
-                                       id: "3", 
+                                       id: "4", 
                                        type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Brain Extraction", 
@@ -123,7 +135,7 @@
                                   },
 
                                   {
-                                       id: "4", 
+                                       id: "5", 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Brain Masking", 
@@ -132,19 +144,7 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
                                        description: ""
-                                  },
-
-                                  {
-                                       id: "5", 
-                                       type: "Segmentation", 
-                                       path:"./ModelToLoad/model21_3class/model.json", 
-                                       modelName:"Model Cube64", 
-                                       labelsPath: null, 
-                                       colorsPath: null,                                         
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
-                                       description: ""
-                                  }                                  
+                                  }
                                  
                             ];   
 
