@@ -1336,6 +1336,68 @@ addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
 }
 
 
+
+/**
+* remove mouse handler after reset the label viewer
+*
+* @since 1.0.0
+* @param {number} papayaContainerIdx - 0 for MRI viewer and 1 for laber viewer.
+* @example
+*
+* removeMouseMoveHandler( 1 )
+*
+*/  
+
+removeMouseMoveHandler = ( papayaContainerIdx ) => {
+
+        let canvasMain  = papayaContainers[papayaContainerIdx].viewer.canvas;
+
+        canvasMain.removeEventListener('mousemove', mouseMoveHandler);   
+
+        mouseOutHandler = () => {
+                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = "";
+        }
+
+        canvasMain.removeEventListener('mouseout', mouseOutHandler);   
+
+}
+
+
+
+/**
+* Remove any existing overlay from MRI Viewer on the left
+*  
+* @since 1.0.0
+* @param {number} overlayIdx- papaya viewer overlay  index
+*
+*/ 
+
+
+resetMriViewerOverlay = ( overlayIdx = 1) => {
+
+        if(numOfOverlays == 1) {
+             papaya.Container.removeImage(0, overlayIdx);
+             removeMouseMoveHandler(0);
+             numOfOverlays = numOfOverlays -1;
+        }
+
+}
+
+/**
+* Reset label viewer (1)
+*  
+* @since 1.0.0
+*
+*/ 
+
+
+resetLabelViewer = () => {
+        removeMouseMoveHandler(1);
+        papayaContainers[1].viewer.resetViewer();   
+}
+
+
+
 /**
 * Merge  all subvolumes output from the inference model
 *
@@ -1392,7 +1454,10 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
             // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
             let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
             
-            if(opts.enableTranpose) {
+            let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+
+            // Transpose MRI data to be match pytorch/keras input output
+            if(transpose) {
                console.log("outVolumeTensor transposed");
                outVolumeTensor = outVolumeTensor.transpose();   
             }
@@ -1528,7 +1593,10 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
             console.log("Final merged buffer -- Done");  
             let outFinaleTensor =  outFinaleBuffer.toTensor();
 
-            if(opts.enableTranpose) {
+            let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+
+            // Transpose MRI data to be match pytorch/keras input output
+            if(transpose) {
                console.log("Final merged buffer transposed");
                outFinaleTensor = outFinaleTensor.transpose();               
             }
@@ -1681,13 +1749,10 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                                    papayaContainers[0].viewer.mainImage.sliceDirection == 2? "coronal" : "sagittal";
 
 
-        //Add overlay to MRI viewer index 0
-        //remove any existing overlay
-        if(numOfOverlays == 1) {
-             papaya.Container.removeImage(0, 1);
-             numOfOverlays = 0;
-        }
-        // Add new one
+        //-- Remove any existing overlay
+        resetMriViewerOverlay(1);
+
+        // Add new overlay to MRI viewer 
         var addImageParams = [];
         addImageParams["binaryImages"] = [labelArrayBuffer];
         papaya.Container.addImage(0, [labelArrayBuffer], addImageParams);  
@@ -1743,6 +1808,8 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
 
         ctx.putImageData(imgData, 0, 0);
   }
+
+
 
 
 
@@ -2181,25 +2248,29 @@ detectOperatingSys = () => {
 
 submitTiming2GoogleSheet = (dataObj) => {
 
-        // -- Fill form with data to submit
-        Object.keys(dataObj).forEach(dataKey =>{
-             document.getElementById(dataKey).value = dataObj[dataKey];
-        }) 
 
-        //-- Settings of submission
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbz_upISiPpQ4CWL2B2oRGcF416RFEvCc6bRKAbM-xvAkMuTGRz8SFoq41vHxIKYWM2c/exec'
-        const form = document.forms['google-sheet']
-      
-        //-- Add event handler to the form.
-        form.addEventListener('submit', e => {
-              e.preventDefault()
-              fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(response => console.log("time recorded"))
-                .catch(error => console.error('Error!', error.message))
-        })    
 
-        //-- Submit the form 
-        document.getElementById("SubmitStatisticalData").click();            
+            // -- Fill form with data to submit
+            Object.keys(dataObj).forEach(dataKey =>{
+                 document.getElementById(dataKey).value = dataObj[dataKey];
+            }) 
+
+            //-- Settings of submission
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbz_upISiPpQ4CWL2B2oRGcF416RFEvCc6bRKAbM-xvAkMuTGRz8SFoq41vHxIKYWM2c/exec'
+            const form = document.forms['google-sheet']
+          
+            //-- Add event handler to the form.
+            form.addEventListener('submit', e => {
+                  e.preventDefault()
+                  fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+                    .then(response => console.log("time recorded"))
+                    .catch(error => console.error('Error!', error.message))
+            })    
+
+            //-- Submit the form 
+            document.getElementById("SubmitStatisticalData").click();            
+
+
 
 }
 
@@ -2247,9 +2318,9 @@ checkZero = (timeValue) => {
 *
 */
 
- getModelOutputNumLabels = (modelObj) => {
+ getModelOutputNumLabels = (modelObject) => {
           if(modelObject.output.shape.length >= 4) {
-               return isModelChnlLast(modelObj) ? modelObject.output.shape[ modelObject.output.shape.length-1 ] : 
+               return isModelChnlLast(modelObject) ? modelObject.output.shape[ modelObject.output.shape.length-1 ] : 
                                                   modelObject.output.shape[1];
           } 
 
@@ -2275,6 +2346,24 @@ checkZero = (timeValue) => {
      return numParameters;
  }
 
+
+/**
+* Function to calculate the max texture size for current browser
+*
+* @since 1.0.0
+* @returns {number} Returns - e.g.: 8192 
+*
+*/
+
+ getMaxTextureSize = () => {
+            let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
+                      checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+
+            return gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : null;            
+ }
+
+
+
 /**
 * Function to calculate the model total number of layers 
 *
@@ -2292,6 +2381,7 @@ checkZero = (timeValue) => {
 /**
 * Inference Function for sub-volumes
 * @since 1.0.0
+* @param {promise}  model
 * @param {tf.Tensor}  slices_3d
 * @param {Array} input_shape - e.g. [?, D, H, W, Ch] or [?, Ch, D, H, W]
 * @param {boolen} isChannelLast- check input shape for channel position.
@@ -2304,7 +2394,7 @@ checkZero = (timeValue) => {
 *
 */
  
-  inferenceSubVolumes = (slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+  inferenceSubVolumes = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
           const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];   
 
           let allBatches = [];
@@ -2388,7 +2478,15 @@ checkZero = (timeValue) => {
                                         statData["Postprocess_t"] = Infinity;
                                         statData["Status"] = "Fail";
                                         statData["Error_Type"] = err.message;
-                                        submitTiming2GoogleSheet(statData);
+
+                                       if(dataSubmitFlag) { //-- to avoid submission duplication
+
+                                            submitTiming2GoogleSheet(statData);
+
+                                            dataSubmitFlag = false;
+                                       }
+
+                                        
 
                                         return 0;
                                   }
@@ -2461,7 +2559,7 @@ checkZero = (timeValue) => {
                                  //webix.message.hide("waitMessage");
 
                                  $$("downloadBtn").enable();   
-                                 $$("segmentBtn").disable();  
+                                 $$("segmentBtn").enable();  
                               //    $$("imageUploader").enable();                    
                                  tf.engine().endScope();
 
@@ -2474,7 +2572,10 @@ checkZero = (timeValue) => {
                                  statData["Postprocess_t"] = Postprocess_t;
                                  statData["Status"] = "OK"
 
-                                 submitTiming2GoogleSheet(statData); 
+                                 if(dataSubmitFlag) { //-- to avoid submission duplication
+                                      submitTiming2GoogleSheet(statData);
+                                      dataSubmitFlag = false;
+                                 }
 
                                                                                 
                               }
@@ -2503,6 +2604,7 @@ checkZero = (timeValue) => {
 /**
 * Inference Function for full volume
 * @since 1.0.0
+* @param {promise}  model
 * @param {tf.Tensor}  slices_3d
 * @param {Array} input_shape - e.g. [?, D, H, W, Ch] or [?, Ch, D, H, W]
 * @param {boolen} isChannelLast- check input shape for channel position.
@@ -2515,9 +2617,12 @@ checkZero = (timeValue) => {
 *
 */
  
-  inferenceFullVolume = (slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
+  inferenceFullVolume = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
 
             statData["No_SubVolumes"] = 1;
+
+            // let modelLayersOrg =  JSON.parse(JSON.stringify(modelObject));
+
 
             model.then(function (res) {
 
@@ -2526,7 +2631,7 @@ checkZero = (timeValue) => {
                       let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
-                     
+
                       let i = 1;
                       let layersLength = res.layers.length;
                       console.log("res.layers.length ", layersLength); 
@@ -2560,7 +2665,12 @@ checkZero = (timeValue) => {
                                   statData["Postprocess_t"] = Infinity;
                                   statData["Status"] = "Fail";
                                   statData["Error_Type"] = err.message;
-                                  submitTiming2GoogleSheet(statData);
+                                  if(dataSubmitFlag) { //-- to avoid submission duplication
+
+                                      submitTiming2GoogleSheet(statData);
+                                      
+                                      dataSubmitFlag = false;
+                                  }
 
                                   return 0;
                             }      
@@ -2632,7 +2742,7 @@ checkZero = (timeValue) => {
                                 //webix.message.hide("waitMessage");
 
                                 $$("downloadBtn").enable();   
-                                $$("segmentBtn").disable();  
+                                $$("segmentBtn").enable();  
                                 //    $$("imageUploader").enable();                    
                                 tf.engine().endScope();
 
@@ -2643,9 +2753,12 @@ checkZero = (timeValue) => {
                                 //-- Timing data to collect
                                 statData["Inference_t"] = Inference_t;
                                 statData["Postprocess_t"] = Postprocess_t;
-                                statData["Status"] = "OK"
+                                statData["Status"] = "OK";
 
-                                submitTiming2GoogleSheet(statData);        
+                                if(dataSubmitFlag) { //-- to avoid submission duplication
+                                      submitTiming2GoogleSheet(statData);
+                                      dataSubmitFlag = false;
+                                }       
                                 
                             }  
                         i++;
@@ -2653,6 +2766,7 @@ checkZero = (timeValue) => {
                      }, 1000);                            
 
                   } catch(err) {
+
                         webix.alert(err.message);
                         console.log( err.message );
                         console.log(
@@ -2681,6 +2795,13 @@ checkZero = (timeValue) => {
 
 	      const batchSize = opts.batchSize;
 	      const numOfChan = opts.numOfChan;
+
+        dataSubmitFlag = true;
+
+        //-- Reset papaya MRI viewer overlay if exists
+        resetMriViewerOverlay(1);
+        //-- Reset Label Viewer        
+        resetLabelViewer();        
                  
 
 	      if (isNaN(batchSize) || batchSize != 1) {
@@ -2699,199 +2820,217 @@ checkZero = (timeValue) => {
           console.log("Batch size: ", batchSize);
           console.log("Num of Channels: ", numOfChan);
 
-          let batchInputShape = [];    
-          // read input shape from model.json object 
-          batchInputShape = modelObject.layers[0].batchInputShape; 
-          console.log(" Model batch input shape : ", batchInputShape)
+          //-- Get model
+          let modelEntry, model;
 
-          //-- Verify input shape
-          if(batchInputShape.length != 5) {
-                webix.alert("The model input shape must be 5D ");
-                return 0;
-          }                                  
-
-          let batch_D, batch_H, batch_W;
-          let slice_width, slice_height, num_of_slices;
-          let input_shape;
-
-
-          slice_width = niftiHeader.dims[1];
-          slice_height = niftiHeader.dims[2];
-          num_of_slices = niftiHeader.dims[3];
-
-          let isChannelLast = isModelChnlLast(modelObject);
-
-          if(isChannelLast) {
-              console.log("Model Channel Last")
-              if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
-                    webix.alert("The number of channels for input shape must be 1");
-                    return 0;
-              } 
-
-              batch_D = batchInputShape[1];
-              batch_H = batchInputShape[2];
-              batch_W = batchInputShape[3]; 
-
-              input_shape = [batchSize, batch_D, batch_H, batch_W, numOfChan];               
-
+          if($$("selectModel").getValue() <= numOfModelsWithoutBrowse) { //-- inferenceModelsList orginal num of models are five
+                 modelEntry = inferenceModelsList[$$("selectModel").getValue() - 1];
+                 model =  load_model(modelEntry["path"]);
           } else {
-              console.log("Model Channel First")
-              if (isNaN(batchInputShape[1]) || (batchInputShape[1] !=1)) {
-                    webix.alert("The number of channels for input shape must be 1");
-                    return 0;
-              } 
-
-              batch_D = batchInputShape[2];
-              batch_H = batchInputShape[3];
-              batch_W = batchInputShape[4]; 
-
-              input_shape = [batchSize, numOfChan,  batch_D, batch_H, batch_W];                  
-
+                modelEntry = browserModelList.filter(entry => entry.id == $$("selectModel").getValue().toString())[0];
+                model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile); 
           }
 
-          //  //-- Atlas version check              
-          // if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
-          //       webix.alert("The subvolume dimension in z-axis shouldn't exceed 30 number of slices for browser limitation");
-          //       return 0;
-          // } 
-
-          //--Check whether the model will make inference at once as FullVolumeModel 
-          let isFullVolModel;
-
-          if ( (batch_D == 256) && (batch_H == 256) && (batch_W == 256) ) {
-                  isFullVolModel = true;
-
-          } else {
-                  isFullVolModel = false;
-
-          } 
-           
-
-          let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
-
-          let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
-
-          // Get slices_3d tensor
-          let slices_3d = getSlices3D(allSlices_2D);
-          tf.dispose(allSlices_2D);               
-
-          // Nomalize MRI data to be from 0 to 1
-          slices_3d = normalizeVolumeData(slices_3d);
-
-          // Transpose MRI data to be match pytorch/keras input output
-          if(opts.enableTranpose) {
-             slices_3d = slices_3d.transpose()
-             console.log("Input transposed");
-          } else {
-             console.log("Transpose not enabled");
-          }
-
-           
-           let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);                    
-          
-       
+          let modelObject = {};
+          // get model object data e.g. layers etc
+          model.then(function(res) {
+                modelObject = res;
  
-            console.log(tf.getBackend());
+                let batchInputShape = [];    
+                // read input shape from model.json object 
+                batchInputShape = modelObject.layers[0].batchInputShape; 
+                console.log(" Model batch input shape : ", batchInputShape)
+
+                //-- Verify input shape
+                if(batchInputShape.length != 5) {
+                      webix.alert("The model input shape must be 5D ");
+                      return 0;
+                }                                  
+
+                let batch_D, batch_H, batch_W;
+                let slice_width, slice_height, num_of_slices;
+                let input_shape;
 
 
-           //-- set this flag so that textures are deleted when tensors are disposed.
-            tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
-            console.log("tf env() features :", tf.env().features);
-            console.log("tf env total features: ", Object.keys(tf.env().features).length);
+                slice_width = niftiHeader.dims[1];
+                slice_height = niftiHeader.dims[2];
+                num_of_slices = niftiHeader.dims[3];
 
-            // tf.env().set('WEBGL_PACK', false);
+                let isChannelLast = isModelChnlLast(modelObject);
 
-            //-- Timing data to collect
-            let today = new Date();
+                if(isChannelLast) {
+                    console.log("Model Channel Last")
+                    if (isNaN(batchInputShape[4]) || (batchInputShape[4] !=1)) {
+                          webix.alert("The number of channels for input shape must be 1");
+                          return 0;
+                    } 
 
-            if(isFullVolModel) {
-                 statData["Brainchop_Ver"] = "FullVolume";
-            } else {
-                 statData["Brainchop_Ver"] = "SubVolumes";
+                    batch_D = batchInputShape[1];
+                    batch_H = batchInputShape[2];
+                    batch_W = batchInputShape[3]; 
 
-            }
+                    input_shape = [batchSize, batch_D, batch_H, batch_W, numOfChan];               
 
-            
-            let geoData = getBrowserLocationInfo();
-            if(geoData) {
-                statData["Country"] = geoData["Country"];
-                statData["State"] = geoData["Region"];
-                statData["City"] = geoData["City"];
-            } else {
-                statData["Country"] = "";
-                statData["State"] = "";
-                statData["City"] = "";
-            }
+                } else {
+                    console.log("Model Channel First")
+                    if (isNaN(batchInputShape[1]) || (batchInputShape[1] !=1)) {
+                          webix.alert("The number of channels for input shape must be 1");
+                          return 0;
+                    } 
+
+                    batch_D = batchInputShape[2];
+                    batch_H = batchInputShape[3];
+                    batch_W = batchInputShape[4]; 
+
+                    input_shape = [batchSize, numOfChan,  batch_D, batch_H, batch_W];                  
+
+                }
+
+                //  //-- Atlas version check              
+                // if ( (batch_D > 30) && (batch_H == 256) && (batch_W == 256) ) {
+                //       webix.alert("The subvolume dimension in z-axis shouldn't exceed 30 number of slices for browser limitation");
+                //       return 0;
+                // } 
+
+                //--Check whether the model will make inference at once as FullVolumeModel 
+                let isFullVolModel;
+
+                if ( (batch_D == 256) && (batch_H == 256) && (batch_W == 256) ) {
+                        isFullVolModel = true;
+
+                } else {
+                        isFullVolModel = false;
+
+                } 
                  
 
+                let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
 
-            statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
-            statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
+                let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
 
-            statData["Img_Size"] = JSON.stringify([num_of_slices, slice_height, slice_width]);  
-            statData["Input_Shape"] = JSON.stringify(batchInputShape);
-            statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
-            statData["Channel_Last"] = isChannelLast;
-            statData["Model_Param"] = getModelNumParameters(modelObject);
-            statData["Model_Layers"] = getModelNumLayers(modelObject);
+                // Get slices_3d tensor
+                let slices_3d = getSlices3D(allSlices_2D);
+                tf.dispose(allSlices_2D);               
 
-            
+                // Nomalize MRI data to be from 0 to 1
+                slices_3d = normalizeVolumeData(slices_3d);
 
-            statData["Preprocess_t"] = Preprocess_t;
-            statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
-            statData["Browser"] = detectBrowser();
-            statData["Browser_Ver"] = detectBrowserVersion();
-            statData["OS"] = detectOperatingSys();
-            statData["WebGL1"] = checkWebGl1();
-            statData["WebGL2"] = checkWebGl2();  
-            statData["GPU_Vendor"] = detectGPUVendor();
-            statData["GPU_Card"] = detectGPUCardType();  
-            statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
-            statData["GPU_Card_Full"] = detectGPUCardType_v0();                           
-            statData["TF_Backend"] = tf.getBackend();      
+                let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
 
+                // Transpose MRI data to be match pytorch/keras input output
+                if(transpose) {
+                   slices_3d = slices_3d.transpose()
+                   console.log("Input transposed");
+                } else {
+                   console.log("Transpose not enabled");
+                }
 
-            //-- Init 
-            statData["Actual_Labels"] = Infinity;
-            statData["Expect_Labels"] = Infinity;
-            statData["NumLabels_Match"] = null;       
-            statData["Inference_t"] = Infinity;
-            statData["Postprocess_t"] = Infinity;
-            statData["Status"] = null;
-            statData["Error_Type"] = null;  
-
-        
-            if(isChrome()) {
-                statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
-                statData["Used_Heap_MB"] = window.performance.memory["usedJSHeapSize"]/(1024*1024).toFixed(2);
-                statData["Heap_Limit_MB"] = window.performance.memory["jsHeapSizeLimit"]/(1024*1024).toFixed(2);
-            }
-
-             
-            let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
-                      checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
-            
-            console.log("MAX_TEXTURE_SIZE :",  gl.getParameter(gl.MAX_TEXTURE_SIZE));
-            console.log("MAX_RENDERBUFFER_SIZE :",  gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+                 
+                 let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);                    
                 
-            //-- check to see   if  machine has two graphics card: one is the builtin e.g. Intel Iris Pro, the other is NVIDIA GeForce GT 750M.             
-            //-- check browser use which one, if debugInfo is null then installed  GPU is not used
-            let  debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            console.log("VENDOR WEBGL:",  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) );      
+             
+       
+                  console.log(tf.getBackend());
 
-            if(gl) {
-                statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
-            } else {
-                statData["Texture_Size"] = null;
-            } 
 
-            if(isFullVolModel) {
-                 inferenceFullVolume(slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-            } else {
-                 inferenceSubVolumes(slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+                 //-- set this flag so that textures are deleted when tensors are disposed.
+                  tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
+                  console.log("tf env() features :", tf.env().features);
+                  console.log("tf env total features: ", Object.keys(tf.env().features).length);
 
-            }
-          
+                  // tf.env().set('WEBGL_PACK', false);
+
+                  //-- Timing data to collect
+                  let today = new Date();
+
+                  if(isFullVolModel) {
+                       statData["Brainchop_Ver"] = "FullVolume";
+                  } else {
+                       statData["Brainchop_Ver"] = "SubVolumes";
+
+                  }
+
+                  
+                  let geoData = getBrowserLocationInfo();
+                  if(geoData) {
+                      statData["Country"] = geoData["Country"];
+                      statData["State"] = geoData["Region"];
+                      statData["City"] = geoData["City"];
+                  } else {
+                      statData["Country"] = "";
+                      statData["State"] = "";
+                      statData["City"] = "";
+                  }
+                       
+
+
+                  statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
+                  statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
+
+                  statData["Img_Size"] = JSON.stringify([num_of_slices, slice_height, slice_width]);  
+                  statData["Input_Shape"] = JSON.stringify(batchInputShape);
+                  statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
+                  statData["Channel_Last"] = isChannelLast;
+                  statData["Model_Param"] = getModelNumParameters(modelObject);
+                  statData["Model_Layers"] = getModelNumLayers(modelObject);
+
+                  
+
+                  statData["Preprocess_t"] = Preprocess_t;
+                  statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                  statData["Browser"] = detectBrowser();
+                  statData["Browser_Ver"] = detectBrowserVersion();
+                  statData["OS"] = detectOperatingSys();
+                  statData["WebGL1"] = checkWebGl1();
+                  statData["WebGL2"] = checkWebGl2();  
+                  statData["GPU_Vendor"] = detectGPUVendor();
+                  statData["GPU_Card"] = detectGPUCardType();  
+                  statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
+                  statData["GPU_Card_Full"] = detectGPUCardType_v0();                           
+                  statData["TF_Backend"] = tf.getBackend();      
+
+
+                  //-- Init 
+                  statData["Actual_Labels"] = Infinity;
+                  statData["Expect_Labels"] = Infinity;
+                  statData["NumLabels_Match"] = null;       
+                  statData["Inference_t"] = Infinity;
+                  statData["Postprocess_t"] = Infinity;
+                  statData["Status"] = null;
+                  statData["Error_Type"] = null;  
+
+              
+                  if(isChrome()) {
+                      statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
+                      statData["Used_Heap_MB"] = window.performance.memory["usedJSHeapSize"]/(1024*1024).toFixed(2);
+                      statData["Heap_Limit_MB"] = window.performance.memory["jsHeapSizeLimit"]/(1024*1024).toFixed(2);
+                  }
+
+                   
+                  let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
+                            checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+                  
+                  console.log("MAX_TEXTURE_SIZE :",  gl.getParameter(gl.MAX_TEXTURE_SIZE));
+                  console.log("MAX_RENDERBUFFER_SIZE :",  gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+                      
+                  //-- check to see   if  machine has two graphics card: one is the builtin e.g. Intel Iris Pro, the other is NVIDIA GeForce GT 750M.             
+                  //-- check browser use which one, if debugInfo is null then installed  GPU is not used
+                  let  debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                  console.log("VENDOR WEBGL:",  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) );      
+
+                  if(gl) {
+                      statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
+                  } else {
+                      statData["Texture_Size"] = null;
+                  } 
+
+                  if(isFullVolModel) {
+                       inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+                  } else {
+                       inferenceSubVolumes(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+
+                  }
+       })    
 	            
 	 } //-- End of runInference
 

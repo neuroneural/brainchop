@@ -20,6 +20,13 @@
 </div>
 
 
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/style/DL_Arch.png)
+
+**Meshnet deep learning architecture**
+</div>
+
 
 ## Live Demo
 
@@ -27,7 +34,6 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 
-For whole MRI volume inference [without partitioning](https://github.com/neuroneural/brainchop/tree/master/FullVolumeInference), please click [here](https://neuroneural.github.io/brainchop/FullVolumeInference)
 
 ## Funding
 

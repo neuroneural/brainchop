@@ -541,6 +541,21 @@
              },
 
               {  cols: [
+                    {   view: "label", label: "Transpose Input",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "tranposeStatus", 
+                      value: 1, 
+                      options: ["true", "false"]
+                    }                                    
+
+                ]    
+             }, 
+
+
+              {  cols: [
                     {   view: "label", label: "Model Name*",  
                         align: "left"
                     },                 
@@ -564,7 +579,7 @@
                                            newId = newId.toString();
 
                                            // Model list loaded from browsing
-                                           browserModelList.push({id: newId, modelFile:modelFile, weightFile: weightFile, colorFile: colorFile, labelFile: labelFile });
+                                           browserModelList.push({id: newId, modelFile: modelFile, weightFile: weightFile, colorFile: colorFile, labelFile: labelFile });
 
                                            let labelFileUrl = null;
 
@@ -604,6 +619,9 @@
                                                  colorsPath: colorFileUrl,  
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
+                                                 enableTranpose: $$("tranposeStatus").getValue(),
+                                                 textureSize:null,
+                                                 warning:null,                                                 
                                                  description: ""                                            
                                            })
 
@@ -638,7 +656,7 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:350,
+                  height:400,
                   width:300,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[
@@ -681,75 +699,140 @@
 
       // To load models dynamically from  inferenceModelsList
       let selectModelOptions = getSegmentationFormOptions(inferenceModelsList);
+      
+      //-- Count total number of models excluding browsing models
+      numOfModelsWithoutBrowse =  inferenceModelsList.length;
+
+
+      onShowWarningCheck = (checkElem) => {
+           webix.storage.local.put("noShowWarning", document.getElementById("noShowWarningId").checked);
+      }
+
+      fetchModelWarningStatus = () => {
+          return webix.storage.local.get("noShowWarning");
+      }       
+
+      onShowTooltipCheck = (checkElem) => {
+          webix.storage.local.put("noShowTooltip", document.getElementById("noShowTooltipId").checked);
+
+      }
+
+      fetchModelTooltipStatus = () => {
+          return webix.storage.local.get("noShowTooltip");
+      } 
+
+      getModelinfo = () => {
+          let modelDescription = inferenceModelsList[$$("selectModel").getValue() - 1]["description"];
+          let info = "No info for this model";
+          
+          if(modelDescription) {
+              info = modelDescription;
+          } 
+
+          $$("modelTooltip").show();
+          document.getElementById("tooltipDiv").innerHTML = 
+          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"          
+      }
+
 
 
       let Segmentation = {view: "form", id: "Segmentation", elements: [ 
               { type:"header", template:"Segmentation Options",
                 css: "headerclass"
               },
-              { view:"select", 
-                label:"Model", 
-                id: "selectModel",
-                value:1, 
-                options: selectModelOptions,
-                on:{        
-                    onChange: function(newValue, oldValue, config) {   
-                       const selectedModelEntry = selectModelOptions[this.getValue() - 1]; 
-                       if(newValue == "Browse...") {
-                              console.log("Browse selected ..")
-                              $$("modelBrowsingWindow").show();
-                            
-                       } else if (selectedModelEntry["path"]) {
-                                     modelObject = {};
-                                     const modelEntry = selectModelOptions[this.getValue() - 1]; 
-                                     model =  load_model(modelEntry["path"]);
-                                     // get model object data e.g. layers etc
-                                     model.then(function(res) {
-                                       modelObject = res;
-                                     })
-                       } else {
-                              let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
-                              if(modelEntry.modelFile && modelEntry.weightFile) {
 
-                                     modelObject = {};
-                                     model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile); 
-                                     model.then(function(res) {
-                                       modelObject = res;
-                                     })
-                              } else {
-                                     $$("segmentBtn").disable();
-                              } 
+              { cols: [
 
-                       }
+                      { view:"select", 
+                        label:"Model", 
+                        id: "selectModel",
+                        value:1, 
+                        options: selectModelOptions,
+                        on:{        
+                            onChange: function(newValue, oldValue, config) {   
+                               const selectedModelEntry = selectModelOptions[this.getValue() - 1]; 
 
-                   }, 
-                    onAfterRender: function() {
-                       const modelEntry = selectModelOptions[this.getValue() - 1]; 
-                       if(modelEntry["path"]) {
+                               if(newValue == "Browse...") {
+                                      console.log("Browse selected ..")
+                                      $$("modelBrowsingWindow").show();
+                                    
+                               } else if (selectedModelEntry["path"]) {
+                                             modelObject = {};
+                                             const modelEntry = selectModelOptions[this.getValue() - 1]; 
 
-                           modelObject = {};                          
-                           model =  load_model(modelEntry["path"]);
-                           // get model object data e.g. layers etc
-                           model.then(function(res) {
-                             modelObject = res;
-                           })                             
-                       } else {
-                              let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
-                              if(modelEntry.modelFile && modelEntry.weightFile) {
+                                             let curModelEntry = inferenceModelsList.filter(entry => entry.id == this.getValue().toString())[0];
 
-                                     modelObject = {};
-                                     model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile); 
-                                     model.then(function(res) {
-                                       modelObject = res;
-                                     })
-                              } else {
-                                     $$("segmentBtn").disable();
-                              }         
-                       }
+                                             let noShowWarningStatus = fetchModelWarningStatus();
 
-                   }                   
-                }                
-              }, 
+                                             if(! noShowWarningStatus) {
+
+                                                 if (curModelEntry["warning"] != null) {
+                                                        $$("modelTooltip").show();
+                                                        document.getElementById("tooltipDiv").innerHTML = 
+                                                        "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ curModelEntry["warning"] +" </font><br><br><input type='checkbox' id='noShowWarningId' onclick='onShowWarningCheck(this)' name='noShowWarning'><label for='noShowWarning'> Don't show </label>"
+                                               
+                                                 }
+                                             }    
+
+
+                                             let noShowTooltipStatus = fetchModelTooltipStatus();
+                                             
+                                             if(! noShowTooltipStatus) {                                     
+
+                                                 if (curModelEntry["textureSize"] != null) {
+                                                    //--Compare model needed texture size and browser max texture size 
+                                                    if(curModelEntry["textureSize"] > getMaxTextureSize()) {
+                                                        $$("modelTooltip").show();
+
+                                                        let warningMessage = "Current browser may not able to run selected model. " + curModelEntry["warning"];
+                                                        // $$("modelTooltip").config.body.template = 
+                                                        document.getElementById("tooltipDiv").innerHTML = 
+                                                        "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ warningMessage +" </font><br><br><input type='checkbox' id='noShowTooltipId'  name='noShowTooltip' onclick='onShowTooltipCheck(this)'><label for='noShowTooltip'> Don't show </label>"
+                                                    }
+                                                 }
+                                             }    
+
+
+                               } else {
+                                      let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                                      if(! (modelEntry.modelFile && modelEntry.weightFile)) {
+
+                                             $$("segmentBtn").disable();
+                                      } 
+
+                               }
+
+                           }, 
+                            onAfterRender: function() {
+                               const modelEntry = selectModelOptions[this.getValue() - 1]; 
+
+                               if(! modelEntry["path"]) {
+
+                                      let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                                      if(! (modelEntry.modelFile && modelEntry.weightFile)) {
+
+                                             $$("segmentBtn").disable();
+                                      }         
+                               }
+
+                           }                   
+                        }                
+                      }, 
+
+
+                      { 
+                        view: "label", 
+                        label: '<img src="style/info-circle-solid.svg"/>', 
+                        css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                        width: 25,
+                        height: 25,
+                        click: function() {
+                                   getModelinfo();
+                        }                        
+                      } 
+      
+                  ]
+              },   
      
               {  cols: [
                           {   
@@ -808,6 +891,22 @@
           ]
        }
 
+
+    webix.ui({
+      view:"popup",
+      id: "modelTooltip",
+      // head:"<i style='font-size:1.8vw'  class='fa fa-info-circle' ></i>",
+        body:{
+            template:"<div id='tooltipDiv'></div>"
+        },
+      position: function(state){
+        state.width=state.maxWidth*20/100;
+        state.height=state.maxHeight*10/100;
+        state.left=(state.maxWidth-state.width)/1.01;
+        state.top=(state.maxHeight-state.height)/1.1;
+      }
+
+    });
 
 
 

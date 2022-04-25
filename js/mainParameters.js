@@ -20,8 +20,8 @@
 
     //---------- initialize Globals-------//  
 
-    var model;
-    var modelObject;
+    // var model;
+    // var modelObject;
 
     var  allOutputSlices3DCC1DimArray = [];
 
@@ -51,6 +51,10 @@
     // Number of overlay added to MRI viewer
     var numOfOverlays;
 
+    var dataSubmitFlag;
+
+    var numOfModelsWithoutBrowse;
+
 
     var opts = {
             // General  settings for input shape  [batchSize, batch_D, batch_H, batch_W, numOfChan]; 
@@ -67,7 +71,7 @@
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
-            enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
+            // enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
@@ -93,8 +97,12 @@
                                        labelsPath: "./ModelToLoad/model21_3class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                         
-                                       description: ""
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
+                                       textureSize:  null, // Requested Texture size for the model, if unknown can be null.
+                                       warning: null, // Warning message to show when select the model.       
+                           
+                                       description: "Sub-Volume model patches MRI volumatric data to overcome browser limitations. It has less accuracy than Full volume versions"
                                   },
 
                                   {
@@ -105,8 +113,11 @@
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
                                        colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference                                         
-                                       description: ""
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
+                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be null.      
+                                       warning: null, // Warning message to show when select the model.       
+                                       description: "Light full volume model has 5 filters per model layer and can work using integrated graphics card."
                                   },
 
                                   {
@@ -117,8 +128,11 @@
                                        labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
                                        colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",                                      
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference                                          
-                                       description: ""
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
+                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be null.  
+                                       warning: "This model needs dedicated graphics card",           
+                                       description: "Large model has best Accuracy but needs dedicated graphics card."
                                   }, 
 
                                   {
@@ -129,8 +143,11 @@
                                        labelsPath: null, 
                                        colorsPath: null,                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
-                                       description: ""
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference 
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       textureSize:  null,  // Requested Texture size for the model, if unknown can be null. 
+                                       warning: null, // Warning message to show when select the model.                                      
+                                       description: null
                                   },
 
                                   {
@@ -141,8 +158,11 @@
                                        labelsPath: null, 
                                        colorsPath: null,                                         
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference                                          
-                                       description: ""
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       textureSize:  null, // Requested Texture size for the model, if unknown can be null.     
+                                       warning: null, // Warning message to show when select the model.                                     
+                                       description: null
                                   }
                                  
                             ];   
