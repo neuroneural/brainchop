@@ -209,7 +209,7 @@
 
 
 
-      // About Window 
+      // About Window to select local model
       webix.ui({
                   view:"window",
                   id: "aboutWindow",
@@ -901,13 +901,12 @@
         },
       position: function(state){
         state.width=state.maxWidth*20/100;
-        state.height=state.maxHeight*10/100;
+        state.height= state.maxHeight*15/100;
         state.left=(state.maxWidth-state.width)/1.01;
         state.top=(state.maxHeight-state.height)/1.1;
       }
 
     });
-
 
 
       // Welcome Window to select local model

@@ -93,7 +93,7 @@
                                        id: "1", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model21_3class/model.json", 
-                                       modelName: "Segment_GWM SubVol-64",  
+                                       modelName: "Subvolume GWM (failsafe)",  
                                        labelsPath: "./ModelToLoad/model21_3class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -102,14 +102,14 @@
                                        textureSize:  null, // Requested Texture size for the model, if unknown can be null.
                                        warning: null, // Warning message to show when select the model.       
                            
-                                       description: "Sub-Volume model patches MRI volumatric data to overcome browser limitations. It has less accuracy than Full volume versions"
+                                       description: "Gray and white matter segmentation model. This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
                                   },
 
                                   {
                                        id: "2", 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
-                                       modelName: "Seg_GWM FullVol (Light)",  
+                                       modelName: "Full Brain GWM (light)",  
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
                                        colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -117,29 +117,29 @@
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be null.      
                                        warning: null, // Warning message to show when select the model.       
-                                       description: "Light full volume model has 5 filters per model layer and can work using integrated graphics card."
+                                       description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the subvolume model."
                                   },
 
                                   {
                                        id: "3", 
                                        type: "Segmentation", 
                                        path:"./ModelToLoad/model11_gw_ae/model.json", 
-                                       modelName:"Seg_GWM FullVol (Large)", 
+                                       modelName:"Full Brain GWM (large)", 
                                        labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
                                        colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",                                      
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be null.  
-                                       warning: "This model needs dedicated graphics card",           
-                                       description: "Large model has best Accuracy but needs dedicated graphics card."
+                                       warning: "This model needs dedicated graphics card.",           
+                                       description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy among the provided models."
                                   }, 
 
                                   {
                                        id: "4", 
                                        type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Brain Extraction", 
+                                       modelName:"Extract the Brain", 
                                        labelsPath: null, 
                                        colorsPath: null,                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
@@ -154,7 +154,7 @@
                                        id: "5", 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Brain Masking", 
+                                       modelName:"Compute Brain Mask", 
                                        labelsPath: null, 
                                        colorsPath: null,                                         
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
