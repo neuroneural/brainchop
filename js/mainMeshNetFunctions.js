@@ -1317,8 +1317,15 @@ addMouseMoveHandler = (labelsURL, papayaContainerIdx = 1) => {
                 let xIndex = curVoxelPosition["x"];
                 let yIndex = curVoxelPosition["y"];
                 let zIndex = curVoxelPosition["z"];
-                let voxelValue = papayaContainers[papayaContainerIdx].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
-                document.getElementById("annotOfContainer_" + papayaContainerIdx).value = labelsDataObj[voxelValue];
+
+                try {
+
+                    let voxelValue = papayaContainers[papayaContainerIdx].viewer.getCurrentValueAt(xIndex,yIndex,zIndex);
+                    document.getElementById("annotOfContainer_" + papayaContainerIdx).value = labelsDataObj[voxelValue];
+
+                } catch(err) {
+                    console.log("Wait loading")
+                }
         }
 
         canvasMain.addEventListener('mousemove', mouseMoveHandler);   
