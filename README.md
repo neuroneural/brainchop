@@ -37,7 +37,7 @@ Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4W
 
 ## Funding
 
-This work was funded by the NIH grant RF1MH121885.
+This work was funded by the NIH grant RF1MH121885. Additional support from NIH R01MH123610, R01EB006841 and NSF 2112455.
 
 <br />
 <div align="center">
