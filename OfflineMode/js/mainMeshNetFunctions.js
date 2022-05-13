@@ -2137,6 +2137,8 @@ isOnline= () => {
         }
    }
 
+
+
 /**
 * Function to find browser Location Info
 *
@@ -2145,7 +2147,7 @@ isOnline= () => {
 *
 */
 
-  getBrowserLocationInfo = () => {
+  getBrowserLocationInfo = () => {                   
       let LocationDataObj = {}; 
       
       if(isOnline()){
@@ -2153,34 +2155,33 @@ isOnline= () => {
               $.ajax({
                     url: 'https://api.ipregistry.co/?key=tryout',
                     async: false,
-                    dataType: 'json',
-                    success: function (response) {
-                      LocationDataObj = {Country: response.location.country.name, Region: response.location.region.name, City: response.location.city};
-                    }
-                  });
+                    dataType: "json",
+                    success: function(response) {
+                        LocationDataObj = {Country: response.location.country.name, Region: response.location.region.name, City: response.location.city, latitude: response.location.latitude, longitude: response.location.longitude};                        
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                        // alert("Status: " + textStatus); alert("Error: " + errorThrown); 
+                          $.ajax({
+                                url: "https://geolocation-db.com/json/",
+                                async: false,
+                                dataType: 'json',
+                                success: function (response) {
+                                  LocationDataObj = {Country: response.country_name, Region: response.state, City: response.city, latitude: response.latitude, longitude: response.longitude};
+                                },
+                                error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                                    console.log("Resource for browser info not available ");
+                                }  
+                          });
+                    }                     
+              });
           } catch(err) {
-                console.log("Resource for browser info not available ");
-                try {
-                      $.ajax({
-                            url: "https://geolocation-db.com/jsonp",
-                            jsonpCallback: "callback",
-                            dataType: "jsonp",
-                            success: function(location) {
-                                LocationDataObj = {Country: location.country_name, Region: location.state, City: location.city};
-                            }
-                      });
-                } catch(err2) {
                     console.log("Online resources for browser info currently not available ");
-                    return null;
-                }
-
-
           }
-      }
 
+     }
+    
        return LocationDataObj;
 }
-
 
 
 
