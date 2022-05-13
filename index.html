@@ -850,7 +850,7 @@
       let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format.<br><br> A sample Nifti file to test the tool performance can be downloaded from this  <a href='https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing' target='_blank'><b>link.</b></a> For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
+                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format.<br><br> To see the tool in action select a model from the list and run the inference.  For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
                         
                     }                 
 
@@ -1084,18 +1084,62 @@
         });
 
 
-        // To excutes immediately after window loading
-        // 0 for MRI viewer, 1 for Label viewer
+        //-- To excutes immediately after window loading
+        //-- 0 for MRI viewer, 1 for Label viewer
         papayaContainers[0].preferences.smoothDisplay = 'Yes';
         papayaContainers[1].preferences.smoothDisplay = 'No';
 
 
-        // fetchLabelStructure(inferenceModelsList[0]["labelsPath"]);
-        papaya.Container.restartViewer(0, ["MRI/t1_c.nii.gz"], true);
+        
+        //-- papaya.Container.restartViewer(0, ["MRI/t1_c.nii.gz"], true);
         papaya.Container.restartViewer(1, ["MRI/labels.nii.gz"], true);  
 
+
+        fetch('MRI/t1_c.nii.gz')
+          .then((response) => {
+            if (response.status >= 200 && response.status <= 299) {
+              return response.blob();
+            } else {
+              throw Error(response.statusText);
+            }
+          })          
+          .then(blob => {
+                 let initFile = new File([blob], "initLoadFile.nii");
+
+                 let reader = new FileReader();
+
+                 reader.readAsArrayBuffer(initFile);  
+
+                 reader.onload = evt => { 
+
+                      params_mri["binaryImages"] = [evt.target.result];
+                      papaya.Container.resetViewer(0, params_mri);  
+
+                      let startTime = performance.now(); 
+                      // decompress/check uploaded Nifti data
+                      rawNiftiData = getNiftiRawData(evt.target.result);
+                      niftiHeader = readNiftiHeader(rawNiftiData);
+                      niftiImage = readNiftiImageData(niftiHeader, rawNiftiData);  
+
+                      statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);                                          
+
+                      numOfOverlays = 0;                                                                                             
+                      if(checkGPU()) {
+                         $$("segmentBtn").enable();
+                      }                      
+
+                 }                          
+
+        }).catch(function() {
+                console.log("File not found");
+                $$("segmentBtn").disable();
+        });
+
+
+
+
         //--Activate annotation for papaya container 1- default    
-        // addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+        //-- addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
         addMouseMoveHandler("./ModelToLoad/GT/labels.json", 1);
 
 
