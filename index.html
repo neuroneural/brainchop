@@ -1,5 +1,5 @@
 <!--
-=========================================================
+  =========================================================
 * Brainchop - v1.0.0
 =========================================================
 
@@ -21,31 +21,28 @@
 <head>
   <meta charset="utf-8"/>
   <title>Brainchop </title>
-  <link type="text/css" href="style/index2.css" rel="stylesheet"/>
   <link rel="apple-touch-icon" sizes="180x180" href="style/favicon_io/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="style/favicon_io/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="style/favicon_io/favicon-16x16.png">
   <link rel="manifest" href="style/favicon_io/site.webmanifest">
 
-
-
-  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>  
+  <link rel="stylesheet" href="style/w3.css">
+  <link rel="stylesheet" href="style/font-awesome-4.7.0/css/font-awesome.min.css"/>   
   <link rel="stylesheet" type="text/css" href="lib/webix/codebase/webix.css"/> 
   <link rel="stylesheet" type="text/css" href="lib/papaya_lib/papaya.css" />
+  <link rel="stylesheet" type="text/css" href="style/style.css">  
 
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script src="https://d3js.org/d3-selection-multi.v0.4.min.js"></script>
-  <script src="lib/webix/codebase/webix.js"></script>
+
   <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
-
-
   <script src="https://docs.opencv.org/3.4.0/opencv.js"></script> 
   <script src="https://www.lactame.com/lib/image-js/0.21.2/image.min.js"></script>  
 
+  <script src="lib/webix/codebase/webix.js"></script>  
   <script src="lib/tf.min.js"></script>   
+
   <script type="text/javascript" src="lib/papaya_lib/papaya.js"></script>
+  
   <script type="text/javascript" src="js/nifti-reader.js"></script>
   <script type="text/javascript" src="js/nifti-reader-min.js"></script>
   <script type="text/javascript" src="js/connectedComponents3DAll.js"></script>
@@ -53,7 +50,7 @@
   <script type="text/javascript" src="js/mainMeshNetFunctions.js"></script>
   <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
   <script type="text/javascript" src="js/checkCompatibility.js"></script> 
-  <link rel="stylesheet" type="text/css" href="style/style.css">
+
 
 
     <style>
@@ -163,27 +160,6 @@
 
 
   webix.ready(function () {
-
-
-      let body = d3.select("body");
-      body.append("div").attr("id","osdLayers");
-      body.append("div").attr("id","osdLayers2");
-
-
-      let canvas = d3.select("#"+"osdLayers")       /// Can be any other selection 
-      .append("canvas")
-      .attr("width", "0%")
-      .attr("height", "0%")
-      .attr("id","inputCanvas")
-      .style('display', 'none');
-
-
-      let canvas2 = d3.select("#"+"osdLayers2")       
-      .append("canvas")
-      .attr("width", "0%")
-      .attr("height", "0%")
-      .attr("id","out3dCC")
-      .style('display', 'none');
 
 
       // About Window
@@ -333,7 +309,7 @@
                                                   statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);
 
                                                   if(niftiHeader.datatypeCode > 2) {
-                                                      let alertTxt = "Please normalize image to 1x1x1 mm thickness by using: <br> <b>mri_convert -c your_original_image input.nii.gz </b>";
+                                                      let alertTxt = "This image needs to be normalized to 1x1x1 mm thickness  for proper results. <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
                                                       webix.alert({
                                                         type:"alert-error",
                                                          width:"35%",
@@ -756,7 +732,7 @@
                       { view:"select", 
                         label:"Model", 
                         id: "selectModel",
-                        value:1, 
+                        value:2, 
                         options: selectModelOptions,
                         on:{        
                             onChange: function(newValue, oldValue, config) {   
@@ -874,7 +850,7 @@
       let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: " You're viewing a sample T1 (Left)  and its tissue segmentation (Right). To use your own sample please normalize your T1  first to 1x1x1 mm thickness by using <a href='https://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert'><b>FreeSurfer</b></a> command : <br> <b><center>mri_convert -c your_original_T1.nii    normalized_T1.nii.gz </center></b> <br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show this again</label>",  
+                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format.<br><br> A sample Nifti file to test the tool performance can be downloaded from this  <a href='https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing' target='_blank'><b>link.</b></a> For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
                         
                     }                 
 
@@ -923,7 +899,7 @@
       webix.ui({
                   view:"window",
                   id: "welcomeWindow",
-                  height:270,
+                  height:320,
                   width:600,
 
                   head:{

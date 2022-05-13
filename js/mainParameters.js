@@ -51,8 +51,6 @@
     // Number of overlay added to MRI viewer
     var numOfOverlays;
 
-    var dataSubmitFlag;
-
     var numOfModelsWithoutBrowse;
 
 
@@ -70,6 +68,8 @@
             isContoursViewEnable:                 false, // If true 3D contours of the labeled regions will apply
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
+
+            telemetryFlag:                        true, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
 
             // enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
@@ -101,7 +101,6 @@
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
                                        textureSize:  null, // Requested Texture size for the model, if unknown can be null.
                                        warning: null, // Warning message to show when select the model.       
-                           
                                        description: "Gray and white matter segmentation model. This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
                                   },
 
