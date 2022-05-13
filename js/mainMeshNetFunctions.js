@@ -2289,64 +2289,6 @@ submitTiming2GoogleSheet = (dataObj) => {
 
 
 /**
-* Function to submit data to google sheet
-*
-* @since 1.0.0
-*
-*/
-
-updateHitData= () => {    
-
-      if(isOnline()){ 
-
-            let geoData = getBrowserLocationInfo();
-            if(geoData) {
-                hitData["Country"] = geoData["Country"];
-                hitData["State"] = geoData["Region"];
-                hitData["City"] = geoData["City"];
-                hitData["Lat"] = geoData["latitude"];
-                hitData["Lng"] = geoData["longitude"];
-            } else {
-                hitData["Country"] = "";
-                hitData["State"] = "";
-                hitData["City"] = "";
-                hitData["Lat"] = null;
-                hitData["Lng"] = null;
-            }
-
-            let today = new Date();
-            hitData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
-            hitData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());
-
-            // -- Fill form with data to submit
-            Object.keys(hitData).forEach(dataKey =>{
-                 document.getElementById(dataKey).value = hitData[dataKey];
-            }) 
-
-            //-- Settings of submission
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbyQPabYEzMGWx2fj4aihuDlk3khg5s64w_nZlYgd6K0LB6XpolK9j0OPYlSay0A8PksYg/exec'
-            const form = document.forms['google-sheet']
-          
-            //-- Add event handler to the form.
-            form.addEventListener('submit', e => {
-                  e.preventDefault()
-                  fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                    .then(response => console.log("time recorded"))
-                    .catch(error => console.log('Error!', error.message))
-            })    
-
-            //-- Submit the form 
-            document.getElementById("SubmitHitData").click();   
-
-      } else {
-         console.log(" Offline Mode ")    
-                
-      }
-
-}
-
-
-/**
 * For adjust time by adding 0  
 * @since 1.0.0
 * @param {number} timeValue - e.g. 0 to 59
