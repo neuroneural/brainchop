@@ -5,7 +5,7 @@
  <img src="https://github.com/neuroneural/brainchop/blob/master/style/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
- Brainchop.org brings automatic 3D MRI  volumetric segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
+ <b><a href="https://neuroneural.github.io/brainchop/"  style="text-decoration: none"> Brainchop.org </a></b> brings automatic 3D MRI  volumetric segmentation  capability to neuroimaging  by running a deep learning model in the web-browser on the user side. 
  </p>
 
  <p align="justify">
