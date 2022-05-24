@@ -15,7 +15,7 @@
 
 ## Live Demo
 
-For MRI subvolume inference with volume patching please click  [here](https://neuroneural.github.io/brainchop/SubVolumeInference).
+For MRI subvolume inference with volume patching please click  [here](https://neuroneural.github.io/brainchop/ExperimentalMode/SubVolumeInference).
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 

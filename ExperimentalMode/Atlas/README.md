@@ -18,7 +18,7 @@ Brainchop.org in this section apply Atlas inference with partitioning. This Demo
 
 ## Live Demo
 
-For Atlas inference with partitioning please click  [here](https://neuroneural.github.io/brainchop/Atlas).
+For Atlas inference with partitioning please click  [here](https://neuroneural.github.io/brainchop/ExperimentalMode/Atlas).
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 

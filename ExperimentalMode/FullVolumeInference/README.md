@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/FullVolumeInference/style/brainchop_FullVolInf_Arch.png)
+![Interface](https://github.com/neuroneural/brainchop/blob/master/ExperimentalMode/FullVolumeInference/style/brainchop_FullVolInf_Arch.png)
 
 **brainchop without partitioning high-level architecture**
 </div>
@@ -14,7 +14,7 @@
 
 ## Live Demo
 
-For whole MRI volume inference without partitioning please click  [here](https://neuroneural.github.io/brainchop/FullVolumeInference).
+For whole MRI volume inference without partitioning please click  [here](https://neuroneural.github.io/brainchop/ExperimentalMode/FullVolumeInference).
 
 Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
 
