@@ -9,7 +9,7 @@
  </p>
 
  <p align="justify">
- We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> integrated for MRI view.  For more information on brainchop please refer to this <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b> . For questions or sharing ideas please refere to our  <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Discussions </a></b> board.
+ We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> integrated for MRI view.  For more information on brainchop please refer to this <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b> . For questions or sharing ideas please refere to our  <b><a href="https://github.com/neuroneural/brainchop/discussions/"  style="text-decoration: none"> Discussions </a></b> board.
 
  </p>
 
