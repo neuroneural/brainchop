@@ -603,10 +603,12 @@ async function mri_convert(fileUrl, ver) {
 
       //-----------------New Nifti header ------------------//
       let js_dim_info = pyodide.globals.get('dim_info');
+      //-- dims is array
       let js_dims = pyodide.globals.get('dims').toJs();
       let js_intent_code = pyodide.globals.get('intent_code');
       let js_datatypeCode = pyodide.globals.get('datatypeCode');
       let js_numBitsPerVoxel = pyodide.globals.get('numBitsPerVoxel');
+      //-- pixDims is array
       let js_pixDims = pyodide.globals.get('pixDims').toJs();
       let js_xyzt_units = pyodide.globals.get('xyzt_units');
       let js_qform_code = pyodide.globals.get('qform_code');
@@ -617,7 +619,8 @@ async function mri_convert(fileUrl, ver) {
       let js_qoffset_x = pyodide.globals.get('qoffset_x');
       let js_qoffset_y = pyodide.globals.get('qoffset_y');
       let js_qoffset_z = pyodide.globals.get('qoffset_z');
-      let js_affine = pyodide.globals.get('affine').toJs();
+      //-- affine is array
+      let js_affine = pyodide.globals.get('affine').toJs(); 
                                                                           
 
       new_hdr_values = {'dim_info': js_dim_info,
