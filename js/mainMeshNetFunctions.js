@@ -2247,6 +2247,19 @@ detectOperatingSys = () => {
 }
 
 
+/**
+* Function to detect CPU number of cores
+*
+* @since 1.0.0
+* @returns {number} Returns - e.g.: 12 
+*
+*/
+
+  getCPUNumCores = () => {
+      return   navigator.hardwareConcurrency;  
+   }
+
+
 
 /**
 * Function to submit data to google sheet
@@ -2991,7 +3004,8 @@ checkZero = (timeValue) => {
                   statData["GPU_Vendor"] = detectGPUVendor();
                   statData["GPU_Card"] = detectGPUCardType();  
                   statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
-                  statData["GPU_Card_Full"] = detectGPUCardType_v0();                           
+                  statData["GPU_Card_Full"] = detectGPUCardType_v0();   
+                  statData["CPU_Cores"] = getCPUNumCores();                          
                   statData["TF_Backend"] = tf.getBackend();      
 
 
