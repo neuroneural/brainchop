@@ -1,0 +1,231 @@
+@cal_cellsize: 24px;
+
+@cal_button_width: 8px;
+@cal_button_height: 12px;
+@cal_button_left: (@cal_cellsize - @cal_button_width)/2;
+@cal_button_top: (@cal_cellsize - @cal_button_height)/2;
+
+
+.webix_cal_month{
+    height:24px;
+    line-height:24px;
+    text-align:center;
+
+    position:relative;
+
+    font-size:14px;
+    font-weight:bold;
+    padding: 0 0 6px;
+
+    // anti bootstrap
+    box-sizing: content-box;
+}
+.webix_cal_prev_button, .webix_cal_next_button{
+	cursor:     pointer;
+	position:   absolute;
+	top: 0;
+	width: @cal_cellsize;
+	height: @cal_cellsize;
+
+	background-repeat:no-repeat;
+	background-position: @cal_button_left @cal_button_top;
+	#box > .noselect;
+}
+.webix_cal_prev_button {
+	left: 0;
+	#image > .prevButtonImage;
+}
+.webix_cal_next_button {
+	right: 0;
+	#image > .nextButtonImage;
+}
+
+.webix_view > .webix_cal_header{
+    height: 24px;
+
+    div{
+        float:left;
+        text-align:center;
+        height:19px;
+        font-size:11px;
+        color: @fontColor;
+        border-bottom:@borderColor 1px solid ;
+    }
+}
+.webix_cal_body{
+    .webix_cal_row > div{
+        float:left;
+        text-align:center;
+        height:100%;
+    }
+	.webix_selected, .webix_cal_select,  .webix_cal_select.webix_cal_today{
+	    color: @selectFontColor;
+        background: @selectColor;
+    }
+}
+.webix_cal_day, .webix_cal_week_num{
+	cursor:pointer;
+	font-size:12px;
+	color: @fontColor;
+	#box > .noselect;
+}
+.webix_cal_week_num{
+	color: lighten(@fontColor, 35%);
+	cursor:default;
+	margin-right:0px;
+	border-right:1px solid @borderColor;
+}
+.webix_cal_event{
+	font-weight: bold;
+	color: #C66200;
+}
+
+.webix_cal_outside{
+	color: lighten(@fontColor, 40%);
+}
+
+.webix_cal_inactive{
+	background:#888;
+}
+.webix_cal_inactive{
+    background:#888;
+}
+.webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
+	color: lighten(@fontColor, 40%);
+	background: darken(@backColor, 6%);
+}
+.webix_cal_day_disabled.webix_cal_day, .webix_cal_day_disabled.webix_cal_block{
+	cursor: not-allowed;
+}
+.webix_hours, .webix_minutes{
+	.webix_cal_day_disabled, .webix_cal_day_disabled.webix_cal_event{
+		background: @backColor;
+		font-weight:normal;
+		text-decoration: line-through;
+	}
+}
+
+
+//zoom to month and year
+.webix_cal_month_name{
+    cursor:pointer;
+	#box > .noselect;
+}
+.webix_cal_block{
+    float:left;
+    text-align:center;
+    cursor:pointer;
+	#box > .noselect;
+}
+.webix_selected{
+	background: @selectColor;
+	color: @selectFontColor;
+}
+//timepicker
+.webix_cal_footer{
+    text-align: center;
+    font-size:12px;
+    color:#444;
+    height: 24px;
+    padding: 6px 0 0;
+    cursor: pointer;
+}
+.webix_cal_icons{
+	float: right;
+	height: 20px;
+	line-height: 20px;
+	padding: 4px 4px 0;
+}
+.webix_cal_time{
+	height: 20px;
+	line-height: 20px;
+	padding: 4px 4px 0;
+}
+
+.webix_cal_time_icons{
+	float: left;
+}
+.webix_cal_icons .webix_cal_icon{
+	text-align: center;
+	padding:0 4px;
+}
+.webix_cal_icon, .webix_cal_time, .webix_cal_month_name{
+	&:hover{
+		text-decoration: underline;
+		color: @mainColor;
+	}
+	&:focus{
+		color: @mainColor;
+	}
+}
+
+.webix_cal_month_name.webix_readonly{
+	cursor: default;
+}
+.webix_cal_month_name.webix_readonly:hover, .webix_cal_month_name.webix_readonly:focus{
+	text-decoration: none;
+	color: inherit;
+}
+// time view
+.webix_time_header{
+	padding: 0 0 6px;
+	.webix_cal_hours, .webix_cal_minutes{
+		display: inline-block;
+		font-size:14px;
+		text-align: center;
+		height:24px;
+		line-height:24px;
+		#box > .sizing;
+
+		border-bottom: 1px solid @borderColor;
+	}
+	.webix_cal_minutes{
+		padding-left:1px;
+		border-left: none;
+	}
+	.webix_cal_hours{
+		border-right: none !important;
+	}
+}
+.webix_cal_body{
+	.webix_hours{
+		float:left;
+		border-right: 1px solid @borderColor;
+		padding-right:1px;
+	}
+
+	.webix_minutes{
+		float:left;
+		padding-left:1px;
+	}
+}
+.webix_cal_block_empty{
+	float:left;
+	text-align: center;
+}
+.webix_time_footer{
+	text-align: center;
+	font-size:12px;
+	height: 24px;
+	padding: 6px 0 0;
+	cursor: pointer;
+}
+.webix_cal_done{
+	height: 24px;
+	padding: 2px 8px;
+	font-size:12px;
+	border-radius:@skin_input_radius;
+	border:1px solid @borderColor;
+	.buttonStyle;
+	.buttonBackground;
+	float:right;
+}
+
+.webix_cal_blurred_hours{
+	background-color: darken(@backColor,3%);
+}
+
+
+
+
+

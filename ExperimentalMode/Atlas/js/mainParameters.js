@@ -120,20 +120,20 @@
                                   //      description: ""
                                   // },
 
+                                  // {
+                                  //      id: "1", 
+                                  //      type: "Atlas", 
+                                  //      path:"./ModelToLoad/mnm_atlas_256_30/model.json", 
+                                  //      modelName:"Brain Atlas 104", 
+                                  //      labelsPath: null, 
+                                  //      colorsPath: null,                                         
+                                  //      isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                  //      numOverlapBatches: 0, //Number of extra overlap batches for inference                                          
+                                  //      description: ""
+                                  // },  
+
                                   {
                                        id: "1", 
-                                       type: "Atlas", 
-                                       path:"./ModelToLoad/mnm_atlas_256_30/model.json", 
-                                       modelName:"Brain Atlas 104", 
-                                       labelsPath: null, 
-                                       colorsPath: null,                                         
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference                                          
-                                       description: ""
-                                  }  
-
-                                  ,{
-                                       id: "2", 
                                        type: "Atlas", 
                                        path:"./ModelToLoad/model11_50class/model.json", 
                                        modelName:"Brain Atlas 50", 
