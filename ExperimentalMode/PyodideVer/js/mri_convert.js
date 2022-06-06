@@ -594,6 +594,9 @@ async function mri_convert(fileUrl, ver) {
       console.log("Get New Nifti Data")
       let js_data = pyodide.globals.get('data').toJs()
 
+      //-- To avoid possible mem leak 
+      pyodide.globals.get('data').destroy();
+
       console.log("Convert data array to tensor")
       let data3DTensor = array2Tensor(js_data)
       let dataArr1D = tensor2FlattenArray(  data3DTensor );
@@ -621,6 +624,11 @@ async function mri_convert(fileUrl, ver) {
       let js_qoffset_z = pyodide.globals.get('qoffset_z');
       //-- affine is array
       let js_affine = pyodide.globals.get('affine').toJs(); 
+
+      //-- To avoid possible mem leak 
+      pyodide.globals.get('dims').destroy();
+      pyodide.globals.get('pixDims').destroy();
+      pyodide.globals.get('affine').destroy();
                                                                           
 
       new_hdr_values = {'dim_info': js_dim_info,
