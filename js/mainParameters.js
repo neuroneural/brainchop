@@ -67,7 +67,7 @@
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
-            enableTranpose:                       false, // Keras and tfjs input orientation may need a tranposing step to be matched
+            enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
