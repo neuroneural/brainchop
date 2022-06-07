@@ -272,10 +272,11 @@
                        on: {        
                               onBeforeFileAdd: function(upload) {        
                                      let file = upload.file;
-                                     refFileName = file;
-                                     console.log("refFileName :", refFileName)
-                                      //--file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
-                                     if(refFileName["name"].search(".nii") > 0) {
+                                     //--file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(file["name"].search(".nii") > 0) {
+
+                                          refFileName = file["name"];
+
                                           let reader = new FileReader();  
 
                                           var blob = makeSlice(file, 0, file.size);
@@ -303,24 +304,65 @@
                                                   let startTime = performance.now(); 
                                                   // decompress/check uploaded Nifti data
                                                   rawNiftiData = getNiftiRawData(event.target.result);
+
+                                                  if(rawNiftiData == null) {
+                                                      let loadingErrorTxt = "This file not Nifti or corrupted. Please try again";
+
+                                                      webix.alert({
+                                                        type:"alert-error",
+                                                         width:"35%",
+                                                        text: loadingErrorTxt
+                                                      });
+                                                     
+                                                     $$("segmentBtn").disable();
+                                                     return 0;
+                                                  }
+
                                                   niftiHeader = readNiftiHeader(rawNiftiData);
                                                   niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
 
                                                   statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);
 
-                                                  if(niftiHeader.datatypeCode > 2) {
-                                                      let alertTxt = "This image needs to be normalized to 1x1x1 mm thickness  for proper results. <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
+
+                                                   
+                                                  
+                                                  statData["File_Type"] =  nifti.isNIFTI1(rawNiftiData) ? "NIFTI-1" : nifti.isNIFTI2(rawNiftiData) ? "NIFTI-2" : "NOT-NIFTI"; 
+                                                  statData["Img_Size"] = JSON.stringify([niftiHeader.dims[1], niftiHeader.dims[2], niftiHeader.dims[3]]);  
+                                                  statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
+                                                  statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
+                                                  statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                                                  statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                  
+                                                  //-- Check if Nifti file is already converted and no need to mri_convert.js
+                                                  if( ! isNiftiFileVerified(niftiHeader)) {
+
+                                                      let reasonTxt = "";
+                                                      //-- Check  Nifti file shape
+                                                      if( (niftiHeader.dims[1]!= 256) || (niftiHeader.dims[2]!= 256) || (niftiHeader.dims[3]!= 256) ) {
+                                                           reasonTxt = " <br> Image shape should be 256x256x256.<br>";
+                                                           $$("segmentBtn").disable();
+                                                      } 
+                                                      //-- Check  Nifti file data type 
+                                                      if ( (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) ) {
+                                                           reasonTxt = reasonTxt + " <br> Data type should be integer in range 0-255.<br>";
+                                                           $$("segmentBtn").disable();
+                                                      }  
+
+                                                      let alertTxt = "This image needs to be normalized/resampled to 1x1x1 mm thickness  for proper results. <br>" + reasonTxt.fontcolor("red").bold()  +  " <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
+
+
                                                       webix.alert({
                                                         type:"alert-error",
                                                          width:"35%",
                                                         text: alertTxt
-                                                      });                                                      
-                                                  }
+                                                      });   
 
-                                                  numOfOverlays = 0;                                                                                             
-                                                  if(checkGPU()) {
-                                                     $$("segmentBtn").enable();
-                                                  }
+                                                  } else {
+
+                                                      numOfOverlays = 0;                                                                                             
+                                                      if(checkGPU()) {
+                                                         $$("segmentBtn").enable();
+                                                      }
+                                                  } 
 
                                                   $$("downloadBtn").disable(); 
                                               }
@@ -850,7 +892,7 @@
       let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format.<br><br> To see the tool in action select a model from the list and run the inference.  For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
+                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. <br><br><center>Brainchop is a frontend tool that works locally on the user side.</center>" + "<center>  NO MRI DATA LEAVES YOUR BROWSER!</center> ".fontcolor("green").bold()  + "<br> To see the tool in action select a model from the list and run the inference.<br> For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
                         
                     }                 
 
@@ -1119,7 +1161,15 @@
                       niftiHeader = readNiftiHeader(rawNiftiData);
                       niftiImage = readNiftiImageData(niftiHeader, rawNiftiData);  
 
-                      statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);                                          
+                      statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);   
+
+                      statData["File_Type"] = nifti.isNIFTI1(rawNiftiData) ? "NIFTI-1" : 
+                                                                             nifti.isNIFTI2(rawNiftiData) ? "NIFTI-2" : "NOT-NIFTI"; 
+                      statData["Img_Size"] = JSON.stringify([niftiHeader.dims[1], niftiHeader.dims[2], niftiHeader.dims[3]]);  
+                      statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
+                      statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
+                      statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                      statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                             
 
                       numOfOverlays = 0;                                                                                             
                       if(checkGPU()) {
@@ -1194,7 +1244,16 @@
        <input type="text" name="City" id= "City"   />       
        <input type="text" name="Date" id= "Date"   />
        <input type="text" name="Time" id= "Time"   />
-       <input type="text" name="Img_Size" id= "Img_Size"   />             
+       <input type="text" name="File_Name" id= "File_Name"   />   
+       <input type="text" name="File_Type" id= "File_Type"   />         
+       <input type="text" name="File_Verified" id= "File_Verified"   />        
+       <input type="text" name="Img_Size" id= "Img_Size"   />       
+
+       <input type="number" step=any name="Num_Bits_Per_Voxel" id= "Num_Bits_Per_Voxel"   /> 
+       <input type="number" step=any name="Data_Type_Code" id= "Data_Type_Code"   />           
+       <input type="number" step=any name="Vox_Offset" id= "Vox_Offset"   />
+       <input type="text" name="Resampled" id= "Resampled"   />
+
        <input type="text" name="Input_Shape" id= "Input_Shape"   />
        <input type="text" name="Output_Shape" id= "Output_Shape"   />
        <input type="text" name="Channel_Last" id= "Channel_Last"   />    

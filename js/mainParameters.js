@@ -73,12 +73,15 @@
 
             // enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
+            uiSampleName:                         "BC_UI_Sample", // Sample name used by interface
+
             atlasSelectedColorTable:              "Fire" // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]    
     }
 
    // Statistical data to analysis client performance
-   var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null,  
-                    Img_Size: null, Input_Shape: null, Output_Shape: null, Channel_Last: null, Model_Param: Infinity, Model_Layers: Infinity, 
+   var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null, 
+                    File_Name: null, Img_Size: null, Num_Bits_Per_Voxel: null, Data_Type_Code: null, Vox_Offset: null, Resampled: null, File_Verified: null,
+                    Input_Shape: null, Output_Shape: null, Channel_Last: null, Model_Param: Infinity, Model_Layers: Infinity, 
                     No_SubVolumes: null, Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
                     Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,

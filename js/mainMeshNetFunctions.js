@@ -2984,15 +2984,12 @@ checkZero = (timeValue) => {
 
                   statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
                   statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
-
-                  statData["Img_Size"] = JSON.stringify([num_of_slices, slice_height, slice_width]);  
+                  statData["File_Name"] = refFileName == "" ? opts.uiSampleName: refFileName;   
                   statData["Input_Shape"] = JSON.stringify(batchInputShape);
                   statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
                   statData["Channel_Last"] = isChannelLast;
                   statData["Model_Param"] = getModelNumParameters(modelObject);
                   statData["Model_Layers"] = getModelNumLayers(modelObject);
-
-                  
 
                   statData["Preprocess_t"] = Preprocess_t;
                   statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];

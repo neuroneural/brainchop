@@ -44,6 +44,28 @@ normalizeNiftiImageData = (rawData) => {
 } 
 
 
+/*
+* Function to check Nifti file  whether it needs resampling/conversion/Normalization by use mri_convert.js
+* Check shape, num of pixel, data type Code( 2 for int).
+* @since 1.1.0
+* @param {Object} niftiHeader, Nifti header object 
+* @returns {boolen} Returns true/false 
+* @example
+* 
+*/
+
+isNiftiFileVerified = (niftiHeader) => {
+
+    if( (niftiHeader.dims[1]!= 256) || (niftiHeader.dims[2]!= 256) || (niftiHeader.dims[3]!= 256) || 
+       (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) )
+      {
+         return false;
+      } 
+
+    return true;
+}
+
+
 
 /**
 * Function to decompress/check Nifti arraybuffer from uploaded file source
