@@ -1,0 +1,199 @@
+//for all ui elements
+.webix_view{
+	.mainFont;
+
+    -webkit-font-smoothing: antialiased;
+
+	cursor:default;
+	overflow:hidden;
+
+	white-space: normal;
+
+	border:0px solid @borderColor;	//real width will be set by js
+	background-color: @backColor;
+	white-space: normal;
+	-webkit-appearance: none;
+}
+.webix_view.webix_form{
+	background-color: @backColor;
+	/*.webix_view{
+		background-color: @backColor;
+	}*/
+}
+
+// disables tap highlighting in iOS7 browsers
+body{
+	-webkit-tap-highlight-color: transparent !important;
+}
+
+/*
+	webix_layout_{type}
+	known types are: line, clean, wide, space;
+*/
+.webix_abslayout{
+	position: relative;
+}
+.webix_abslayout > .webix_view{
+	position: absolute !important;
+}
+.webix_layout_space{
+	background-color: @spaceLayoutColor;
+}
+
+.webix_layout_wide{
+	background-color: @wideLayoutColor;
+}
+.webix_layout_line, .webix_multiview, .webix_layout_clean, .webix_layout_accordion{
+ 	background: transparent;
+ }
+
+.webix_overlay{
+	width:100%;
+	height:100%;
+	position:absolute;
+	z-index:90;
+	text-align:center;
+	padding-top: 10px;
+	#box > .sizing;
+}
+
+.webix_view > .webix_disabled{
+    width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0; left: 0;
+	background-color: #ddd;
+	opacity: 0.4;
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=40);
+	z-index:92;
+	cursor: not-allowed;
+}
+.webix_disabled_view{
+	overflow: hidden !important;
+	position: relative;
+}
+
+body.webix_full_screen{
+	margin:0; padding:0;
+	overflow:hidden; 
+	//#box > .noselect;
+}
+
+body.webix_noselect{
+	overscroll-behavior: none;
+}
+
+.webix_noselect, .webix_noselect div{
+	#box > .noselect;
+}
+
+.webix_selectable{
+	#box > .select;
+}
+
+
+.webix_template{
+	height:100%;
+	padding:@templatePadding;
+	#box > .sizing;
+}
+.webix_clean{
+	background: transparent;
+}
+.webix_clean .webix_template{
+	padding:0px;
+}
+
+.webix_section{
+	#box > .sizing;
+	background-color: transparent;
+	position: relative;
+	&:before{
+		content: '';
+		display: block;
+		width: 100%;
+		height: 1px;
+		background-color: @borderColor;
+		position: absolute;
+		top: 50%;
+	}
+
+	color:#444;
+ 	font-size:10px;
+	text-transform: uppercase;
+
+	line-height:@barHeight;
+	.section;
+}
+.webix_section > .webix_template{
+	padding:0px 8px;
+	margin-left: 30px;
+	background-color: @backColor;
+	display: inline;
+	position: relative;
+	.sectionInner;
+}
+.webix_layout_space > .webix_section > .webix_template{
+	padding:0px 8px;
+	background-color: @spaceLayoutColor;
+	.sectionLayoutInner;
+}
+.webix_layout_wide > .webix_section > .webix_template{
+	padding:0px 8px;
+	background-color: @wideLayoutColor;
+	.sectionLayoutInner;
+}
+.webix_layout_line > .webix_section > .webix_template,.webix_layout_clean > .webix_section > .webix_template {
+	padding:0px 8px;
+	background-color: @backColor;
+	.sectionLayoutInner;
+}
+.webix_common_header(){
+	.layoutBarBG;
+	.layoutBarFont;
+	line-height:@barHeight - 2;
+}
+
+.webix_header{
+	.webix_common_header;
+	& > div{
+		line-height: @barHeight;
+		padding-left: 10px;
+		padding-top: 0;
+		padding-bottom: 0;
+	}
+}
+
+.webix_spacer{
+	background: transparent;
+}
+
+.webix_view_animate{
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+x\:ui{
+	display:none;
+}
+.webix_view.webix_flexlayout{
+	display: flex !important;
+	flex-wrap: wrap;
+	flex-direction: row;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+.webix_flexlayout > div{
+	display: block !important;
+}
+.webix_view_align{
+	background: transparent;
+}
+
+.webix_view div, .webix_view span, .webix_view a.webix_list_item, .webix_view.webix_window{
+	outline:none;
+}
+textarea, input, select, button, .webix_view div.webix_inp_static:focus{
+	outline:none;
+}

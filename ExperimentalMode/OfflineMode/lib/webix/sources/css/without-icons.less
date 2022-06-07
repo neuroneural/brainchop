@@ -1,0 +1,102 @@
+@import "common/html5.less";
+@import "common/images.less";
+@import "common/common.less";
+@import "skins/common.less";
+
+@import "view.less";
+@import "resizer.less";
+@import "accordion.less";
+@import "carousel.less";
+@import "list.less";
+@import "dataview.less";
+@import "chart.less";
+@import "datatable.less";
+@import "window.less";
+@import "tree.less";
+@import "calendar.less";
+@import "property.less";
+@import "tooltip.less";
+@import "comments.less";
+
+@import "message.less";
+@import "colorpicker.less";
+@import "daterangepicker.less";
+@import "timepicker.less";
+
+@import "dnd.less";
+@import "scroll.less";
+
+@import "inputs.less";
+@import "tabs.less";
+@import "menu.less";
+@import "uploader.less";
+@import "fieldset.less";
+@import "slider.less";
+@import "switch.less";
+@import "progress.less";
+@import "gage.less";
+@import "bulletgraph.less";
+@import "timeline.less";
+
+@import "treemap.less";
+@import "barcode.less";
+@import "portlet.less";
+@import "sidemenu.less";
+@import "sidebar.less";
+@import "pdf.less";
+@import "dbllist.less";
+@import "sparklines.less";
+@import "print.less";
+@import "fullscreen.less";
+
+@import "icons.less";
+@import "config.less";
+
+
+/*predefined styles for text lables inside a item*/
+.webix_strong{
+	font-weight:@boldStyle;
+	white-space:nowrap;
+}
+
+.webix_light{
+	color:lighten(@foreColor, 30%);
+}
+
+/*contr-styles for bootstrap*/
+.webix_view, .webix_input_icon{ box-sizing:content-box;}
+.webix_view.webix_el_label{
+	box-sizing:border-box;
+}
+.webix_inp_label, .webix_inp_top_label, .webix_label_right{
+	margin-bottom:0px;
+}
+.webix_view table{
+	border-collapse:initial;
+}
+
+/* Spin*/
+.webix_spin{
+	-webkit-animation: webix_spin 2s infinite linear;
+	animation: webix_spin 2s infinite linear;
+}
+@-webkit-keyframes webix_spin{
+	0% {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	100% {
+		-webkit-transform: rotate(359deg);
+		transform: rotate(359deg);
+	}
+}
+@keyframes webix_spin{
+	0% {
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	100% {
+		-webkit-transform: rotate(359deg);
+		transform: rotate(359deg);
+	}
+}
