@@ -2918,7 +2918,7 @@ checkZero = (timeValue) => {
                 tf.dispose(allSlices_2D);               
 
                 // Nomalize MRI data to be from 0 to 1
-                slices_3d = normalizeVolumeData(slices_3d);
+                // slices_3d = normalizeVolumeData(slices_3d);
 
                 let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
 
