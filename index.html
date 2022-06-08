@@ -892,7 +892,11 @@
       let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: "Thank you for using brainchop. You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. <br><br><center>Brainchop is a frontend tool that works locally on the user side.</center>" + "<center>  NO MRI DATA LEAVES YOUR BROWSER!</center> ".fontcolor("green").bold()  + "<br> To see the tool in action select a model from the list and run the inference.<br> For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog. </b></a> <br><br><br><input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
+                    {   view: "template", template: " <img src='style/Artboard2.svg'  width='20%' align='right'>" + 
+                       " <p align='justify'> Thank you for using brainchop, a"+ " frontend" +" tool that works locally on the user side.</p>" + 
+                       " <p align='justify'> You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. </p>" +  
+                       "<p align='justify'> To see the tool in action please select a model from the list and run the inference. For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog</b></a>. For questions or sharing ideas please refere to our  <b><a href='https://github.com/neuroneural/brainchop/discussions/'  target='_blank'> Discussions </a></b> board. </p>" + 
+                       "<input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
                         
                     }                 
 
@@ -941,7 +945,7 @@
       webix.ui({
                   view:"window",
                   id: "welcomeWindow",
-                  height:320,
+                  height:370,
                   width:600,
 
                   head:{
