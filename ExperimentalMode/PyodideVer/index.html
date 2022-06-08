@@ -277,10 +277,12 @@
                        on: {        
                               onBeforeFileAdd: function(upload) {        
                                      let file = upload.file;
-                                     refFileName = file;
-                                     console.log("refFileName :", refFileName)
+                                     
+                                     console.log("file :", file)
                                       //--file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
-                                     if(refFileName["name"].search(".nii") > 0) {
+                                     if(file["name"].search(".nii") > 0) {
+                                          refFileName = file["name"]; 
+                                          
                                           let reader = new FileReader();  
 
                                           var blob = makeSlice(file, 0, file.size);

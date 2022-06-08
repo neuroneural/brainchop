@@ -337,7 +337,7 @@ async function mri_convert(fileUrl, ver) {
 
                def preprocess_image(img):
                    """Unit interval preprocessing"""
-                   img = (img - img.min()) / (img.max() - img.min())
+                   img =  (img - img.min()) / (img.max() - img.min())
                    return img
 
                #--------------------main------------------------#
@@ -361,10 +361,6 @@ async function mri_convert(fileUrl, ver) {
                print("Input MRI Orientation :  " + format(nibabel.aff2axcodes(input_img.affine)))
 
                new_img = conform(input_img)
-               orig_ornt = nibabel.io_orientation(new_img.affine)
-               targ_ornt = nibabel.orientations.axcodes2ornt("RAS")
-               transform = nibabel.orientations.ornt_transform(orig_ornt, targ_ornt)
-               new_img = new_img.as_reoriented(transform)
 
                # Output MRI shape
                print("Output MRI shape:  " + format(new_img.shape))
@@ -374,8 +370,8 @@ async function mri_convert(fileUrl, ver) {
 
                print("-----------------------------------------------")
 
-               #//------------- Need to scale data ??????------------------//
-               data = preprocess_image(new_img.get_fdata())
+
+               data = preprocess_image(new_img.get_fdata().T)
                data = data.astype(numpy.float32)
 
                # Globals
@@ -407,6 +403,7 @@ async function mri_convert(fileUrl, ver) {
                document.getElementById("mriConvertProgBar").style.width=   "95%";
 
                print("----------Mri Convert: Done ------------")
+        
 
       `);
 
@@ -499,5 +496,5 @@ async function mri_convert(fileUrl, ver) {
 
       $$("mriConvPrgBarWin").hide();
 
-
+      downloadNifti(dataArr1D, rawNiftiData, "converted_" + refFileName);
 } //-- End of mri_convert function
