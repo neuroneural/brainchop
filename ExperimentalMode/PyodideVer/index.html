@@ -282,7 +282,7 @@
                                       //--file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
                                      if(file["name"].search(".nii") > 0) {
                                           refFileName = file["name"]; 
-                                          
+
                                           let reader = new FileReader();  
 
                                           var blob = makeSlice(file, 0, file.size);
@@ -331,10 +331,16 @@
                                                             console.log("Starting mri_convert") 
                                                             let blob = new Blob( params_mri["binaryImages"] , {type: "application/octet-binary;charset=utf-8"});
                                                             let rawImgurl = window.URL.createObjectURL(blob);
-                                                            let NiftiVer = nifti.isNIFTI1(rawNiftiData) ? 1 : 2;
                                                              
-                                                            mri_convert(rawImgurl, NiftiVer);
-                                                            
+                                                            mri_convert(rawImgurl, rawNiftiData).then(function(res) {
+                                                                rawNiftiData = res;
+                                                                niftiHeader = readNiftiHeader(rawNiftiData);
+                                                                niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
+
+                                                                params_mri["binaryImages"] = [rawNiftiData];
+                                                                papaya.Container.resetViewer(0, params_mri);                                                                
+                                                            });
+
 
 
                                                       })

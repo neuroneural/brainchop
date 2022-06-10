@@ -1618,6 +1618,8 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
 }
 
 
+
+
 /**
 * Generate output labels of all slices. (refine)
 * Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers,
@@ -1668,6 +1670,10 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
               allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
         } 
+
+        console.log("ROI volumes : ",  arrValuesFreq(allOutputSlices3DCC1DimArray));      //<< ---------- New
+
+
 
         var labelArrayBuffer;
         let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];

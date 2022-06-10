@@ -356,6 +356,30 @@ labelMax = (arr) => {
 
 
 /**
+* Find the frequence of  array unique values
+
+* @since 1.1.0
+* @param {Array} arr 
+* @returns {Map} returnMap e.g. returnMap = { 2 → 4, 3 → 1}: use returnMap.get(2) --> 4
+* @example
+*
+*
+* arrValuesFreq( [2, 2, 2, 2, 3])
+* // => Map(900) { 2 → 4, 3 → 1}
+*
+*/ 
+
+
+arrValuesFreq = (arr)=> {
+   let arrCopy = [...arr]; //clone
+   arrCopy.sort();
+   let resultMap =  arrCopy.reduce((acc, curr) => acc.set(curr, (acc.get(curr) || 0) + 1), new Map());
+   return resultMap;
+
+}
+
+
+/**
 * Draw Ground Truth labels if any
 *
 * @since 1.0.0
