@@ -51,7 +51,9 @@
   <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
   <script type="text/javascript" src="js/checkCompatibility.js"></script> 
 
-
+  <script type="text/javascript" src="js/utilities.js"></script>  
+  <script type="text/javascript"  src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
+  <script type="text/javascript" src="js/mri_convert.js"></script>  
 
     <style>
       .grid-container {
@@ -250,7 +252,25 @@
           ]
       }
 
+     closeMriConvPrgBarWin = () => {
+           $$("mriConvPrgBarWin").hide(); 
+     } 
+
  
+      // Progress bar for mri_convert.js
+     webix.ui({
+        view:"window",
+        id: "mriConvPrgBarWin",
+        height:50,
+        width:500,
+        position:"center",
+        head:false,
+        body:{
+          template:"  <div class='w3-container' style='margin-top: 1vh;' id='mriConvertProgBarDiv' > <div class='w3-border' > <div class='w3-green' style='height:2vh;width:0%;' id='mriConvertProgBar'></div> </div> </div> "
+        }
+      });
+
+
       let referenceImage = { view: "form",  id: "referenceImage", elements: [ 
               { type:"header", template:"Open Brain T1 MRI", 
                 css: "headerclass"
@@ -322,48 +342,98 @@
                                                   niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
 
                                                   statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);
+                                                  statData["Resampled"] = null;
 
-
-                                                   
-                                                  
                                                   statData["File_Type"] =  nifti.isNIFTI1(rawNiftiData) ? "NIFTI-1" : nifti.isNIFTI2(rawNiftiData) ? "NIFTI-2" : "NOT-NIFTI"; 
                                                   statData["Img_Size"] = JSON.stringify([niftiHeader.dims[1], niftiHeader.dims[2], niftiHeader.dims[3]]);  
                                                   statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
                                                   statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
                                                   statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                                                  statData["Vox_1mm"] = isVoxelSize1mm(niftiHeader);
                                                   statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                  
                                                   //-- Check if Nifti file is already converted and no need to mri_convert.js
                                                   if( ! isNiftiFileVerified(niftiHeader)) {
 
-                                                      let reasonTxt = "";
+                                                      let reasonTxt = "", actionTxt = "", actionCounter = 0;
                                                       //-- Check  Nifti file shape
                                                       if( (niftiHeader.dims[1]!= 256) || (niftiHeader.dims[2]!= 256) || (niftiHeader.dims[3]!= 256) ) {
                                                            reasonTxt = " <br> Image shape should be 256x256x256.<br>";
+                                                           actionTxt = "reshaped";
+                                                           actionCounter += 1;
                                                            $$("segmentBtn").disable();
                                                       } 
                                                       //-- Check  Nifti file data type 
                                                       if ( (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) ) {
                                                            reasonTxt = reasonTxt + " <br> Data type should be integer in range 0-255.<br>";
+                                                           if(actionCounter) { actionTxt += "/"  }
+                                                           actionTxt += "scaled ";
+                                                           actionCounter += 1;                                                           
                                                            $$("segmentBtn").disable();
                                                       }  
 
-                                                      let alertTxt = "This image needs to be normalized/resampled to 1x1x1 mm thickness  for proper results. <br>" + reasonTxt.fontcolor("red").bold()  +  " <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
+                                                      //-- Check  Nifti file data type 
+                                                      if ( ! isVoxelSize1mm(niftiHeader)) {
+                                                           reasonTxt = reasonTxt + " <br> Voxels should be 1x1x1 mm thickness.<br>";
+                                                           if(actionCounter) { actionTxt += "/"  }
+                                                           actionTxt += "resampled ";
+                                                           actionCounter += 1;                                                           
+                                                           $$("segmentBtn").disable();
+                                                      } 
+
+                                                      let alertTxt = "MRI needs to be " + actionTxt.bold() + " for proper results. <br>" + reasonTxt.fontcolor("red").bold()  +  " <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
 
 
-                                                      webix.alert({
-                                                        type:"alert-error",
-                                                         width:"35%",
+                                                      webix.confirm({
+                                                        title:"",
+                                                        ok:"Apply", 
+                                                        cancel:"Cancel",
+                                                        type: "confirm-error",
+                                                        width: 500,
                                                         text: alertTxt
-                                                      });   
+                                                      })
+                                                        .then(() => {
+                                                               //---
+                                                            console.log("Starting mri_convert") 
+                                                            let blob = new Blob( params_mri["binaryImages"] , {type: "application/octet-binary;charset=utf-8"});
+                                                            let rawImgurl = window.URL.createObjectURL(blob);
+                                                             
+                                                            mri_convert(rawImgurl, rawNiftiData).then(function(res) {
+                                                                rawNiftiData = res;
+                                                                niftiHeader = readNiftiHeader(rawNiftiData);
+                                                                niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
 
-                                                  } else {
+                                                                params_mri["binaryImages"] = [rawNiftiData];
+                                                                papaya.Container.resetViewer(0, params_mri);
+                                                                
+                                                                if(! isNiftiFileVerified(niftiHeader)) { 
+                                                                      webix.alert(" File can not be resampled. <br> For more options please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.");
 
-                                                      numOfOverlays = 0;                                                                                             
+                                                                      statData["Resampled"] = false;
+                                                                } else {
+
+                                                                      statData["Resampled"] = true;  
+                                                                }
+                                                                // enable it for all cases 
+                                                                $$("segmentBtn").enable(); 
+                                                                  
+
+                                                            });
+
+                                                      })
+                                                        .fail(() => {
+                                                               //---
+                                                               $$("segmentBtn").disable();
+                                                      });
+
+                                                  } else { // Not varified file
+
+                                                                                                                                                
                                                       if(checkGPU()) {
                                                          $$("segmentBtn").enable();
                                                       }
-                                                  } 
+                                                  }
 
+                                                  numOfOverlays = 0;   
                                                   $$("downloadBtn").disable(); 
                                               }
                                          };
@@ -1173,6 +1243,7 @@
                       statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
                       statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
                       statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                      statData["Vox_1mm"] = isVoxelSize1mm(niftiHeader);
                       statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                             
 
                       numOfOverlays = 0;                                                                                             
@@ -1256,6 +1327,7 @@
        <input type="number" step=any name="Num_Bits_Per_Voxel" id= "Num_Bits_Per_Voxel"   /> 
        <input type="number" step=any name="Data_Type_Code" id= "Data_Type_Code"   />           
        <input type="number" step=any name="Vox_Offset" id= "Vox_Offset"   />
+       <input type="text" name="Vox_1mm" id= "Vox_1mm"   />
        <input type="text" name="Resampled" id= "Resampled"   />
 
        <input type="text" name="Input_Shape" id= "Input_Shape"   />

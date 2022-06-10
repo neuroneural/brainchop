@@ -1669,6 +1669,8 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
               allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
         } 
 
+        console.log("Output Segmentation Labels (ROI) volumes : ",  arrValuesFreq(allOutputSlices3DCC1DimArray));  
+
         var labelArrayBuffer;
         let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
 
@@ -2286,7 +2288,7 @@ submitTiming2GoogleSheet = (dataObj) => {
             form.addEventListener('submit', e => {
                   e.preventDefault()
                   fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                    .then(response => console.log("time recorded"))
+                    .then(response => console.log("------Done------"))
                     .catch(error => console.error('Error!', error.message))
             })    
 

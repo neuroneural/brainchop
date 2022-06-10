@@ -43,10 +43,31 @@ normalizeNiftiImageData = (rawData) => {
       return array2ArrayBuffer(imageDataArr);
 } 
 
+/*
+* Function to check Nifti file  whether it needs resampling by use mri_convert.js
+* Check if voxel 1mm dim
+* @since 1.1.0
+* @param {Object} niftiHeader, Nifti header object 
+* @returns {boolen} Returns true/false 
+* @example
+* 
+*/
+
+
+isVoxelSize1mm = (niftiHeader) => {
+
+  for(let i = 1; i <= niftiHeader.dims[0]; i++) {
+      if(niftiHeader['pixDims'][i] != 1){
+         return false;
+      }
+  }
+ 
+  return true;
+}
 
 /*
 * Function to check Nifti file  whether it needs resampling/conversion/Normalization by use mri_convert.js
-* Check shape, num of pixel, data type Code( 2 for int).
+* Check MRI shape, num of pixel, data type Code( 2 for int).
 * @since 1.1.0
 * @param {Object} niftiHeader, Nifti header object 
 * @returns {boolen} Returns true/false 
@@ -57,7 +78,8 @@ normalizeNiftiImageData = (rawData) => {
 isNiftiFileVerified = (niftiHeader) => {
 
     if( (niftiHeader.dims[1]!= 256) || (niftiHeader.dims[2]!= 256) || (niftiHeader.dims[3]!= 256) || 
-       (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) )
+       (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) ||
+        !isVoxelSize1mm(niftiHeader) )
       {
          return false;
       } 
@@ -375,6 +397,30 @@ labelMax = (arr) => {
 
     return max;
 }  
+
+
+/**
+* Find the frequence of  array unique values
+* @since 1.1.0
+* @param {Array} arr 
+* @returns {Map} returnMap e.g. returnMap = { 2 → 4, 3 → 1}: use returnMap.get(2) --> 4
+* @example
+*
+*
+* arrValuesFreq( [2, 2, 2, 2, 3])
+* // => Map(900) { 2 → 4, 3 → 1}
+*
+*/ 
+
+
+arrValuesFreq = (arr)=> {
+   let arrCopy = [...arr]; //clone
+   arrCopy.sort();
+   let resultMap =  arrCopy.reduce((acc, curr) => acc.set(curr, (acc.get(curr) || 0) + 1), new Map());
+   return resultMap;
+
+}
+
 
 
 /**

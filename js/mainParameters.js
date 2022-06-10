@@ -80,7 +80,7 @@
 
    // Statistical data to analysis client performance
    var statData = { Brainchop_Ver: null, Country: null, State: null,  City: null, Date: null, Time: null, 
-                    File_Name: null, Img_Size: null, Num_Bits_Per_Voxel: null, Data_Type_Code: null, Vox_Offset: null, Resampled: null, File_Verified: null,
+                    File_Name: null, Img_Size: null, Num_Bits_Per_Voxel: null, Data_Type_Code: null, Vox_Offset: null, Vox_1mm: null, Resampled: null, File_Verified: null,
                     Input_Shape: null, Output_Shape: null, Channel_Last: null, Model_Param: Infinity, Model_Layers: Infinity, 
                     No_SubVolumes: null, Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
                     Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
