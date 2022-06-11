@@ -377,8 +377,14 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    src_min = numpy.min(data)
                    src_max = numpy.max(data)
 
-                   if src_min < 0.0:
-                       sys.exit('ERROR: Min value in input is below 0.0!')
+                   if src_min < 0.0 :
+                       if src_max <= 0.0 :
+                          src_max = 255
+                       
+                       print("ERROR: Min value in input is below 0.0!, Brainchop will linearly interpolate the intensity range from 0 to max value")   
+                       numpy.interp(data, (src_min, src_max), (0, src_max)) 
+                       # js_system_exit("ERROR: Min value in input is below 0.0!")
+                       # sys.exit('ERROR: Min value in input is below 0.0!')
 
                    print("Input:    min: " + format(src_min) + "  max: " + format(src_max))
 
@@ -433,8 +439,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    return src_min, scale
 
 
-
-
                def map_image(img, out_affine, out_shape, ras2ras=numpy.array([[1.0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
                              order=1):
                    """
@@ -447,7 +451,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    :param int order: order of interpolation (0=nearest,1=linear(default),2=quadratic,3=cubic)
                    :return: numpy.ndarray new_data: mapped image data array
                    """
-
 
                    # compute vox2vox from src to trg
                    vox2vox = inv(out_affine) @ ras2ras @ img.affine
@@ -464,7 +467,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    new_data = affine_transform(image_data, inv(vox2vox), output_shape=out_shape, order=order)
 
                    return new_data
-
 
 
                def scalecrop(data, dst_min, dst_max, src_min, scale):
@@ -501,7 +503,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    :return: nibabel.MGHImage new_img: conformed image
                    """
 
-
                    cwidth = 256
                    csize = 1
                    h1 = MGHHeader.from_header(img.header)  # may copy some parameters if input was MGH format
@@ -533,7 +534,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    new_img.set_data_dtype(numpy.uint8)
 
                    return new_img
-
 
 
                def check_affine_in_nifti(img, logger=None):
@@ -583,8 +583,37 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                async def js_fetch(url):
                    response = await fetch(url)
                    js_arr_buffer = await response.arrayBuffer()
-
                    return js_arr_buffer
+
+               def preprocess_image(img):
+                   """Unit interval preprocessing"""
+                   img = (img - img.min()) / (img.max() - img.min())
+                   return img
+
+               def enhance_contrast(image_matrix, bins=256):
+                   """Source: https://medium.com/analytics-vidhya/image-equalization-contrast-enhancing-in-python-82600d3b371c"""
+
+                   image_flattened = image_matrix.flatten()
+                   image_hist = numpy.zeros(bins)
+
+                   # frequency count of each pixel
+                   for pix in image_matrix:
+                       image_hist[pix] += 1
+
+                   # cummulative sum
+                   cum_sum = numpy.cumsum(image_hist)
+                   norm = (cum_sum - cum_sum.min()) * 255
+                   # normalization of the pixel values
+                   n_ = cum_sum.max() - cum_sum.min()
+                   uniform_norm = norm / n_
+                   uniform_norm = uniform_norm.astype('int')
+
+                   # flat histogram
+                   image_eq = uniform_norm[image_flattened]
+                   # reshaping the flattened matrix to its original shape
+                   image_eq = numpy.reshape(a=image_eq, newshape=image_matrix.shape)
+
+                   return image_eq                   
 
                def resolve_xform_code( xform_code ):
 
@@ -598,7 +627,7 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                        return 4  
                    else: 
                        print("Error:  Undefined xform code")    
-                       return 0               
+                       return 0         # << --- Need check        
 
                    ## other transform codes
                    # TALAIRACH      = 3;
@@ -612,7 +641,7 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
 
                    if datatype_code == "none" or datatype_code == "unknown" :
                        print("Error unknown datatype  ")
-                       return 0
+                       return 0                    # << --- Need check 
                    if datatype_code == "binary" :
                        return 1
                    if datatype_code == "uint8" :
@@ -638,7 +667,7 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
 
                    else: 
                        print("Error:  Undefined datatype code")   
-                       return 0    
+                       return 0                # << --- Need check 
 
 
                def resolve_bitpix_code( datatype_code ):
@@ -648,7 +677,7 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
 
                    if datatype_code == "none" or datatype_code == "unknown" :
                        print("Error unknown datatype  ")
-                       return 0
+                       return 0                 # << --- Need check 
                    if datatype_code == "binary" :
                        return 1
                    if datatype_code == "uint8" :
@@ -673,14 +702,22 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                        return 64  
                    else:        
                        print("Error:  Undefined datatype code")   
-                       return 0   
+                       return 0               # << --- Need check 
+
+               def js_system_exit(msg):
+                   """
+                   Close convertion progress bar due to error
+                   """                    
+                   document.getElementById("mriConvertProgBar").style.width=   "0%"
+                   js.webix.alert(msg)
+                   js.closeMriConvPrgBarWin();
 
                #--------------------main------------------------#
                print("mriTempUrl:  " + format(js.mriTempUrl))
                
                document.getElementById("mriConvertProgBar").style.width=   "75%"
                 
-               # fetch original MRI file from JS 
+               # Fetch original MRI file from JS 
                response = await pyfetch(js.mriTempUrl)
 
                if response.status == 200:
@@ -688,58 +725,63 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                        f.write(await response.bytes())     
                           
                try:       
-                 input_img = nibabel.load("inputFile.nii.gz")
+                 input_NIFTIimg = nibabel.load("inputFile.nii.gz")
 
                except: 
-                 print(" Can not load file") 
-                 document.getElementById("mriConvertProgBar").style.width=   "0%"
-                 js.webix.alert("File can not be converted. Try another file")
-                 js.closeMriConvPrgBarWin();
+                 js_system_exit("File can not be converted.")    
                  sys.exit('ERROR: File can not be read')
 
-               print(input_img.header )
+               # Input Nifti header
+               print("Original MRI shape:  " + format(input_NIFTIimg.header))
 
-               # Input shape
-               print("Original MRI shape:  " + format(input_img.shape))
+               # Input Nifti shape
+               print("Original MRI shape:  " + format(input_NIFTIimg.shape))
                
                
                # Input image Orientation e.g. LIA ,  RAS or RPS 
-               print("Input MRI Orientation :  " + format(nibabel.aff2axcodes(input_img.affine)))
+               print("Input Nifti Orientation :  " + format(nibabel.aff2axcodes(input_NIFTIimg.affine)))
+
+               # Check if MRI 3D or file contains multiple MRIs  
+               if len(input_NIFTIimg.shape) > 3 and input_NIFTIimg.shape[3] != 1:
+                   js_system_exit("4D MRI is not supported.")              
+                   sys.exit('ERROR: Multiple input frames (' + format(input_NIFTIimg.shape[3]) + ') not supported!')
 
 
-               if len(input_img.shape) > 3 and input_img.shape[3] != 1:
-                   sys.exit('ERROR: Multiple input frames (' + format(input_img.shape[3]) + ') not supported!')
-
-
-
-               if not check_affine_in_nifti(input_img):
+               if not check_affine_in_nifti(input_NIFTIimg):
+                   js_system_exit("ERROR: inconsistency in nifti-header")                                    
                    sys.exit("ERROR: inconsistency in nifti-header. Exiting now.")
 
-               print ("Generating conformed image ... ")
-               new_image = conform(input_img)
+               print ("Generating conformed MRI ... ")
+               new_MGHimage = conform(input_NIFTIimg)
 
-               # Test Generated MRI Orientation e.g. LIA or RAS
-               print("Generated MRI Orientation :  " + format(nibabel.aff2axcodes(new_image.affine))) 
+               # Test conformed MRI Orientation e.g. LIA or RAS
+               print("New conformed MRI Orientation :  " + format(nibabel.aff2axcodes(new_MGHimage.affine))) 
 
                # Output MRI shape
-               print("Output MRI shape:  " + format(new_image.shape))
+               print("New conformed  MRI shape:  " + format(new_MGHimage.shape))
 
                # save to Nifti
-               nibabel.save (new_image, "outNifti.nii")
+               nibabel.save (new_MGHimage, "outNifti.nii")
 
                # load as NiftiImage
+               out_NIFTIimg = nibabel.load("outNifti.nii")
 
-               new_img = nibabel.load("outNifti.nii")
+               # Test Output MRI Orientation e.g. LIA or RAS
+               print("Generated NIFTI MRI Orientation :  " + format(nibabel.aff2axcodes(out_NIFTIimg.affine))) 
+
+
+
 
                # Globals  
-               data = numpy.array(new_img.get_fdata(), dtype=numpy.uint8).T
-               hdr = new_img.header  
+               data = enhance_contrast(numpy.array(out_NIFTIimg.get_fdata(), dtype=numpy.uint8).T)
+               hdr = out_NIFTIimg.header  
+               print("Output NIFTI header :  " + format(hdr))
 
-               print(hdr)
-               # print(int(resolve_xform_code(hdr.structarr['qform_code'])))
-               # print(int(resolve_xform_code(hdr.structarr['sform_code'])))
                
-               # hdr.structarr['vox_offset'] = 352
+               # -- For future use
+               #-- print(int(resolve_xform_code(hdr.structarr['qform_code'])))
+               #-- print(int(resolve_xform_code(hdr.structarr['sform_code'])))
+               #-- hdr.structarr['vox_offset'] = 352
 
                dim_info = int(hdr.structarr['dim_info'])
                dims = hdr.structarr['dim']
@@ -756,15 +798,10 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                qoffset_x = float(hdr.structarr['qoffset_x'])
                qoffset_y = float(hdr.structarr['qoffset_y'])
                qoffset_z = float(hdr.structarr['qoffset_z'])
-               affine =  new_img.affine # should be float type 
+               affine =  out_NIFTIimg.affine #--should be float type 
 
-                 
-
-                                         
-              
                document.getElementById("mriConvertProgBar").style.width=   "95%"
-               
-               print("----------Mri Convert: Done ------------")
+               print("----------MRI Convert: Done ------------")
 
       `);
 
@@ -781,8 +818,6 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
       console.log("Convert data array to tensor")
       let data3DTensor = array2Tensor(js_data)
       let dataArr1D = tensor2FlattenArray(  data3DTensor );
-
-
 
 
       //-----------------New Nifti header ------------------//
@@ -841,19 +876,8 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
       }
 
 
-      //-- Get new image header
-      // let newNiftiHeader = readNiftiHeader(rawNiftiData);
+      rawNiftiFile = createNiftiOutArrayBuffer(rawNiftiFile, dataArr1D); 
 
-
-
-      rawNiftiFile = createNiftiOutArrayBuffer(rawNiftiFile, dataArr1D); //<<---
-
-
-
-      //-- Get new image data
-      // let newNiftiImage = readNiftiImageData(newNiftiHeader, newRawNiftiData); 
-
-      
 
       document.getElementById("mriConvertProgBar").style.width=   "0%";    
 

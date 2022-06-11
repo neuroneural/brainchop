@@ -405,10 +405,13 @@
                                                                 params_mri["binaryImages"] = [rawNiftiData];
                                                                 papaya.Container.resetViewer(0, params_mri);
                                                                 
+                                                                // If still not correctly converted
                                                                 if(! isNiftiFileVerified(niftiHeader)) { 
                                                                       webix.alert(" File can not be resampled. <br> For more options please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.");
 
                                                                       statData["Resampled"] = false;
+                                                                      submitTiming2GoogleSheet(statData);
+
                                                                 } else {
 
                                                                       statData["Resampled"] = true;  
@@ -423,6 +426,8 @@
                                                         .fail(() => {
                                                                //---
                                                                $$("segmentBtn").disable();
+                                                               statData["Brainchop_Ver"] = "Cancelled"
+                                                               submitTiming2GoogleSheet(statData);
                                                       });
 
                                                   } else { // Not varified file
