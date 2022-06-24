@@ -2407,6 +2407,151 @@ checkZero = (timeValue) => {
  }
 
 
+
+
+/**
+* Function to test arraybuffer size allocation in browser       
+*
+* @since 1.2.0
+* @param {number} depth- Total Number of slices a.k.a z-dim
+* @param {number} height- - Slice or shape Height
+* @param {number} width- Slice or shape Width
+* @param {number} numSegLabels - Number of segmenation labels resulted from model
+* @param {String} dataType - e.g.: 'float32' , 'int32'
+* @returns {boolean} Returns - e.g.: true/false
+* @example
+*
+* isArrBufSizeValid( 256, 256, 256, 200, 'float32' )
+* // => false
+*
+* isArrBufSizeValid( 256, 256, 256, 200, 'bool' )
+* // => true
+*/
+
+
+isArrBufSizeValid = (depth, height, width, numSegLabels, dataType = 'float32') => {
+    let isValid = true;
+    let bufferToTest;
+
+    try {
+         bufferToTest = tf.buffer([depth, height, width, numSegLabels], dataType);
+    } catch(err) {
+              // console.log("Error :",  err);
+              isValid = false;
+    } 
+
+    return isValid;
+}
+
+/**
+* Function to find feasible number of  arraybuffers to subvolume and argMax.     
+*
+* @since 1.2.0
+* @param {number} depth- Total Number of slices a.k.a z-dim
+* @param {number} height- - Slice or shape Height
+* @param {number} width- Slice or shape Width
+* @param {number} numSegLabels - Number of segmenation labels resulted from model
+* @param {String} dataType - e.g.: 'float32' , 'int32'
+* @param {number} numBufParts - Number of minimum array buffer partitions needed to breakdown the original buffer.
+* @returns {number} Returns - e.g.: 1 , 2, 4, ..
+* @example
+*
+* findMinNumOfArrBufs( 256, 256, 256, 3 )
+* // => 1
+*
+* findMinNumOfArrBufs( 256, 256, 256, 300, 'float32' )
+* // => 4
+*
+* findMinNumOfArrBufs( 256, 256, 256, 300, 'bool' )
+* // => 1
+*/
+
+
+findMinNumOfArrBufs = (depth, height, width, numSegLabels,  dataType = 'float32', numBufParts = 1) => {
+
+    if( ! isArrBufSizeValid(depth, height, width, numSegLabels, dataType)) {
+        return findMinNumOfArrBufs(depth, height, width, Math.ceil(numSegLabels/2) , dataType, numBufParts * 2);
+    } 
+
+    return numBufParts; 
+}
+
+/**
+* Function to find feasible sizes of sub arraybuffers.        
+*
+* @since 1.2.0
+* @param {number} depth- Total Number of slices a.k.a z-dim
+* @param {number} height- - Slice or shape Height
+* @param {number} width- Slice or shape Width
+* @param {number} numSegLabels - Number of segmenation labels resulted from model e.g. 401
+* @param {String} dataType - e.g.: 'float32' , 'int32'
+* @returns {Array} Returns - e.g.: [ 101, 101, 101, 98 ]
+* @example
+*
+* findSubArrBufSizes( 256, 256, 256, 401 )
+* // => [ 101, 101, 101, 98 ]
+*
+* findSubArrBufSizes( 256, 256, 256, 401, 'float32' )
+* // => [ 101, 101, 101, 98 ]
+*
+* findSubArrBufSizes( 256, 256, 256, 401, 'bool' )
+* // => [ 401 ]
+*/
+
+
+findSubArrBufSizes = (depth, height, width, numSegLabels, dataType = 'float32') => {
+
+      let numPartitions = findMinNumOfArrBufs(depth, height, width, numSegLabels, dataType);
+      let arrBufSizes = [];
+      let totalPartitionSize = 0;
+
+      for(let idx = 0; idx < numPartitions; idx ++ ) {
+
+          if(idx == (numPartitions -1) ) {
+              arrBufSizes[idx] = numSegLabels - totalPartitionSize;
+
+          } else {
+              arrBufSizes[idx] =  Math.ceil(numSegLabels/numPartitions)
+              totalPartitionSize +=  arrBufSizes[idx];
+          }
+      }
+
+      return arrBufSizes;
+}
+
+
+/**
+* Function to accumulate Array Buffers Size and find segmenation labels range for each buffer
+*
+* @since 1.2.0
+* @param {Array} BufferNumLabelsArr - e.g. [ 100, 100, 100, 99]
+* @returns {Array} Returns - e.g.: [ 100, 200, 300, 399 ]
+* @example
+*
+* accumulateArrBufSizes( [ 100, 100, 100, 99] )
+* // => [ 100, 200, 300, 399 ]
+*/
+
+accumulateArrBufSizes = (bufferSizesArr) => {
+  
+   let thresholds = [];
+
+   for(let i = 0; i < bufferSizesArr.length; i++) {
+
+       if(i == 0) {
+           thresholds[i] = bufferSizesArr[i]
+       } else {
+
+           thresholds[i] = thresholds[i-1] + bufferSizesArr[i]
+       }
+   }
+
+   return thresholds;
+}
+
+
+
+
 /**
 * Inference Function for sub-volumes
 * @since 1.0.0
