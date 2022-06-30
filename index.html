@@ -32,6 +32,8 @@
   <link rel="stylesheet" type="text/css" href="lib/papaya_lib/papaya.css" />
   <link rel="stylesheet" type="text/css" href="style/style.css">  
 
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
 
   <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
@@ -723,8 +725,9 @@
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
                                                  enableTranpose: $$("tranposeStatus").getValue(),
-                                                 textureSize:null,
-                                                 warning:null,                                                 
+                                                 textureSize: 0,
+                                                 warning: null, 
+                                                 inferenceDelay: 100,                                                
                                                  description: ""                                            
                                            })
 
@@ -952,12 +955,20 @@
                             click: function() {
                                        $$("downloadBtn").disable();
                                        $$("segmentBtn").disable();
-                                       runInference()
+                                       // test for requirement 
+                                       let maxTextureAvail = getMaxTextureSize();
+                                       let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
+                                       if( maxTextureAvail >= requiredTexture ) {
+                                           runInference();
+                                       } else {
+                                         webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
+                                       }
                             }
                           }
                       ]    
               }, 
               { content: "progressBarDiv" , height:50}
+              // { content: "subProgressBarDiv" , height:50}
           ]
        }
 
@@ -1314,6 +1325,11 @@
           <div class="w3-blue" style="height:2vh;width:0%;" id="progressBar"></div>
         </div>
     </div>
+<!--     <div class="w3-container" style="margin-top: 1vh;" id="subProgressBarDiv" >
+        <div class="w3-border" >
+          <div class="w3-blue" style="height:2vh;width:0%;" id="subProgressBar"></div>
+        </div>
+    </div>  -->   
 
 
    <div style="height: 0vh; width: 0vw;" >
@@ -1347,6 +1363,7 @@
        <input type="number" step=any  name="Data_Load" id= "Data_Load"   />
        <input type="number" step=any  name="Preprocess_t" id= "Preprocess_t"  />
        <input type="number" step=any  name="Inference_t" id= "Inference_t"   />
+       <input type="number" step=any  name="Merge_t" id= "Merge_t"   />
        <input type="number" step=any  name="Postprocess_t" id= "Postprocess_t"   />
        <input type="text" name="Model" id= "Model"   />
        <input type="text" name="Browser" id= "Browser"   />
@@ -1365,6 +1382,7 @@
        <input type="text"  name="GPU_Vendor_Full" id= "GPU_Vendor_Full" />  
        <input type="text"  name="GPU_Card_Full" id= "GPU_Card_Full" />                
        <input type="text"  name="Error_Type" id= "Error_Type" />  
+       <input type="text"  name="Extra_Err_Info" id= "Extra_Err_Info" /> 
        <input type="number" step=any name="CPU_Cores" id= "CPU_Cores"   /> 
        <input type="submit" id="SubmitStatisticalData"  />
      </form>

@@ -1404,6 +1404,230 @@ resetLabelViewer = () => {
 }
 
 
+/**
+* argMax large to find final labels by looping to overcome tf.argMax limitations
+*  
+* @since 1.2.0
+* @param {tf.Tensor} modelOutTensor- Model output tensor e.g. shape: [ 1, 256, 256, 256, 3 ]
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @param {number} numSegClasses- The number of segmentation classes
+* @returns {tf.Tensor}  Returns prediction_argmax  
+*
+*/ 
+
+argMaxLarge = (modelOutTensor, num_of_slices, slice_height, slice_width, numOfClasses) => {
+
+    if( findMinNumOfArrBufs(num_of_slices, slice_height, slice_width, numOfClasses) == 1) {
+
+        console.log("Convert output tensor to buffer");
+        // reshape modelOutTensor.shape  : [ 1, 256, 256, 256, 3 ] to [ 256, 256, 256, 3 ]
+        // let outVolumeBuffer = tensor2Buffer(modelOutTensor.relu().reshape([num_of_slices, slice_height, slice_width, numOfClasses]));
+
+        let  outVolumeBuffer = tensor2Buffer(modelOutTensor.reshape([num_of_slices, slice_height, slice_width, numOfClasses]));
+
+        console.log("Start argMaxLarge for  buffer  with last axis -1")
+
+        let outBuffer = tf.buffer([num_of_slices, slice_height, slice_width ], dtype=tf.float32);
+
+        for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+            for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+                    // index of buffer with max Freq or max number so the index of that buffer is the right concensus label
+                    let indexOfMaxVotedBuffer = -1;     
+                    // let maxVoxelValue = -Infinity;                
+                    let maxVoxelValue = -1000000;                    
+
+                    for(let bufferIdx = 0; bufferIdx < numOfClasses; bufferIdx += 1) {
+                        //Requested out of range element at 1,0,0,0.   Buffer shape=1,256,256,256,3
+                        let voxelValue = outVolumeBuffer.get(depthIdx, rowIdx, colIdx, bufferIdx ); 
+
+                        if(maxVoxelValue <= voxelValue) {
+                              maxVoxelValue = voxelValue;
+                              indexOfMaxVotedBuffer = bufferIdx;
+                        }                   
+                    }
+                    
+                    outBuffer.set(indexOfMaxVotedBuffer, depthIdx, rowIdx, colIdx);
+
+                }
+            }
+        }            
+
+        console.log("argMaxLarge for buffer ..Done");
+
+        return outBuffer.toTensor();
+
+    } else {
+       webix.alert(" Terminated due to browser memory limitation");
+       console.log("argMaxLarge needs buffer division .. ");
+       return 0;
+    }
+}
+
+
+//-- buffersThresholds [ 3, 6] --> 0-1-2, 3-4-5
+//- findBufferThreBinIdx( buffersThresholds = [3, 6], value=3) ==> return index 1 or bin-1, because bin-0 range 0-> 2
+
+/**
+* Find which buffer have the label value  
+*  
+* @since 1.0.0
+* @param {Array} buffersThresholds - Array of buffers threshold values e.g.  [ 3, 6]--> 0-1-2, 3-4-5
+* @param {number} labelValue- Total Number of slices a.k.a z-dim
+* @returns {number}  Returns buffer index that has label value
+* @example
+*
+* findBufferThreBinIdx( buffersThresholds = [3, 6], value=3) 
+* 
+* //==> 1     // or bin-1, because bin-0 range 0-> 2( 1 ))
+*
+*/ 
+
+findBufferThreBinIdx = (buffersThresholds, labelValue) => {
+
+    let binIdx = 0;
+
+    for(let bin = 1; bin < buffersThresholds.length; bin ++) {
+        if(  (labelValue >= buffersThresholds[bin-1]) &&  (labelValue < buffersThresholds[bin]) )  {
+              binIdx = bin;
+        }    
+    }
+
+    return binIdx;
+}
+
+
+/**
+* Create 3D tf.buffer from large 4D segmenation model
+*
+*  
+* @since 1.0.0
+* @param {Array} allPredictions - Array of objects {"id": number, "coordinates": Array,  "data":1dArray }) 
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {number} numSegLabels- The number of segmentation classes/labels
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+* @param {number} batch_D- batch depth-dim a.k.a z-dim
+* @param {number} batch_H- batch height 
+* @param {number} batch_W- batch width
+* @returns {tf.buffer}  Returns 3D buffer of ouput volume 
+*/ 
+
+bufferLarge = (allPredictions, num_of_slices, slice_height, slice_width, numSegLabels, batch_D, batch_H, batch_W ) => {
+
+            console.log(" Start buffer large ...");
+            let bufferNumLabels = findSubArrBufSizes(num_of_slices, slice_height, slice_width, numSegLabels); // [25, 25, 25, 25] each buffer represent range of segmentation labels
+            let numArrBufPartitions = bufferNumLabels.length;
+            console.log(" Num of sub buffers : ", numArrBufPartitions);
+            let buffersThresholds = accumulateArrBufSizes(bufferNumLabels); // => [ 25, 50, 75, 100 ]
+
+            //-- Create sub-buffers
+            let outVolumeBuffer = [];
+            for(let arrBufIdx = 0; arrBufIdx < numArrBufPartitions; arrBufIdx ++) {
+                    outVolumeBuffer[arrBufIdx] =  tf.buffer([num_of_slices, slice_height, slice_width, bufferNumLabels[arrBufIdx] ], dtype=tf.float32); 
+                    //labels : 0-49
+                    console.log("outVolumeBuffer-" + (arrBufIdx + 1) +  " created");           
+            }
+
+            console.log(" Num of created buffers : ", outVolumeBuffer.length);
+     
+            //Convert to buffer 
+            for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+
+                    let coord = allPredictions[batchIdx]["coordinates"]; 
+                    let pixelValues = allPredictions[batchIdx]["data"];
+                    let pixelValuesCounter = 0;    
+
+                    for(let depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                        for(let rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                          for(let colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                              // Find current voxel value of the related seg class buffer  
+                              // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+                              let binIdx = findBufferThreBinIdx(buffersThresholds, pixelValues[pixelValuesCounter]);
+
+                              if(binIdx == 0) {
+                                 let voxelValue = outVolumeBuffer[ binIdx ].get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                                 outVolumeBuffer[ binIdx ].set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+
+                              } else {
+                                  // maping to higher labels to range 0 to   (numSegClasses - Buffer1NumLabels)
+                                 let voxelValue = outVolumeBuffer[ binIdx ].get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] - buffersThresholds[ binIdx-1 ]  );
+                                 // increment current voxel value by 1 in the current class buffer
+                                 outVolumeBuffer[ binIdx ].set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] - buffersThresholds[ binIdx-1 ]  );
+                              } 
+
+                              pixelValuesCounter += 1;
+                          } 
+                        }
+                    }
+            }
+
+   
+            let outBuffer = []; 
+            for(let arrBufIdx = 0; arrBufIdx < numArrBufPartitions; arrBufIdx ++) {   
+                    console.log("Start argMax for  buffer-" + (arrBufIdx + 1) +  "  with last axis -1");
+                    outBuffer[arrBufIdx] = tf.buffer([num_of_slices, slice_height, slice_width ], dtype=tf.float32);
+                    // convert output  buffer to tensor
+                    // let axis = -1; // last axis 
+                    // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+                    // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+                    for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+                        for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                            for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+                                // index of buffer with max Freq or max number so the index of that buffer is the right concensus label
+                                let indexOfMaxVotedBuffer = -1;                    
+                                let maxVoxelValue = -1;                    
+                                // Move through all buffers for the same voxel location and find which buffer indx has that max voxel value
+                                for(let bufferIdx = 0; bufferIdx < bufferNumLabels[ arrBufIdx ] ; bufferIdx += 1) {
+
+                                    let voxelValue = outVolumeBuffer[ arrBufIdx ].get(depthIdx, rowIdx, colIdx, bufferIdx );     
+                                    if(maxVoxelValue < voxelValue) {
+                                       maxVoxelValue = voxelValue;
+                                       indexOfMaxVotedBuffer = bufferIdx;
+                                    }                   
+                                }
+                                
+                                outBuffer[ arrBufIdx ].set(indexOfMaxVotedBuffer, depthIdx, rowIdx, colIdx);
+
+                            }
+                        }
+                    }
+
+                    console.log("argMax in  buffer-" + ( arrBufIdx +1) +  " ..Done")   
+            }
+
+                 
+            let outFinaleBuffer =  tf.buffer([num_of_slices, slice_height, slice_width], dtype=tf.float32);
+
+            for(let depthIdx = 0; depthIdx < num_of_slices; depthIdx += 1) {        
+                for(let rowIdx = 0; rowIdx < slice_height; rowIdx += 1) {      
+                  for(let colIdx = 0; colIdx < slice_width; colIdx += 1) {
+                         let voxelValue = [];
+                         let voxel_histoMax = [];
+
+                         for(let arrBufIdx = 0; arrBufIdx < numArrBufPartitions; arrBufIdx ++) { 
+
+                              voxelValue[ arrBufIdx ] = outBuffer[ arrBufIdx ].get(depthIdx, rowIdx, colIdx);
+                              voxel_histoMax[ arrBufIdx ] = outVolumeBuffer[arrBufIdx].get(depthIdx, rowIdx, colIdx, voxelValue[ arrBufIdx ] );    
+                         }  
+
+                         idxMaxVal = voxel_histoMax.indexOf(voxel_histoMax.reduce((a, b) => { return Math.max(a, b) })); 
+                         
+                         if(idxMaxVal == 0) {
+                            outFinaleBuffer.set(voxelValue[idxMaxVal], depthIdx, rowIdx, colIdx);
+                         } else {
+                            outFinaleBuffer.set(voxelValue[idxMaxVal] + buffersThresholds[ idxMaxVal-1 ], depthIdx, rowIdx, colIdx);
+                         }                  
+                  }
+              }
+            }
+
+            return outFinaleBuffer;
+}
+
+
 
 /**
 * Merge  all subvolumes output from the inference model
@@ -1418,18 +1642,186 @@ resetLabelViewer = () => {
 * @param {number} batch_D- batch depth-dim a.k.a z-dim
 * @param {number} batch_H- batch height 
 * @param {number} batch_W- batch width
+* @param {number} axis- 
 * @returns {tf.Tensor}  Returns Tensor of ouput volume 
 */ 
 
+mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis) => {
 
-mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W) => {
-
-        console.log("Num of seg classes: ", numSegClasses);
         console.log("Wait while generate output labels... ");
         let unstackOutVolumeTensor;
 
+        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+
+        let isValidBuf = isArrBufSizeValid(num_of_slices, slice_height, slice_width, numSegClasses);
+
         // buffer set ( depth, H, W) in order
-        if(numSegClasses <= opts.browserArrayBufferMaxZDim ) {
+        // -- if(numSegClasses <= opts.browserArrayBufferMaxZDim ) {
+        if( isValidBuf && (numSegClasses <= 3) ) {   
+            let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32); 
+
+            //Convert to buffer 
+            for(let batchIdx = 0; batchIdx < allPredictions.length; batchIdx += 1) { 
+
+                    let coord = allPredictions[batchIdx]["coordinates"]; 
+                    let pixelValues = allPredictions[batchIdx]["data"];
+                    let pixelValuesCounter = 0;    
+
+                    for(depthIdx = coord[0]; depthIdx < (batch_D + coord[0]); depthIdx += 1) {        
+                        for(rowIdx = coord[1]; rowIdx < (batch_H + coord[1]); rowIdx += 1) {      
+                          for(colIdx = coord[2]; colIdx < (batch_W + coord[2]); colIdx += 1) {
+                              // Find current voxel value of the related seg class buffer  
+                              // if we have numSegClasses = 3 then we have 3 buffers, one for each seg classes 0, 1, 2
+                              let voxelValue = outVolumeBuffer.get(depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+                              // increment current voxel value by 1 in the current class buffer
+                              outVolumeBuffer.set(voxelValue + 1, depthIdx, rowIdx, colIdx, pixelValues[pixelValuesCounter] );
+
+                              pixelValuesCounter += 1;
+                          } 
+                        }
+                    }
+             }
+
+            // convert output  buffer to tensor
+
+            // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
+            // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
+
+            let outVolumeTensor;
+
+            try {
+                  console.log(" Try for merging tf.argMax ..");
+                  outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
+
+            } catch(err1) {
+                 // -- common error message:
+                 //-- WebGL2RenderingContext.texImage2D: Argument 9 can't be
+                 //-- an ArrayBuffer or an ArrayBufferView larger than 2 GB 
+                 if(axis == -1) {
+
+                       try {
+                           let argMaxLargeTime = performance.now();
+                           console.log(" tf.argMax failed .. try argMaxLarge ..");
+                           outVolumeTensor = argMaxLarge(outVolumeBuffer.toTensor(), num_of_slices, slice_height, slice_width, numSegClasses);
+                           console.log("argMaxLarge for fullVolume takes : ", ((performance.now() - argMaxLargeTime)/1000).toFixed(4)  );
+
+                       } catch(err2) {
+
+                              let errTxt = "Merging argMax buffer couldn't be created due to limited memory resources.";
+                              webix.alert(errTxt);
+                             
+                              // window.clearInterval( timer ); 
+                              tf.engine().endScope();
+                              tf.engine().disposeVariables();
+
+                              statData["Inference_t"] = Infinity;
+                              statData["Postprocess_t"] = Infinity;
+                              statData["Status"] = "Fail";
+                              statData["Error_Type"] = err2.message;
+                              statData["Extra_Err_Info"] = "Merging function tf.argMax failed and  argMaxLarge failed.";
+
+                             if(opts.telemetryFlag) { 
+                                  submitTiming2GoogleSheet(statData);
+                             }
+
+                             return 0;  
+
+                       }
+
+                  } else {
+                      // if channel first ..
+                      let errTxt = "Merging argMax buffer couldn't be created due to limited memory resources.";
+                      webix.alert(errTxt);
+                     
+                      tf.engine().endScope();
+                      tf.engine().disposeVariables();
+
+                      statData["Inference_t"] = Infinity;
+                      statData["Postprocess_t"] = Infinity;
+                      statData["Status"] = "Fail";
+                      statData["Error_Type"] = err1.message;
+                      statData["Extra_Err_Info"] = "Merging function tf.argMax failed and argMaxLarge not support yet channel first";
+
+                     if(opts.telemetryFlag) { 
+                          submitTiming2GoogleSheet(statData);
+                     }                                      
+
+                     return 0;
+                  }                
+            
+            }   
+            
+
+            // Transpose MRI data to be match pytorch/keras input output
+            if(transpose) {
+               console.log("outVolumeTensor transposed");
+               outVolumeTensor = outVolumeTensor.transpose();   
+            }
+
+            unstackOutVolumeTensor = tf.unstack(outVolumeTensor);
+
+            outVolumeTensor.dispose();
+
+
+        } else { // Can be subdivided into 2 subBuffers
+
+            let outFinaleBuffer;
+             
+             try {
+                 outFinaleBuffer = bufferLarge(allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W);
+             } catch(err3) {
+
+                    let errTxt = "Buffer couldn't be created due to limited memory resources.";
+                    webix.alert(errTxt);
+                    tf.engine().endScope();
+                    tf.engine().disposeVariables();
+
+                    statData["Inference_t"] = Infinity;
+                    statData["Postprocess_t"] = Infinity;
+                    statData["Status"] = "Fail";
+                    statData["Error_Type"] = err3.message;
+                    statData["Extra_Err_Info"] = "bufferLarge couldn't be created due to limited memory resources.";
+
+                   if(opts.telemetryFlag) { 
+                        submitTiming2GoogleSheet(statData);
+                   }
+
+                   return 0;  
+
+             }
+
+            console.log("Final merged buffer -- Done");  
+            let outFinaleTensor =  outFinaleBuffer.toTensor();
+
+            
+            // Transpose MRI data to be match pytorch/keras input output
+            if(transpose) {
+               console.log("Final merged buffer transposed");
+               outFinaleTensor = outFinaleTensor.transpose();               
+            }
+
+            unstackOutVolumeTensor = tf.unstack(outFinaleTensor);
+            outFinaleTensor.dispose();
+
+        } 
+
+      return unstackOutVolumeTensor;
+
+}
+
+
+mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis) => {
+
+        console.log("Wait while generate output labels... ");
+        let unstackOutVolumeTensor;
+
+        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+
+        let isValidBuf = isArrBufSizeValid(num_of_slices, slice_height, slice_width, numSegClasses);
+
+        // buffer set ( depth, H, W) in order
+        // -- if(numSegClasses <= opts.browserArrayBufferMaxZDim ) {
+        if( isValidBuf ) {   
             let outVolumeBuffer =  tf.buffer([num_of_slices, slice_height, slice_width, numSegClasses ], dtype=tf.float32) 
 
 
@@ -1456,12 +1848,74 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
              }
 
             // convert output  buffer to tensor
-            let axis = -1; // last axis 
+
             // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
             // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
-            let outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
+
+            let outVolumeTensor;
+
+            try {
+                  console.log(" Try for merging tf.argMax ..");
+                  outVolumeTensor = tf.argMax(outVolumeBuffer.toTensor(), axis); 
+
+            } catch(err1) {
+                 // -- common error message:
+                 //-- WebGL2RenderingContext.texImage2D: Argument 9 can't be
+                 //-- an ArrayBuffer or an ArrayBufferView larger than 2 GB 
+                 if(axis == -1) {
+
+                       try {
+                           let argMaxLargeTime = performance.now();
+                           console.log(" tf.argMax failed .. try argMaxLarge ..");
+                           outVolumeTensor = argMaxLarge(outVolumeBuffer.toTensor(), num_of_slices, slice_height, slice_width, numSegClasses);
+                           console.log("argMaxLarge for fullVolume takes : ", ((performance.now() - argMaxLargeTime)/1000).toFixed(4)  );
+
+                       } catch(err2) {
+
+                              let errTxt = "Merging argMax buffer couldn't be created due to limited memory resources.";
+                              webix.alert(errTxt);
+                             
+                              // window.clearInterval( timer ); 
+                              tf.engine().endScope();
+                              tf.engine().disposeVariables();
+
+                              statData["Inference_t"] = Infinity;
+                              statData["Postprocess_t"] = Infinity;
+                              statData["Status"] = "Fail";
+                              statData["Error_Type"] = err2.message;
+                              statData["Extra_Err_Info"] = "Merging function tf.argMax failed and  argMaxLarge failed.";
+
+                             if(opts.telemetryFlag) { 
+                                  submitTiming2GoogleSheet(statData);
+                             }
+
+                             return 0;  
+
+                       }
+
+                  } else {
+                      // if channel first ..
+                      let errTxt = "Merging argMax buffer couldn't be created due to limited memory resources.";
+                      webix.alert(errTxt);
+                     
+                      tf.engine().endScope();
+                      tf.engine().disposeVariables();
+
+                      statData["Inference_t"] = Infinity;
+                      statData["Postprocess_t"] = Infinity;
+                      statData["Status"] = "Fail";
+                      statData["Error_Type"] = err1.message;
+                      statData["Extra_Err_Info"] = "Merging function tf.argMax failed and argMaxLarge not support yet channel first";
+
+                     if(opts.telemetryFlag) { 
+                          submitTiming2GoogleSheet(statData);
+                     }                                      
+
+                     return 0;
+                  }                
             
-            let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+            }   
+            
 
             // Transpose MRI data to be match pytorch/keras input output
             if(transpose) {
@@ -1474,7 +1928,7 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
             outVolumeTensor.dispose();
 
 
-        } else {
+        } else if( findMinNumOfArrBufs(num_of_slices, slice_height, slice_width, numSegClasses) <= 2) { // Can be subdivided into 2 subBuffers
 
             let Buffer1NumLabels = Math.round(numSegClasses/2);
 
@@ -1600,16 +2054,35 @@ mergeSubVolumes = (allPredictions, num_of_slices, numSegClasses, slice_height, s
             console.log("Final merged buffer -- Done");  
             let outFinaleTensor =  outFinaleBuffer.toTensor();
 
-            let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
-
+            
             // Transpose MRI data to be match pytorch/keras input output
             if(transpose) {
                console.log("Final merged buffer transposed");
                outFinaleTensor = outFinaleTensor.transpose();               
             }
 
-            unstackOutVolumeTensor = tf.unstack(outFinaleBuffer.toTensor());
+            unstackOutVolumeTensor = tf.unstack(outFinaleTensor);
             outFinaleTensor.dispose();
+
+        } else {
+
+              let errTxt = "Merging buffer couldn't be created due to limited memory resources.";
+              webix.alert(errTxt);
+
+              tf.engine().endScope();
+              tf.engine().disposeVariables();
+
+              statData["Inference_t"] = Infinity;
+              statData["Postprocess_t"] = Infinity;
+              statData["Status"] = "Fail";
+              //statData["Error_Type"] = "SW Enhancement needed";
+              statData["Extra_Err_Info"] = "Merging buffer needs divide into more than 2 partitions";
+
+             if(opts.telemetryFlag) { 
+                  submitTiming2GoogleSheet(statData);
+             }                                      
+
+             return 0;
 
         }
 
@@ -1641,7 +2114,8 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         let allOutputSlices3DCC = [];
         let allOutputSlices3DContours = [];
 
-        // dataSync() using to flatten array
+
+        // dataSync() using to flatten array. Takes around 1.5 s 
         for(let sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
               allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
         }
@@ -1664,14 +2138,15 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
 
 
         allOutputSlices3DCC1DimArray = [];
-        // Use this conversion to download output slices as nii file
+        // Use this conversion to download output slices as nii file. Takes around 0.5 s 
         for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx])
+              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx]);
         } 
+
 
         console.log("Output Segmentation Labels (ROI) volumes : ",  arrValuesFreq(allOutputSlices3DCC1DimArray));  
 
-        var labelArrayBuffer;
+        let labelArrayBuffer;
         let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
 
         switch ( modelType) {
@@ -2408,6 +2883,79 @@ checkZero = (timeValue) => {
 
 
 
+/**
+* Function to test tf.argMax size allocation in browser       
+*
+* @since 1.2.0
+* @param {number} depth- Total Number of slices a.k.a z-dim
+* @param {number} height- - Slice or shape Height
+* @param {number} width- Slice or shape Width
+* @param {number} numSegLabels - Number of segmenation labels resulted from model
+* @param {String} dataType - e.g.: 'float32' , 'int32'
+* @param {number} axis - e.g.: -1 
+* @returns {boolean} Returns - e.g.: true/false
+* @example
+*
+* isArgMaxValid( 256, 256, 256, 200, 'float32' )
+* // => false
+*
+* isArgMaxValid( 256, 256, 256, 200, 'bool' )
+* // => true
+*/
+
+
+isArgMaxValid = (depth, height, width, numSegLabels, dataType = 'float32', axis = -1) => {
+    let isValid = true;
+    let tensorToTest;
+
+    try {
+         tensorToTest = tf.argMax(  tf.ones([depth, height, width, numSegLabels], dataType) ,  axis);
+         tensorToTest.dispose();
+
+    } catch(err) {
+              // console.log("Error :",  err);
+              isValid = false;
+    } 
+
+    return isValid;
+}
+
+
+/**
+* Function to find feasible number of  tf.argMax.     
+*
+* @since 1.2.0
+* @param {number} depth- Total Number of slices a.k.a z-dim
+* @param {number} height- - Slice or shape Height
+* @param {number} width- Slice or shape Width
+* @param {number} numSegLabels - Number of segmenation labels resulted from model
+* @param {String} dataType - e.g.: 'float32' , 'int32'
+* @param {number} numArgMaxParts - Number of minimum argMax partitions needed to breakdown the original argMax.
+* @param {number} axis - e.g.: -1 
+* @returns {number} Returns - e.g.: 1 , 2, 4, ..
+* @example
+*
+* findMinNumOfArgMaxs( 256, 256, 256, 3 )
+* // => 1
+*
+* findMinNumOfArgMaxs( 256, 256, 256, 300, 'float32' )
+* // => 4
+*
+* findMinNumOfArgMaxs( 256, 256, 256, 300, 'bool' )
+* // => 1
+*/
+
+findMinNumOfArgMaxs = (depth, height, width, numSegLabels,  dataType = 'float32', numArgMaxParts = 1, axis = -1) => {
+
+    if( ! isArgMaxValid(depth, height, width, numSegLabels, dataType, axis)) {
+        return findMinNumOfArgMaxs(depth, height, width, Math.ceil(numSegLabels/2) , dataType, numArgMaxParts * 2, axis);
+    } 
+
+    return numArgMaxParts; 
+}
+
+
+
 
 /**
 * Function to test arraybuffer size allocation in browser       
@@ -2569,7 +3117,14 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 */
  
   inferenceSubVolumes = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
-          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"];   
+         
+          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"]; 
+
+ 
+          // if (findMinNumOfArrBufs(num_of_slices, slice_height, slice_width, numSegLabels, 'float32') > 2 ) {
+          //      webix.alert("")
+          //      return 0;
+          // }
 
           let allBatches = [];
           let headSubCubesCoords = [];
@@ -2619,6 +3174,8 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
                       let expected_Num_labels;
+                      let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
+                      console.log("Inference delay :", delay);
 
                       let layersLength = res.layers.length;
                       console.log("res.layers.length ", layersLength);   
@@ -2647,11 +3204,13 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                        
                                         window.clearInterval( timer ); 
                                         tf.engine().endScope();
+                                        tf.engine().disposeVariables();
 
                                         statData["Inference_t"] = Infinity;
                                         statData["Postprocess_t"] = Infinity;
                                         statData["Status"] = "Fail";
                                         statData["Error_Type"] = err.message;
+                                        statData["Extra_Err_Info"] = "Failed while model layer " + i + " apply";
 
                                        if(opts.telemetryFlag) { 
                                             submitTiming2GoogleSheet(statData);
@@ -2695,7 +3254,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";     
                             let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
-                            document.getElementById("progressBar").style.width=  (j+1)*100/allBatches.length + "%";
+                            document.getElementById("progressBar").style.width =  (j+1)*100/allBatches.length + "%";
 
                             document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
                             
@@ -2711,28 +3270,61 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                  let numSegClasses = maxLabelPredicted + 1;
+                                 console.log("Num of seg classes: ", numSegClasses);
 
                                  statData["Actual_Labels"] = numSegClasses;
                                  statData["Expect_Labels"] = expected_Num_labels;
-                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
-                                 
+                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;  
 
+                                 
                                  startTime = performance.now();
                                  // Generate output volume or slices   
-                                 console.log("Generating output");  
+                                 console.log("Merging subvolumes... ");  
+                                 let unstackOutVolumeTensor = mergeSubVolumesV2(allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis);                        
+                                 let Merge_t = ((performance.now() - startTime)/1000).toFixed(4);
 
-                                 let unstackOutVolumeTensor = mergeSubVolumes(allPredictions, num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);                        
-                                 generateOutputSlicesV2(unstackOutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width);
+                                 startTime = performance.now();
+                                 console.log("Generating output..."); 
+                                 try {                                
+                                    generateOutputSlicesV2(unstackOutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width);
+                                 } catch(error) {
+
+                                        
+                                        //-- Timing data to collect
+
+                                        tf.engine().endScope();
+                                        tf.engine().disposeVariables();
+
+                                        webix.alert("Failed while generating output due to limited browser memory available");
+
+                                        statData["Inference_t"] = Inference_t;
+                                        statData["Merge_t"] = Merge_t;
+                                        statData["Postprocess_t"] = Infinity;
+                                        statData["Status"] = "Fail";
+                                        statData["Error_Type"] = error.message;
+                                        statData["Extra_Err_Info"] = "Failed while generating output";
+
+                                        document.getElementById("progressBar").style.width = 0;   
+
+                                       if(opts.telemetryFlag) { 
+                                            submitTiming2GoogleSheet(statData);
+                                       }
+
+                                       return 0;                                
+
+                                 }
 
                                  let Postprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                  document.getElementById("progressBar").style.width = 0;   
                                  //webix.message.hide("waitMessage");
+                                 
 
                                  $$("downloadBtn").enable();   
                                  $$("segmentBtn").enable();  
                               //    $$("imageUploader").enable();                    
                                  tf.engine().endScope();
+                                 tf.engine().disposeVariables();
 
                                 
                                  console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
@@ -2740,6 +3332,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                  //-- Timing data to collect
                                  statData["Inference_t"] = Inference_t;
+                                 statData["Merge_t"] = Merge_t;
                                  statData["Postprocess_t"] = Postprocess_t;
                                  statData["Status"] = "OK"
 
@@ -2752,7 +3345,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                               j++;
 
-                     }, 0);                            
+                     }, delay);                            
 
                   }
                   catch(err) {
@@ -2801,6 +3394,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
+                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+                      let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
+                      console.log("Inference delay :", delay);
 
                       let i = 1;
                       let layersLength = res.layers.length;
@@ -2814,6 +3410,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
  
     
                       let timer = window.setInterval(function() {
+
                             try {
                                 curTensor[i] = res.layers[i].apply( curTensor[i-1]);
                             } catch(err) {
@@ -2830,11 +3427,13 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  
                                   window.clearInterval( timer ); 
                                   tf.engine().endScope();
+                                  tf.engine().disposeVariables();
 
                                   statData["Inference_t"] = Infinity;
                                   statData["Postprocess_t"] = Infinity;
                                   statData["Status"] = "Fail";
                                   statData["Error_Type"] = err.message;
+                                  statData["Extra_Err_Info"] = "Failed while model layer " + i + " apply";
 
                                   if(opts.telemetryFlag) { 
                                       submitTiming2GoogleSheet(statData);
@@ -2850,6 +3449,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                             res.layers[i].dispose();
                             curTensor[i-1].dispose();
 
+
                             document.getElementById("progressBar").style.width = (i + 1)*100/layersLength + "%";
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";     
                             let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons : "";            
@@ -2857,7 +3457,6 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                         
                             if( i == layersLength - 1) {
-
                                 window.clearInterval( timer );   
 
                                 // prediction = res.layers[res.layers.length-1].apply(curTensor[i]);
@@ -2869,8 +3468,81 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                 console.log("last Tenosr shape : ", curTensor[i].shape);
                                 //-- curTensor[i].shape  : [ 1, 256, 256, 256, 3 ]
                                 let expected_Num_labels = isChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
+                                let prediction_argmax;
 
-                                let prediction_argmax = tf.argMax(curTensor[i], axis);
+                                // Try for argMax with model output tensor.
+
+                                try {
+                                    let argMaxTime = performance.now();
+                                    console.log(" Try tf.argMax for fullVolume ..");
+                                    prediction_argmax = tf.argMax(curTensor[i], axis);
+                                    // console.log(" Try tf.argMaxLarge Test for fullVolume ..")
+                                    // prediction_argmax = argMaxLarge(curTensor[i], num_of_slices, slice_height, slice_width, expected_Num_labels); 
+                                    console.log("tf.argMax for fullVolume takes : ",  ((performance.now() - argMaxTime)/1000).toFixed(4) );
+
+                                } catch(err1) {
+                                   // if channel last 
+                                   if(axis == -1) {
+
+                                         try {
+                                             let argMaxLargeTime = performance.now();
+                                             console.log(" tf.argMax failed .. try argMaxLarge ..");
+                                             prediction_argmax = argMaxLarge(curTensor[i], num_of_slices, slice_height, slice_width, expected_Num_labels);
+                                             console.log("argMaxLarge for fullVolume takes : ", ((performance.now() - argMaxLargeTime)/1000).toFixed(4)  );
+
+                                         } catch(err2) {
+
+                                                let errTxt = "argMax buffer couldn't be created due to limited memory resources.";
+                                                webix.alert(errTxt);
+
+                                                prediction_argmax.dispose();
+                                               
+                                                window.clearInterval( timer ); 
+                                                tf.engine().endScope();
+                                                tf.engine().disposeVariables();
+
+                                                statData["Inference_t"] = Infinity;
+                                                statData["Postprocess_t"] = Infinity;
+                                                statData["Status"] = "Fail";
+                                                statData["Error_Type"] = err2.message;
+                                                statData["Extra_Err_Info"] = "prediction_argmax from argMaxLarge failed";
+
+                                               if(opts.telemetryFlag) { 
+                                                    submitTiming2GoogleSheet(statData);
+                                               }
+
+                                               return 0;  
+
+                                         }
+
+                                    } else {
+                                        // if channel first ..
+                                        let errTxt = "argMax buffer couldn't be created due to limited memory resources.";
+                                        webix.alert(errTxt);
+
+                                        prediction_argmax.dispose();
+                                       
+                                        window.clearInterval( timer ); 
+                                        tf.engine().endScope();
+                                        tf.engine().disposeVariables();
+
+                                        statData["Inference_t"] = Infinity;
+                                        statData["Postprocess_t"] = Infinity;
+                                        statData["Status"] = "Fail";
+                                        statData["Error_Type"] = err1.message;
+                                        statData["Extra_Err_Info"] = "prediction_argmax from argMaxLarge not support yet channel first";
+
+                                       if(opts.telemetryFlag) { 
+                                            submitTiming2GoogleSheet(statData);
+                                       }                                      
+
+                                       return 0;
+                                    } 
+                         
+                              }
+
+
+    
                                 console.log(" prediction_argmax shape : ", prediction_argmax.shape);
                                 //-- prediction_argmax.shape  : [ 1, 256, 256, 256]
 
@@ -2893,16 +3565,44 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
 
                                 //-- Transpose back to fit Papaya display settings
-                                let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]).transpose();
+                                let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]);
                                 tf.dispose(prediction_argmax);
+
+                                // Transpose MRI data to be match pytorch/keras input output
+                                if(transpose) {
+                                   console.log("outLabelVolume transposed");
+                                   outLabelVolume = outLabelVolume.transpose();   
+                                }                                
 
                                 let unstackOutVolumeTensor = tf.unstack(outLabelVolume);
                                 tf.dispose(outLabelVolume);
 
                                 startTime = performance.now();
                                 // Generate output volume or slices      
-                                console.log("Generating output");                       
-                                generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width, batch_D, batch_H, batch_W);
+                                console.log("Generating output");    
+
+                                try {                   
+                                    generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                } catch (error) {
+
+                                        //-- Timing data to collect
+                                        tf.engine().endScope();
+                                        tf.engine().disposeVariables();
+
+                                        webix.alert("Failed while generating output due to limited browser memory available");
+
+                                        statData["Inference_t"] = Inference_t;
+                                        statData["Postprocess_t"] = Infinity;
+                                        statData["Status"] = "Fail";
+                                        statData["Error_Type"] = error.message;
+                                        statData["Extra_Err_Info"] = "Failed while generating output";
+
+                                       if(opts.telemetryFlag) { 
+                                            submitTiming2GoogleSheet(statData);
+                                       }
+
+                                       return 0;    
+                                }
         
                                 let Postprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
 
@@ -2911,8 +3611,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                 $$("downloadBtn").enable();   
                                 $$("segmentBtn").enable();  
-                                //    $$("imageUploader").enable();                    
+                                //    $$("imageUploader").enable();    
                                 tf.engine().endScope();
+                                tf.engine().disposeVariables();
 
                                 console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",  
                                                         ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
@@ -2930,7 +3631,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                             }  
                         i++;
 
-                     }, 1000);                            
+                     }, delay);                            
 
                   } catch(err) {
 
@@ -3002,6 +3703,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                 modelObject = res;
  
                 let batchInputShape = [];    
+
+                // free global variable of 16777216 voxel
+                allOutputSlices3DCC1DimArray = [];
                 // read input shape from model.json object 
                 batchInputShape = modelObject.layers[0].batchInputShape; 
                 console.log(" Model batch input shape : ", batchInputShape)
@@ -3158,9 +3862,11 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                   statData["Expect_Labels"] = Infinity;
                   statData["NumLabels_Match"] = null;       
                   statData["Inference_t"] = Infinity;
+                  statData["Merge_t"] = Infinity;
                   statData["Postprocess_t"] = Infinity;
                   statData["Status"] = null;
                   statData["Error_Type"] = null;  
+                  statData["Extra_Err_Info"] = null; 
 
               
                   if(isChrome()) {

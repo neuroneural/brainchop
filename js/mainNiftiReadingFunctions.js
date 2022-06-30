@@ -421,6 +421,17 @@ arrValuesFreq = (arr)=> {
 
 }
 
+/**
+* Find if browser supports Workers
+* @since 1.2.0
+* @returns {bool} true/false
+* @example
+*
+*/ 
+
+isWinWorkerSupported = () => {
+  return window.Worker ? true : false;  
+}
 
 
 /**

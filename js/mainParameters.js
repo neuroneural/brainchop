@@ -83,10 +83,10 @@
                     File_Name: null, Img_Size: null, Num_Bits_Per_Voxel: null, Data_Type_Code: null, Vox_Offset: null, Vox_1mm: null, Resampled: null, File_Verified: null,
                     Input_Shape: null, Output_Shape: null, Channel_Last: null, Model_Param: Infinity, Model_Layers: Infinity, 
                     No_SubVolumes: null, Actual_Labels: Infinity, Expect_Labels: Infinity,  NumLabels_Match: null, 
-                    Data_Load: null, Preprocess_t: null, Inference_t: null, Postprocess_t: null, 
+                    Data_Load: null, Preprocess_t: null, Inference_t: null, Merge_t: null,  Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
                     WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Vendor_Full: null, 
-                    GPU_Card: null, GPU_Card_Full:null, Status: null, CPU_Cores: null, Error_Type: null };
+                    GPU_Card: null, GPU_Card_Full:null, Status: null, CPU_Cores: null, Error_Type: null, Extra_Err_Info: null };
 
 
 
@@ -102,8 +102,9 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
-                                       textureSize:  null, // Requested Texture size for the model, if unknown can be null.
-                                       warning: null, // Warning message to show when select the model.       
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
+                                       warning: null, // Warning message to show when select the model.      
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
                                   },
 
@@ -117,8 +118,9 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
-                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be null.      
+                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.      
                                        warning: null, // Warning message to show when select the model.       
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the subvolume model."
                                   },
 
@@ -132,40 +134,105 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
-                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be null.  
+                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
                                        warning: "This model needs dedicated graphics card.",           
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy among the provided models."
                                   }, 
 
                                   {
                                        id: "4", 
                                        type: "Brain_Extraction", 
+                                       path: "./ModelToLoad/model5_gw_ae/model.json", 
+                                       modelName:"Extract the Brain (FAST)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,                                        
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
+                                       warning: null, // Warning message to show when select the model.    
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
+                                  }, 
+
+                                  {
+                                       id: "5", 
+                                       type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Extract the Brain", 
+                                       modelName:"Extract the Brain (failsafe)", 
                                        labelsPath: null, 
                                        colorsPath: null,                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
-                                       textureSize:  null,  // Requested Texture size for the model, if unknown can be null. 
-                                       warning: null, // Warning message to show when select the model.                                      
-                                       description: null
+                                       textureSize:  0,  // Requested Texture size for the model, if unknown can be 0. 
+                                       warning: null, // Warning message to show when select the model.    
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       description: "This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
                                   },
+                                  {
+                                       id: "6", 
+                                       type: "Brain_Masking", 
+                                       path: "./ModelToLoad/model5_gw_ae/model.json", 
+                                       modelName:"Compute Brain Mask (FAST)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,                                         
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: null, // Warning message to show when select the model.   
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
+                                  },                                  
 
                                   {
-                                       id: "5", 
+                                       id: "7", 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Compute Brain Mask", 
+                                       modelName:"Compute Brain Mask (failsafe)", 
                                        labelsPath: null, 
                                        colorsPath: null,                                         
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       textureSize:  null, // Requested Texture size for the model, if unknown can be null.     
-                                       warning: null, // Warning message to show when select the model.                                     
-                                       description: null
-                                  }
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: null, // Warning message to show when select the model.   
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       description: "This masking version partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
+                                  },
+                                 
+                                  {
+                                       id: "8", 
+                                       type: "Atlas", 
+                                       path:"./ModelToLoad/model11_50class/model.json", 
+                                       modelName:"Cortical Atlas 50", 
+                                       labelsPath: null, // "./ModelToLoad/model11_50class/labels.json", 
+                                       colorsPath: null,                                         
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model needs dedicated graphics card", // Warning message to show when select the model.  
+                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                   
+                                       description: "Parcellate cortical areas into 50 regions."
+                                  }  
+                                  // ,{
+                                  //      id: "9", 
+                                  //      type: "Atlas", 
+                                  //      path:"./ModelToLoad/model21_104class/model.json", 
+                                  //      modelName:"Atlas 104 ", 
+                                  //      labelsPath: null, // "./ModelToLoad/model11_50class/labels.json", 
+                                  //      colorsPath: null,                                         
+                                  //      isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                  //      numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                  //      enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                  //      textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                  //      warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
+                                  //      inferenceDelay: 0, // Delay in ms time while looping layers applying.                                   
+                                  //      description: "Parcellate brain areas into 104 regions"
+                                  // }                                                                      
                                  
                             ];   
 
