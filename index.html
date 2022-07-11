@@ -42,6 +42,7 @@
 
   <script src="lib/webix/codebase/webix.js"></script>  
   <script src="lib/tf.min.js"></script>   
+  <script src="lib/float16.js"></script>  
 
   <script type="text/javascript" src="lib/papaya_lib/papaya.js"></script>
   
@@ -51,11 +52,16 @@
   <script type="text/javascript" src="js/mainParameters.js"></script>  
   <script type="text/javascript" src="js/mainMeshNetFunctions.js"></script>
   <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
+  <script type="text/javascript" src="js/mainTypes.js"></script> 
+
+  
   <script type="text/javascript" src="js/checkCompatibility.js"></script> 
 
   <script type="text/javascript" src="js/utilities.js"></script>  
   <script type="text/javascript"  src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
   <script type="text/javascript" src="js/mri_convert.js"></script>  
+
+
 
     <style>
       .grid-container {
@@ -721,7 +727,8 @@
                                                  path: null, 
                                                  modelName: newModelName, 
                                                  labelsPath: labelFileUrl, 
-                                                 colorsPath: colorFileUrl,  
+                                                 colorsPath: colorFileUrl, 
+                                                 preModelId: null, 
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
                                                  enableTranpose: $$("tranposeStatus").getValue(),
@@ -1260,7 +1267,16 @@
                       statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
                       statData["Vox_Offset"] = niftiHeader['vox_offset'];
                       statData["Vox_1mm"] = isVoxelSize1mm(niftiHeader);
-                      statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                             
+                      statData["File_Verified"] = isNiftiFileVerified(niftiHeader);
+
+
+                      // // To sync swap view button 
+                      // document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
+                      //         papayaContainers[1].viewer.rotateViews()
+
+                      // })
+
+                     document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).disabled = true;
 
                       numOfOverlays = 0;                                                                                             
                       if(checkGPU()) {
@@ -1277,24 +1293,22 @@
 
 
 
-        //--Activate annotation for papaya container 1- default    
-        //-- addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
-        addMouseMoveHandler("./ModelToLoad/GT/labels.json", 1);
+       //--Activate annotation for papaya container 1- default    
+       //-- addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+       addMouseMoveHandler("./ModelToLoad/GT/labels.json", 1);
 
-
-        // To sync swap view button 
-        document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
-              papayaContainers[1].viewer.rotateViews()
-
-      })
 
       document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
-              papayaContainers[0].viewer.rotateViews()
+                 papayaContainers[0].viewer.rotateViews()
 
-      })           
+        })         
 
+        
+
+       
 
      })  
+
 
 
 

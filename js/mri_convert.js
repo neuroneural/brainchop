@@ -597,7 +597,7 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
                    image_hist = numpy.zeros(bins)
 
                    # frequency count of each pixel
-                   for pix in image_matrix:
+                   for pix in image_flattened:
                        image_hist[pix] += 1
 
                    # cummulative sum
@@ -773,7 +773,9 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
 
 
                # Globals  
-               data = enhance_contrast(numpy.array(out_NIFTIimg.get_fdata(), dtype=numpy.uint8).T)
+               #-- data = enhance_contrast(numpy.array(out_NIFTIimg.get_fdata(), dtype=numpy.uint8).T)
+               print("Disable enahance_contrast.")
+               data = numpy.array(out_NIFTIimg.get_fdata(), dtype=numpy.uint8).T
                hdr = out_NIFTIimg.header  
                print("Output NIFTI header :  " + format(hdr))
 

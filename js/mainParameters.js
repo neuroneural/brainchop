@@ -63,6 +63,12 @@
             isAutoColors:                         true, // If false, manualColorsRange will be in use
             bgLabelValue:                         0, // Semenatic Segmentation background label value   
 
+            minNumLabels2Crop:                    1, // Minimum number of segmenations resulted from the model must meet to run the two phases pipeline
+            fullVolCropPad:                       2, // Padding size add to cropped brain 
+            drawBoundingVolume:                   false, // plot bounding volume used to crop the brain    
+            isBrainCropMaskBased:                 true, // Check if brain masking will be used for cropping & optional show or brain tissue will be used
+            showPhase1Output:                     false, // This will load to papaya the output of phase-1 (ie. brain mask or brain tissue)
+
             isPostProcessEnable:                  true,  // If true 3D Connected Components filter will apply  
 
             isContoursViewEnable:                 false, // If true 3D contours of the labeled regions will apply
@@ -70,8 +76,6 @@
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
             telemetryFlag:                        true, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
-
-            // enableTranpose:                       true, // Keras and tfjs input orientation may need a tranposing step to be matched
 
             uiSampleName:                         "BC_UI_Sample", // Sample name used by interface
 
@@ -93,12 +97,13 @@
    // Inference Models
    var inferenceModelsList = [
                                   {
-                                       id: "1", 
+                                       id: 1, 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model21_3class/model.json", 
                                        modelName: "Subvolume GWM (failsafe)",  
                                        labelsPath: "./ModelToLoad/model21_3class/labels.json", 
-                                       colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",                                        
+                                       colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",  
+                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
@@ -109,12 +114,13 @@
                                   },
 
                                   {
-                                       id: "2", 
+                                       id: 2, 
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
                                        modelName: "Full Brain GWM (light)",  
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
-                                       colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",                                       
+                                       colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",      
+                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
@@ -125,12 +131,13 @@
                                   },
 
                                   {
-                                       id: "3", 
+                                       id: 3, 
                                        type: "Segmentation", 
                                        path:"./ModelToLoad/model11_gw_ae/model.json", 
                                        modelName:"Full Brain GWM (large)", 
                                        labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
-                                       colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",                                      
+                                       colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",  
+                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
@@ -141,12 +148,13 @@
                                   }, 
 
                                   {
-                                       id: "4", 
+                                       id: 4, 
                                        type: "Brain_Extraction", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
                                        modelName:"Extract the Brain (FAST)", 
                                        labelsPath: null, 
-                                       colorsPath: null,                                        
+                                       colorsPath: null,              
+                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
@@ -157,12 +165,13 @@
                                   }, 
 
                                   {
-                                       id: "5", 
+                                       id: 5, 
                                        type: "Brain_Extraction", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Extract the Brain (failsafe)", 
                                        labelsPath: null, 
-                                       colorsPath: null,                                        
+                                       colorsPath: null,         
+                                       preModelId: null,// Model run first e.g.  crop the brain  
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
@@ -172,12 +181,13 @@
                                        description: "This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
                                   },
                                   {
-                                       id: "6", 
+                                       id: 6, 
                                        type: "Brain_Masking", 
                                        path: "./ModelToLoad/model5_gw_ae/model.json", 
                                        modelName:"Compute Brain Mask (FAST)", 
                                        labelsPath: null, 
-                                       colorsPath: null,                                         
+                                       colorsPath: null,        
+                                       preModelId: null,// Model run first e.g.  crop the brain  
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -188,12 +198,13 @@
                                   },                                  
 
                                   {
-                                       id: "7", 
+                                       id: 7, 
                                        type: "Brain_Masking", 
                                        path:"./ModelToLoad/mnm_tfjs_me_test/model.json", 
                                        modelName:"Compute Brain Mask (failsafe)", 
                                        labelsPath: null, 
-                                       colorsPath: null,                                         
+                                       colorsPath: null,       
+                                       preModelId: null,// Model run first e.g.  crop the brain  
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -204,35 +215,37 @@
                                   },
                                  
                                   {
-                                       id: "8", 
+                                       id: 8, 
                                        type: "Atlas", 
                                        path:"./ModelToLoad/model11_50class/model.json", 
                                        modelName:"Cortical Atlas 50", 
-                                       labelsPath: null, // "./ModelToLoad/model11_50class/labels.json", 
-                                       colorsPath: null,                                         
+                                       labelsPath: "./ModelToLoad/model11_50class/labels.json", 
+                                       colorsPath: "./ModelToLoad/model11_50class/colorLUT.json",       
+                                       preModelId: 6,// Model run first e.g.  crop the brain  
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model needs dedicated graphics card", // Warning message to show when select the model.  
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                   
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "Parcellate cortical areas into 50 regions."
                                   }  
-                                  // ,{
-                                  //      id: "9", 
-                                  //      type: "Atlas", 
-                                  //      path:"./ModelToLoad/model21_104class/model.json", 
-                                  //      modelName:"Atlas 104 ", 
-                                  //      labelsPath: null, // "./ModelToLoad/model11_50class/labels.json", 
-                                  //      colorsPath: null,                                         
-                                  //      isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                  //      numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                  //      enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                  //      textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
-                                  //      warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
-                                  //      inferenceDelay: 0, // Delay in ms time while looping layers applying.                                   
-                                  //      description: "Parcellate brain areas into 104 regions"
-                                  // }                                                                      
+                                  ,{
+                                       id: 9, 
+                                       type: "Atlas", 
+                                       path:"./ModelToLoad/model21_104class/model.json", 
+                                       modelName:"FS aparc+aseg Atlas 104", 
+                                       labelsPath: "./ModelToLoad/model21_104class/labels.json", 
+                                       colorsPath: "./ModelToLoad/model21_104class/colorLUT.json",     
+                                       preModelId: 6,  // model run first e.g.  Brain_Extraction
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions"
+                                  }                                                                      
                                  
                             ];   
 
