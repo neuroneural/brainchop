@@ -960,12 +960,13 @@
                             id: "segmentBtn", 
                             align: "left",
                             click: function() {
-                                       $$("downloadBtn").disable();
-                                       $$("segmentBtn").disable();
+
                                        // test for requirement 
                                        let maxTextureAvail = getMaxTextureSize();
                                        let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
                                        if( maxTextureAvail >= requiredTexture ) {
+                                           $$("downloadBtn").disable();
+                                           $$("segmentBtn").disable();                                        
                                            runInference();
                                        } else {
                                          webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
