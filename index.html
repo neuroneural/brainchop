@@ -892,7 +892,7 @@
                                              
                                              if(! noShowTooltipStatus) {                                     
 
-                                                 if (curModelEntry["textureSize"] != null) {
+                                                 if (curModelEntry["textureSize"] != 0) {
                                                     //--Compare model needed texture size and browser max texture size 
                                                     if(curModelEntry["textureSize"] > getMaxTextureSize()) {
                                                         $$("modelTooltip").show();
