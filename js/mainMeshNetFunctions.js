@@ -2135,11 +2135,14 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         
         if(opts.isPostProcessEnable) {
             console.log("Post processing enabled ... "); 
-            // Remove noisy regions using 3d CC   
-            let sliceWidth = niftiHeader.dims[1];
-            let sliceHeight = niftiHeader.dims[2];                                
-            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
-            console.log("Post processing done ... "); 
+            allOutputSlices3DCC = tf.tidy(() => {  
+                  // Remove noisy regions using 3d CC   
+                  let sliceWidth = niftiHeader.dims[1];
+                  let sliceHeight = niftiHeader.dims[2];                                
+                  return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+            })
+
+            console.log("Post processing done ... ");             
         }   
 
         if(opts.isContoursViewEnable) { // Enable contour for overlay option
@@ -3306,13 +3309,18 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  startTime = performance.now();
                                  // Generate output volume or slices   
                                  console.log("Merging subvolumes... ");  
-                                 let unstackOutVolumeTensor = mergeSubVolumesV2(allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis);                        
+                                 let unstackOutVolumeTensor = tf.tidy(() => {
+                                                                return mergeSubVolumesV2(allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis);                        
+                                                              })
+
+                                 allPredictions = [];
                                  let Merge_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                  startTime = performance.now();
                                  console.log("Generating output..."); 
                                  try {                                
                                     generateOutputSlicesV2(unstackOutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    console.log(" SubVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors ); 
                                  } catch(error) {
 
                                         
@@ -3605,6 +3613,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                 try {                   
                                     generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                    console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors ); 
                                 } catch (error) {
 
                                         //-- Timing data to collect
@@ -4078,11 +4087,15 @@ get3dObjectBoundingVolume = async(slices_3d) => {
            
            // Get the shape mask   
            let  maskTensor_3d = slices_3d.greater([0]).asType('bool'); 
+           //-- Don't dispose slices_3d here, dispose it from the calling function..
 
            const coords = await tf.whereAsync(maskTensor_3d);
            //-- Get each voxel coords (x, y, z)
+           maskTensor_3d.dispose();
 
            const coordsArr =    coords.arraySync();
+           coords.dispose();
+
 
            let row_min = 256,  row_max = 0,  col_min = 256,  col_max = 0,  depth_min = 256,  depth_max = 0;
 
@@ -4471,15 +4484,18 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape); 
 
 
-                                let unstackOutVolumeTensor = tf.unstack(outLabelVolume);
+                                let unstackOutVolumeTensor =  tf.unstack(outLabelVolume); 
                                 tf.dispose(outLabelVolume);
 
                                 startTime = performance.now();
                                 // Generate output volume or slices      
                                 console.log("Generating output");    
 
-                                try {                   
-                                    generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                try {     
+
+                                       generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                       console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors ); 
+
                                 } catch (error) {
 
                                         //-- Timing data to collect
@@ -4822,15 +4838,20 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                        outLabelVolume = outLabelVolume.transpose();   
                                     }                                
 
-                                    let unstackOutVolumeTensor = tf.unstack(outLabelVolume);
-                                    tf.dispose(outLabelVolume);
 
                                     startTime = performance.now();
                                     // Generate output volume or slices      
                                     console.log("Generating pre-model output");    
 
-                                    try {                   
-                                        slices_3d_mask = generateBrainMask(unstackOutVolumeTensor, num_of_slices, slice_height, slice_width);
+                                    try {    
+                                        slices_3d_mask = tf.tidy(() => {   
+                                             let unstackOutVolumeTensor = tf.unstack(outLabelVolume);
+                                             tf.dispose(outLabelVolume);                                          
+                                             return generateBrainMask(unstackOutVolumeTensor, num_of_slices, slice_height, slice_width);
+                                        });         
+
+                                        console.log(" Phase-1 num of tensors after generateBrainMask: " , tf.memory().numTensors );                                    
+
                                     } catch (error) {
 
                                             //-- Timing data to collect
@@ -4918,6 +4939,39 @@ get3dObjectBoundingVolume = async(slices_3d) => {
            
 
  } 
+
+ /**
+* Inference Function 
+* @since 1.2.0
+*
+*/
+
+ enableProductionMode = async() => {
+
+                        //-- tf.setBackend('cpu');
+                        //-- tf.removeBackend('cpu')
+                       
+                        //-- Calling enableProdMode() method
+                        await tf.enableProdMode();
+                        //-- Setting debug mode of the  environment
+                        tf.env().set('DEBUG', false);
+
+
+                        tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+                        //-- set this flag so that textures are deleted when tensors are disposed.                        
+                        tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);  
+                        //-- tf.env().set('WEBGL_PACK', false);                                              
+                        
+                        //-- Put ready after sets above  
+                        await tf.ready();                          
+
+                        //-- Printing output
+                        console.log(tf.env().flags);
+                        console.log("tf env() features :", tf.env().features);
+                        console.log("tf env total features: ", Object.keys(tf.env().features).length);
+                        console.log(tf.getBackend());                        
+ }
+
 
 /**
 * Inference Function 
@@ -5040,11 +5094,9 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                 } 
                  
 
-
                 let modelNumLayers = modelObject.layers.length; 
                 // Model output number of segmentations
                 let outLabels = modelObject.layers[ modelNumLayers - 1 ].bias.shape[0];       
-
 
                 let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
 
@@ -5057,137 +5109,139 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                 // Nomalize MRI data to be from 0 to 1
                 slices_3d = normalizeVolumeData(slices_3d);
 
-
                 
                 let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);                    
                 
              
        
                 console.log(tf.getBackend());
+                //-- set this flag so that textures are deleted when tensors are disposed.
+                tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
+                tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+
+                console.log("tf env() features :", tf.env().features);
+                console.log("tf env total features: ", Object.keys(tf.env().features).length);
+                // tf.env().set('WEBGL_PACK', false);
 
 
-                 //-- set this flag so that textures are deleted when tensors are disposed.
-                  tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
-                  console.log("tf env() features :", tf.env().features);
-                  console.log("tf env total features: ", Object.keys(tf.env().features).length);
+                 // enableProductionMode();
 
-                  // tf.env().set('WEBGL_PACK', false);
 
-                  //-- Timing data to collect
-                  let today = new Date();
+                //-- Timing data to collect
+                let today = new Date();
 
-                  if(isFullVolModel) {
-                       statData["Brainchop_Ver"] = "FullVolume";
-                  } else {
-                       statData["Brainchop_Ver"] = "SubVolumes";
+                if(isFullVolModel) {
+                     statData["Brainchop_Ver"] = "FullVolume";
+                } else {
+                     statData["Brainchop_Ver"] = "SubVolumes";
 
-                  }
+                }
 
                   
-                  let geoData = getBrowserLocationInfo();
-                  if(geoData) {
+                let geoData = getBrowserLocationInfo();
+                if(geoData) {
                       statData["Country"] = geoData["Country"];
                       statData["State"] = geoData["Region"];
                       statData["City"] = geoData["City"];
-                  } else {
+                } else {
                       statData["Country"] = "";
                       statData["State"] = "";
                       statData["City"] = "";
-                  }
+                }
                        
 
 
-                  statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
-                  statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
-                  statData["File_Name"] = refFileName == "" ? opts.uiSampleName: refFileName;   
-                  statData["Input_Shape"] = JSON.stringify(batchInputShape);
-                  statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
-                  statData["Channel_Last"] = isChannelLast;
-                  statData["Model_Param"] = getModelNumParameters(modelObject);
-                  statData["Model_Layers"] = getModelNumLayers(modelObject);
+                statData["Date"] = parseInt(today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();   
+                statData["Time"] = checkZero(today.getHours()) + ":" + checkZero(today.getMinutes()) + ":" + checkZero(today.getSeconds());          
+                statData["File_Name"] = refFileName == "" ? opts.uiSampleName: refFileName;   
+                statData["Input_Shape"] = JSON.stringify(batchInputShape);
+                statData["Output_Shape"] = JSON.stringify(modelObject.output.shape);
+                statData["Channel_Last"] = isChannelLast;
+                statData["Model_Param"] = getModelNumParameters(modelObject);
+                statData["Model_Layers"] = getModelNumLayers(modelObject);
 
-                  statData["Preprocess_t"] = Preprocess_t;
-                  statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
-                  statData["Browser"] = detectBrowser();
-                  statData["Browser_Ver"] = detectBrowserVersion();
-                  statData["OS"] = detectOperatingSys();
-                  statData["WebGL1"] = checkWebGl1();
-                  statData["WebGL2"] = checkWebGl2();  
-                  statData["GPU_Vendor"] = detectGPUVendor();
-                  statData["GPU_Card"] = detectGPUCardType();  
-                  statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
-                  statData["GPU_Card_Full"] = detectGPUCardType_v0();   
-                  statData["CPU_Cores"] = getCPUNumCores();                          
-                  statData["TF_Backend"] = tf.getBackend();      
-
-
-                  //-- Init 
-                  statData["Actual_Labels"] = Infinity;
-                  statData["Expect_Labels"] = Infinity;
-                  statData["NumLabels_Match"] = null;       
-                  statData["Inference_t"] = Infinity;
-                  statData["Merge_t"] = Infinity;
-                  statData["Postprocess_t"] = Infinity;
-                  statData["Status"] = null;
-                  statData["Error_Type"] = null;  
-                  statData["Extra_Err_Info"] = null; 
-
-              
-                  if(isChrome()) {
-                      statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
-                      statData["Used_Heap_MB"] = window.performance.memory["usedJSHeapSize"]/(1024*1024).toFixed(2);
-                      statData["Heap_Limit_MB"] = window.performance.memory["jsHeapSizeLimit"]/(1024*1024).toFixed(2);
-                  }
-
-                   
-                  let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
-                            checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
-                  
-                  console.log("MAX_TEXTURE_SIZE :",  gl.getParameter(gl.MAX_TEXTURE_SIZE));
-                  console.log("MAX_RENDERBUFFER_SIZE :",  gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
-                      
-                  //-- check to see   if  machine has two graphics card: one is the builtin e.g. Intel Iris Pro, the other is NVIDIA GeForce GT 750M.             
-                  //-- check browser use which one, if debugInfo is null then installed  GPU is not used
-                  let  debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                  console.log("VENDOR WEBGL:",  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) );      
-
-                  if(gl) {
-                      statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
-                  } else {
-                      statData["Texture_Size"] = null;
-                  } 
+                statData["Preprocess_t"] = Preprocess_t;
+                statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                statData["Browser"] = detectBrowser();
+                statData["Browser_Ver"] = detectBrowserVersion();
+                statData["OS"] = detectOperatingSys();
+                statData["WebGL1"] = checkWebGl1();
+                statData["WebGL2"] = checkWebGl2();  
+                statData["GPU_Vendor"] = detectGPUVendor();
+                statData["GPU_Card"] = detectGPUCardType();  
+                statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
+                statData["GPU_Card_Full"] = detectGPUCardType_v0();   
+                statData["CPU_Cores"] = getCPUNumCores();                          
+                statData["TF_Backend"] = tf.getBackend();      
 
 
-                  let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+                //-- Init 
+                statData["Actual_Labels"] = Infinity;
+                statData["Expect_Labels"] = Infinity;
+                statData["NumLabels_Match"] = null;       
+                statData["Inference_t"] = Infinity;
+                statData["Merge_t"] = Infinity;
+                statData["Postprocess_t"] = Infinity;
+                statData["Status"] = null;
+                statData["Error_Type"] = null;  
+                statData["Extra_Err_Info"] = null; 
 
-                  if (isFullVolModel) {
+            
+                if(isChrome()) {
+                    statData["Heap_Size_MB"] = window.performance.memory["totalJSHeapSize"]/(1024*1024).toFixed(2);
+                    statData["Used_Heap_MB"] = window.performance.memory["usedJSHeapSize"]/(1024*1024).toFixed(2);
+                    statData["Heap_Limit_MB"] = window.performance.memory["jsHeapSizeLimit"]/(1024*1024).toFixed(2);
+                }
 
-                      if(outLabels >= opts.minNumLabels2Crop) {
-                          //-- FullVolume with Crop option before inference .. 
-                          //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
-                          inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width);
-                      } else { 
-                          // Transpose MRI data to be match pytorch/keras input output
-                          if(transpose) {
-                             slices_3d = slices_3d.transpose()
-                             console.log("Input transposed");
-                          } else {
-                             console.log("Transpose not enabled");
-                          }                               
+                 
+                let  gl = checkWebGl2() ? document.createElement('canvas').getContext('webgl2') : 
+                          checkWebGl1() ? document.createElement('canvas').getContext('webgl1') : null;
+                
+                console.log("MAX_TEXTURE_SIZE :",  gl.getParameter(gl.MAX_TEXTURE_SIZE));
+                console.log("MAX_RENDERBUFFER_SIZE :",  gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
+                    
+                //-- check to see   if  machine has two graphics card: one is the builtin e.g. Intel Iris Pro, the other is NVIDIA GeForce GT 750M.             
+                //-- check browser use which one, if debugInfo is null then installed  GPU is not used
+                let  debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                console.log("VENDOR WEBGL:",  gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) );      
 
-                         inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
-                      } 
-                  } else {
-                       // Transpose MRI data to be match pytorch/keras input output
-                       if(transpose) {
-                          slices_3d = slices_3d.transpose()
-                          console.log("Input transposed");
-                       } else {
-                          console.log("Transpose not enabled");
-                       }   
-                                                 
-                       inferenceSubVolumes(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-                 } 
+                if(gl) {
+                    statData["Texture_Size"] = gl.getParameter(gl.MAX_TEXTURE_SIZE) //--returns the maximum dimension the GPU can address                                
+                } else {
+                    statData["Texture_Size"] = null;
+                } 
+
+
+                let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+
+                if (isFullVolModel) {
+
+                    if( (outLabels >= opts.minSegLabels2enableCrop) && opts.enableFVCropOption) {
+                        //-- FullVolume with Crop option before inference .. 
+                        //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
+                        inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width);
+                    } else { 
+                        // Transpose MRI data to be match pytorch/keras input output
+                        if(transpose) {
+                           slices_3d = slices_3d.transpose()
+                           console.log("Input transposed");
+                        } else {
+                           console.log("Transpose not enabled");
+                        }                               
+
+                       inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
+                    } 
+                } else {
+                     // Transpose MRI data to be match pytorch/keras input output
+                     if(transpose) {
+                        slices_3d = slices_3d.transpose()
+                        console.log("Input transposed");
+                     } else {
+                        console.log("Transpose not enabled");
+                     }   
+                                               
+                     inferenceSubVolumes(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+               } 
        })    
 	            
 	 } //-- End of runInference

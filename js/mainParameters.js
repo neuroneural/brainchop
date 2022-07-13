@@ -61,9 +61,10 @@
 
             isColorEnable:                        true, // If false, grey scale will enabled
             isAutoColors:                         true, // If false, manualColorsRange will be in use
-            bgLabelValue:                         0, // Semenatic Segmentation background label value   
-
-            minNumLabels2Crop:                    1, // Minimum number of segmenations resulted from the model must meet to run the two phases pipeline
+            bgLabelValue:                         0, // Semenatic Segmentation background label value  
+             
+            enableFVCropOption:                   true, // For Full volume inference, crop brain from zero background before feeding to inference model to lower memory use.
+            minSegLabels2enableCrop:              1, // Minimum number of segmenations resulted from the model must meet to run the two phases pipeline
             fullVolCropPad:                       2, // Padding size add to cropped brain 
             drawBoundingVolume:                   false, // plot bounding volume used to crop the brain    
             isBrainCropMaskBased:                 true, // Check if brain masking will be used for cropping & optional show or brain tissue will be used
@@ -241,7 +242,7 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.     
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions"
