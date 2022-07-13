@@ -63,7 +63,7 @@
             isAutoColors:                         true, // If false, manualColorsRange will be in use
             bgLabelValue:                         0, // Semenatic Segmentation background label value  
              
-            enableFVCropOption:                   true, // For Full volume inference, crop brain from zero background before feeding to inference model to lower memory use.
+            enableMriVolumeCrop:                  true, // For Full volume inference, crop brain from zero background before feeding to inference model to lower memory use.
             minSegLabels2enableCrop:              1, // Minimum number of segmenations resulted from the model must meet to run the two phases pipeline
             fullVolCropPad:                       2, // Padding size add to cropped brain 
             drawBoundingVolume:                   false, // plot bounding volume used to crop the brain    
@@ -95,16 +95,16 @@
 
 
 
-   // Inference Models
+   // Inference Models, the ids must start from 1 in sequence
    var inferenceModelsList = [
                                   {
-                                       id: 1, 
+                                       id: 1,  // Must start from 1
                                        type: "Segmentation", 
                                        path: "./ModelToLoad/model21_3class/model.json", 
                                        modelName: "Subvolume GWM (failsafe)",  
                                        labelsPath: "./ModelToLoad/model21_3class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_3class/colorLUT.json",  
-                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
+                                       preModelId: null, // Model run first e.g.  crop the brain  {null, 1, 2, ..  }                                                                         
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
@@ -121,7 +121,7 @@
                                        modelName: "Full Brain GWM (light)",  
                                        labelsPath: "./ModelToLoad/model5_gw_ae/labels.json", 
                                        colorsPath: "./ModelToLoad/model5_gw_ae/colorLUT.json",      
-                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
+                                       preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
@@ -138,7 +138,7 @@
                                        modelName:"Full Brain GWM (large)", 
                                        labelsPath: "./ModelToLoad/model11_gw_ae/labels.json",
                                        colorsPath: "./ModelToLoad/model11_gw_ae/colorLUT.json",  
-                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
+                                       preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
@@ -155,7 +155,7 @@
                                        modelName:"Extract the Brain (FAST)", 
                                        labelsPath: null, 
                                        colorsPath: null,              
-                                       preModelId: null, // Model run first e.g.  crop the brain                                                                             
+                                       preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
@@ -172,7 +172,7 @@
                                        modelName:"Extract the Brain (failsafe)", 
                                        labelsPath: null, 
                                        colorsPath: null,         
-                                       preModelId: null,// Model run first e.g.  crop the brain  
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference 
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
@@ -188,7 +188,7 @@
                                        modelName:"Compute Brain Mask (FAST)", 
                                        labelsPath: null, 
                                        colorsPath: null,        
-                                       preModelId: null,// Model run first e.g.  crop the brain  
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -205,7 +205,7 @@
                                        modelName:"Compute Brain Mask (failsafe)", 
                                        labelsPath: null, 
                                        colorsPath: null,       
-                                       preModelId: null,// Model run first e.g.  crop the brain  
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -222,7 +222,7 @@
                                        modelName:"Cortical Atlas 50", 
                                        labelsPath: "./ModelToLoad/model11_50class/labels.json", 
                                        colorsPath: "./ModelToLoad/model11_50class/colorLUT.json",       
-                                       preModelId: 6,// Model run first e.g.  crop the brain  
+                                       preModelId: 6,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -238,7 +238,7 @@
                                        modelName:"FS aparc+aseg Atlas 104", 
                                        labelsPath: "./ModelToLoad/model21_104class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_104class/colorLUT.json",     
-                                       preModelId: 6,  // model run first e.g.  Brain_Extraction
+                                       preModelId: 6,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
@@ -246,7 +246,23 @@
                                        warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions"
-                                  }                                                                      
+                                  }  
+                                  ,{
+                                       id: 10, 
+                                       type: "Atlas", 
+                                       path:"./ModelToLoad/model21_104class/model_D95.json", 
+                                       modelName:"FS aparc+aseg Atlas 104 (failsafe)", 
+                                       labelsPath: "./ModelToLoad/model21_104class/labels.json", 
+                                       colorsPath: "./ModelToLoad/model21_104class/colorLUT.json",     
+                                       preModelId: 6,  // model run first e.g.  Brain_Extraction { null, 1, 2, ..  } 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. This model partitions T1 image into cubes of smaller size for inference to helps overcoming browser limitations but leads to longer computation and lower accuracy."
+                                  }                                                                                                        
                                  
                             ];   
 

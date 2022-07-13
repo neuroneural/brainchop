@@ -1656,7 +1656,8 @@ bufferLarge = (allPredictions, num_of_slices, slice_height, slice_width, numSegL
 mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis) => {
 
         console.log("Wait while generate output labels... ");
-        let unstackOutVolumeTensor;
+        
+        let outVolumeTensor;
 
         let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
 
@@ -1697,7 +1698,7 @@ mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, n
             // Set for each voxel the value of the index of the buffer that has the max voxel value, e.g. third buffer with index = 2 (cont..)
             // has max voxel value = 10 then the related voxel in outVolumeTensor will have value of 2 
 
-            let outVolumeTensor;
+
 
             try {
                   console.log(" Try for merging  with tf.argMax ..");
@@ -1770,10 +1771,6 @@ mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, n
                outVolumeTensor = outVolumeTensor.transpose();   
             }
 
-            unstackOutVolumeTensor = tf.unstack(outVolumeTensor);
-
-            outVolumeTensor.dispose();
-
 
         } else { // Can be subdivided into 2 subBuffers
 
@@ -1803,21 +1800,18 @@ mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, n
              }
 
             console.log("Final merged buffer -- Done");  
-            let outFinaleTensor =  outFinaleBuffer.toTensor();
+            outVolumeTensor =  outFinaleBuffer.toTensor();
 
             
             // Transpose MRI data to be match pytorch/keras input output
             if(transpose) {
                console.log("Final merged buffer transposed");
-               outFinaleTensor = outFinaleTensor.transpose();               
+               outVolumeTensor = outVolumeTensor.transpose();               
             }
-
-            unstackOutVolumeTensor = tf.unstack(outFinaleTensor);
-            outFinaleTensor.dispose();
 
         } 
 
-      return unstackOutVolumeTensor;
+      return outVolumeTensor;
 
 }
 
@@ -3145,57 +3139,196 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 *
 */
  
-  inferenceSubVolumes = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W) => {
-         
-          const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"]; 
+  inferenceSubVolumes = async(model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out = null) => {
 
- 
-          // if (findMinNumOfArrBufs(num_of_slices, slice_height, slice_width, numSegLabels, 'float32') > 2 ) {
-          //      webix.alert("")
-          //      return 0;
-          // }
+          let refVoxel = [], boundVolSizeArr = [];
 
-          let allBatches = [];
-          let headSubCubesCoords = [];
+          if(opts.enableMriVolumeCrop) {
 
-          if(isBatchOverlapEnable) {
-              // Number of additional batches focus on the brain/head volume
-              let numOverlapBatches = inferenceModelsList[$$("selectModel").getValue() - 1]["numOverlapBatches"];
-              console.log(" num of overlapped batches: ", numOverlapBatches);
+                  //--Phase-2, After remove the skull try to allocate brain volume and make inferece
+                  console.log(" ---- Start SubVolume inference phase-II ---- "); 
 
-              // Find the centroid of 3D head volume  and the variance                  
-              let cent_var = cubeMoments(slices_3d, 0.5);
-              // Mean or centroid
-              const headCentroid = cent_var[0];
-              console.log(" Head 3D Centroid : ", headCentroid);                  
-              // Variance 
-              const sigma = cent_var[1];
-              console.log(" Head 3D Variance : ", sigma);                  
+                  let mask_3d;
 
-              headSubCubesCoords = findCoordsOfAddBrainBatches(numOverlapBatches, 
-                                                                  new Array(headCentroid[0], headCentroid[1], headCentroid[2]), 
-                                                                  new Array(sigma[0], sigma[1], sigma[2]),
-                                                                  new Array(num_of_slices, slice_height, slice_width), 
-                                                                  new Array(batch_D, batch_H, batch_W));
+                  if(pipeline1_out == null) {
+                      // binarize original image if there is no pre-model for masking task
+                      mask_3d = slices_3d.greater([0]).asType('bool');            
 
-              allBatches = sliceVolumeIntoOverlappedBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W, headSubCubesCoords); 
+                  } else {
 
-           } else {
-              // This option will  cover all slices, some slices that are not enough to create a batch will need overlap with prevous batch slices
-              // e.g. slice volume = 3*5*5 DHW , and batch is 2*2*2 ,   2*3*3 =18 batches will be considered        
-              let num_of_batches = Math.ceil(slice_width/batch_W) * Math.ceil(slice_height/batch_H) * Math.ceil(num_of_slices/batch_D); 
-              console.log("Num of Batches for inference: ", num_of_batches);
+                      mask_3d = pipeline1_out.greater([0]).asType('bool'); 
+                      pipeline1_out.dispose();           
 
-              allBatches = sliceVolumeIntoBatches(slices_3d, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
-           }
+                  }    
 
-            tf.dispose(slices_3d);    
+                  console.log(" mask_3d shape :  ", mask_3d.shape);
 
-            statData["No_SubVolumes"] = allBatches.length; 
+                  const coords = await tf.whereAsync(mask_3d);
+                   //-- Get each voxel coords (x, y, z)
 
-            let allPredictions = [];
+                  mask_3d.dispose();
 
-            model.then(function (res) {
+                  const coordsArr =    coords.arraySync();
+
+                  let row_min = slice_height,  row_max = 0,  col_min = slice_width,  col_max = 0,  depth_min = num_of_slices,  depth_max = 0;
+
+                  for(let i = 0; i < coordsArr.length; i++) {
+
+                         if ( row_min > coordsArr[i][0] ) {
+                              row_min = coordsArr[i][0];
+                         } else if(row_max < coordsArr[i][0]) {
+                              row_max = coordsArr[i][0];
+                         }
+
+                         if ( col_min > coordsArr[i][1] ) {
+                              col_min = coordsArr[i][1];
+                         } else if(col_max < coordsArr[i][1]) {
+                              col_max = coordsArr[i][1];
+                         }
+
+                         if ( depth_min > coordsArr[i][2] ) {
+                              depth_min = coordsArr[i][2]; 
+                         } else if(depth_max < coordsArr[i][2]) {
+                              depth_max = coordsArr[i][2]; 
+                         }      
+                  }
+
+
+                  console.log( "row min and max  :", row_min, row_max);
+                  console.log( "col min and max  :", col_min, col_max);
+                  console.log( "depth min and max  :", depth_min, depth_max);
+
+                  //-- Reference voxel that cropped volume started slice with it
+                  refVoxel = [row_min, col_min, depth_min]; 
+                  // -- Starting form refVoxel, size of bounding volume 
+                  boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];
+
+
+                  coords.dispose();
+
+                   //-- Extract 3d object (e.g. brain)
+                  slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
+                  
+
+                  //-- Padding size add to cropped brain  
+                  let pad = opts.fullVolCropPad;          
+
+                  // Create margin around the bounding volume
+                  slices_3d = addZeroPaddingTo3dTensor(slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
+                  console.log(" cropped slices_3d with padding shape:  ", slices_3d.shape);
+
+
+                  if(opts.drawBoundingVolume) {
+
+                        let testVol = removeZeroPaddingFrom3dTensor(slices_3d, pad, pad, pad);
+                        console.log(" testVol without padding shape :  ", testVol.shape);
+
+                        testVol =  resizeWithZeroPadding(testVol, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
+                        console.log(" testVol final shape after resizing :  ", testVol.shape); 
+
+                        draw3dObjBoundingVolume(tf.unstack(testVol));
+                        testVol.dispose();
+                       
+                        return 0;
+                  }
+
+          }    
+
+
+          let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+          if(transpose) {
+             slices_3d = slices_3d.transpose()
+             console.log("Input transposed for model");
+          } else {
+             console.log("Transpose not enabled for model");
+          }             
+
+
+          model.then(function (res) { 
+
+                let batch_D, batch_H, batch_W;
+                let input_shape;
+
+                let modelObject =  {};            
+
+                modelObject =  res; 
+
+                let isChannelLast = isModelChnlLast(modelObject);
+                const batchSize = opts.batchSize;
+                const numOfChan = opts.numOfChan;                 
+
+                //-- Test and adjust model input shape dim after padding ..  
+                for (let i = 0; i < slices_3d.rank; i++) {
+                    if(isChannelLast) {
+                        if(slices_3d.shape[i] < modelObject.layers[0].batchInputShape[i+1]) {
+                             console.log(" cropped slices_3d with pad < model input shape dim ");
+                             modelObject.layers[0].batchInputShape[i+1] = slices_3d.shape[i];
+                        }                      
+
+                    } else {
+                        if(slices_3d.shape[i] < modelObject.layers[0].batchInputShape[i+2]) {
+                             console.log(" cropped slices_3d with pad < model input shape dim ");
+                             modelObject.layers[0].batchInputShape[i+2] = slices_3d.shape[i];
+                        }  
+                    }
+                }
+
+
+                // Get model input shape
+                if(isChannelLast) {
+                    batch_D = modelObject.layers[0].batchInputShape[1];
+                    batch_H = modelObject.layers[0].batchInputShape[2];
+                    batch_W = modelObject.layers[0].batchInputShape[3]; 
+                    input_shape = [batchSize, batch_D, batch_H, batch_W, numOfChan];               
+                } else {
+                    batch_D = modelObject.layers[0].batchInputShape[2];
+                    batch_H = modelObject.layers[0].batchInputShape[3];
+                    batch_W = modelObject.layers[0].batchInputShape[4]; 
+                    input_shape = [batchSize, numOfChan,  batch_D, batch_H, batch_W];                  
+                }
+               
+                const isBatchOverlapEnable =  inferenceModelsList[$$("selectModel").getValue() - 1]["isBatchOverlapEnable"]; 
+
+                let allBatches = [];
+                let headSubCubesCoords = [];
+
+                if(isBatchOverlapEnable) {
+                    // Number of additional batches focus on the brain/head volume
+                    let numOverlapBatches = inferenceModelsList[$$("selectModel").getValue() - 1]["numOverlapBatches"];
+                    console.log(" num of overlapped batches: ", numOverlapBatches);
+
+                    // Find the centroid of 3D head volume  and the variance                  
+                    let cent_var = cubeMoments(slices_3d, 0.5);
+                    // Mean or centroid
+                    const headCentroid = cent_var[0];
+                    console.log(" Head 3D Centroid : ", headCentroid);                  
+                    // Variance 
+                    const sigma = cent_var[1];
+                    console.log(" Head 3D Variance : ", sigma);                  
+
+                    headSubCubesCoords = findCoordsOfAddBrainBatches(numOverlapBatches, 
+                                                                        new Array(headCentroid[0], headCentroid[1], headCentroid[2]), 
+                                                                        new Array(sigma[0], sigma[1], sigma[2]),
+                                                                        new Array(slices_3d.shape[0], slices_3d.shape[1], slices_3d.shape[2]), 
+                                                                        new Array(batch_D, batch_H, batch_W));
+
+                    allBatches = sliceVolumeIntoOverlappedBatches(slices_3d, slices_3d.shape[0], slices_3d.shape[1], slices_3d.shape[2], batch_D, batch_H, batch_W, headSubCubesCoords); 
+
+                 } else {
+                    // This option will  cover all slices, some slices that are not enough to create a batch will need overlap with prevous batch slices
+                    // e.g. slice volume = 3*5*5 DHW , and batch is 2*2*2 ,   2*3*3 =18 batches will be considered        
+                    let num_of_batches = Math.ceil(slices_3d.shape[2]/batch_W) * Math.ceil(slices_3d.shape[1]/batch_H) * Math.ceil(slices_3d.shape[0]/batch_D); 
+                    console.log("Num of Batches for inference: ", num_of_batches);
+
+                    allBatches = sliceVolumeIntoBatches(slices_3d, slices_3d.shape[0], slices_3d.shape[1], slices_3d.shape[2], batch_D, batch_H, batch_W);
+                 }
+
+                 tf.dispose(slices_3d);    
+
+                 statData["No_SubVolumes"] = allBatches.length; 
+                 statData["Brainchop_Ver"] = "SubVolumes"; 
+
+                 let allPredictions = [];
 
                  try {
                       let startTime = performance.now();
@@ -3203,12 +3336,22 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
                       let expected_Num_labels;
+
                       let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
 
                       let layersLength = res.layers.length;
                       console.log("res.layers.length ", layersLength);   
-                     
+
+                      statData["Input_Shape"] = JSON.stringify(res.layers[0].batchInputShape);
+                      statData["Output_Shape"] = JSON.stringify(res.output.shape);
+                      statData["Channel_Last"] = isChannelLast;
+                      statData["Model_Param"] = getModelNumParameters(res);
+                      statData["Model_Layers"] = getModelNumLayers(res);      
+                      statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+
+                      let curProgBar = parseInt(document.getElementById("progressBar").style.width);
+
                       let j = 0;
                       let timer = window.setInterval(function() {
                             let curTensor = []; 
@@ -3283,15 +3426,15 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";     
                             let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";            
-                            document.getElementById("progressBar").style.width =  (j+1)*100/allBatches.length + "%";
-
+                            document.getElementById("progressBar").style.width = (curProgBar + (j + 1)*(100 - curProgBar)/allBatches.length) + "%";                            
+                           
                             document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
                             
-                            // let memoryStatusData=[{ memoryUse: Math.round(tf.memory().numBytesInGPU/(1024*1024*20))}];
-                            // $$("memoryMonitor").clearAll();
-                            // $$("memoryMonitor").parse(memoryStatusData);                      
+                            //-- let memoryStatusData=[{ memoryUse: Math.round(tf.memory().numBytesInGPU/(1024*1024*20))}];
+                            //-- $$("memoryMonitor").clearAll();
+                            //-- $$("memoryMonitor").parse(memoryStatusData);                      
 
-                            // document.getElementById("progressBar").innerHTML=  Math.floor((j+1)*100/allBatches.length) + "%";
+                            //-- document.getElementById("progressBar").innerHTML=  Math.floor((j+1)*100/allBatches.length) + "%";
                      
                             if( j == allBatches.length-1 ) {
                                  window.clearInterval( timer );
@@ -3309,12 +3452,24 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  startTime = performance.now();
                                  // Generate output volume or slices   
                                  console.log("Merging subvolumes... ");  
-                                 let unstackOutVolumeTensor = tf.tidy(() => {
-                                                                return mergeSubVolumesV2(allPredictions, num_of_slices, slice_height, slice_width, numSegClasses, batch_D, batch_H, batch_W, axis);                        
+                                 let outLabelVolume  = tf.tidy(() => {
+                                                                return mergeSubVolumesV2(allPredictions, slices_3d.shape[0], slices_3d.shape[1], slices_3d.shape[2], numSegClasses, batch_D, batch_H, batch_W, axis);                        
                                                               })
 
                                  allPredictions = [];
                                  let Merge_t = ((performance.now() - startTime)/1000).toFixed(4);
+
+                                 if(opts.enableMriVolumeCrop) {
+                                     let pad = opts.fullVolCropPad; 
+                                     outLabelVolume = removeZeroPaddingFrom3dTensor(outLabelVolume, pad, pad, pad);
+                                     console.log(" outLabelVolume without padding shape :  ", outLabelVolume.shape);
+                                     outLabelVolume =  resizeWithZeroPadding(outLabelVolume, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
+                                     console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape); 
+                                 }
+
+                                 let unstackOutVolumeTensor =  tf.unstack(outLabelVolume); 
+                                 tf.dispose(outLabelVolume);                                 
+
 
                                  startTime = performance.now();
                                  console.log("Generating output..."); 
@@ -3393,7 +3548,8 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                     document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green"; 
                     document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green"; 
                   }
-            });                     
+ 
+           });                         
 
   }   
 
@@ -3991,12 +4147,12 @@ draw3dObjBoundingVolume= (unstackOutVolumeTensor) => {
               allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
         }
 
-        if(true) { // Enable contour for overlay option
-            // Remove noisy regions using 3d CC   
-            let sliceWidth = niftiHeader.dims[1];
-            let sliceHeight = niftiHeader.dims[2];                                
-            allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, 2 ); 
-        }  
+        // if(false) { // Enable contour for overlay option
+        //     // Remove noisy regions using 3d CC   
+        //     let sliceWidth = niftiHeader.dims[1];
+        //     let sliceHeight = niftiHeader.dims[2];                                
+        //     allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, 2 ); 
+        // }  
 
         let allOutputSlices3DCC1DimArray = [];
         // Use this conversion to download output slices as nii file. Takes around 0.5 s 
@@ -4004,6 +4160,7 @@ draw3dObjBoundingVolume= (unstackOutVolumeTensor) => {
               allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx]);
         } 
 
+        console.log("Done with allOutputSlices3DCC1DimArray ")
         
         let  brainOut = [];
 
@@ -4032,6 +4189,10 @@ draw3dObjBoundingVolume= (unstackOutVolumeTensor) => {
               params_label["mainView"] = papayaContainers[0].viewer.mainImage.sliceDirection == 1? "axial" :
                                          papayaContainers[0].viewer.mainImage.sliceDirection == 2? "coronal" : "sagittal";
 
+              
+              papaya.Container.resetViewer(1, params_label);    
+              papayaContainers[1].viewer.screenVolumes[0].alpha = 0.2;  // 0 to 1 screenVolumes[0] is first image loaded in Labels viewer
+              papayaContainers[1].viewer.drawViewer(true, false);              
 
 
               // To sync swap view button 
@@ -4145,7 +4306,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 *
 */
  
- inferenceFullVolumePhase2 = async(model, pipeline1_out,  slices_3d, num_of_slices, slice_height, slice_width) => {
+ inferenceFullVolumePhase2 = async(model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out) => {
  
            //--Phase-2, After remove the skull try to allocate brain volume and make inferece
            console.log(" ---- Start FullVolume inference phase-II ---- "); 
@@ -4200,10 +4361,15 @@ get3dObjectBoundingVolume = async(slices_3d) => {
           console.log( "col min and max  :", col_min, col_max);
           console.log( "depth min and max  :", depth_min, depth_max);
 
+          //-- Reference voxel that cropped volume started slice with it
+          let refVoxel = [row_min, col_min, depth_min]; 
+          // -- Starting form refVoxel, size of bounding volume 
+          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];          
+
           coords.dispose();
 
            //-- Extract 3d object (e.g. brain)
-          cropped_slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
+          let cropped_slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
           
           slices_3d.dispose();
 
@@ -4225,10 +4391,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
           // }
 
-          //-- Reference voxel that cropped volume started slice with it
-          let refVoxel = [row_min, col_min, depth_min]; 
-          // -- Starting form refVoxel, size of bounding volume 
-          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];
+
 
           if(opts.drawBoundingVolume) {
 
@@ -4239,6 +4402,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                 console.log(" outLabelVolume final shape after resizing :  ", testVol.shape); 
 
                 draw3dObjBoundingVolume(tf.unstack(testVol));
+                testVol.dispose();
 
                 return 0;
           }
@@ -4564,6 +4728,23 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
  } 
 
+/**
+* Function to check if there is any problem with the sequence of ids
+*
+* @since 1.2.0
+*
+*/
+
+checkInferenceModelList = () => {
+   inferenceModelsList.forEach((model, idx) => {
+          if(model.id != ( idx + 1) ) {
+             webix.alert("inferenceModelsList needs review for inconsistency in models ID");
+             return 0;
+          }
+   });
+
+}
+
 
 /**
 * Inference function for full volume that find tissue first (Phase-1) by apply pre-model e.g. Brain_Extraction or Brain_Masking
@@ -4578,23 +4759,24 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 */
 
 
-  inferenceFullVolumePhase1 = (model, slices_3d, num_of_slices, slice_height, slice_width) => {
+  inferenceFullVolumePhase1 = (model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol) => {
 
             statData["No_SubVolumes"] = 1;
 
             // check for pre model to load e.g. Brain_Extraction or Brain_Masking
             let preModel = null; 
-            let preModelEntry = inferenceModelsList[$$("selectModel").getValue() - 1];
+            let modelEntry = inferenceModelsList[$$("selectModel").getValue() - 1];
+            console.log("modelEntry ", modelEntry)
 
             //-- If pre-model is not null then slices_3d mask will be generated.. 
             //-- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
             let slices_3d_mask = null;
 
             // load pre-model for inference first
-            if(preModelEntry["preModelId"] != null) {
+            if(modelEntry["preModelId"]) {
 
-                preModel =  load_model(inferenceModelsList[ preModelEntry["preModelId"] - 1]['path'] );  
-                let transpose = inferenceModelsList[ preModelEntry["preModelId"]  - 1]["enableTranpose"];
+                preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] );  
+                let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranpose"];
 
                 //-- Transpose MRI data to be match pytorch/keras input output
                 //-- Check if pre-model needs transpose..
@@ -4663,12 +4845,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                           statData["Channel_Last"] = isPreModelChannelLast;
                           statData["Model_Param"] = getModelNumParameters(preModelObject);
                           statData["Model_Layers"] = getModelNumLayers(preModelObject);      
-                          statData["Model"] = inferenceModelsList[ preModelEntry["preModelId"] - 1]["modelName"];
+                          statData["Model"] = inferenceModelsList[ modelEntry["preModelId"] - 1]["modelName"];
 
                   
                           // maxLabelPredicted in whole volume of the brain
                           let maxLabelPredicted = 0;
-                          let delay = inferenceModelsList[ preModelEntry["preModelId"] - 1]["inferenceDelay"];
+                          let delay = inferenceModelsList[ modelEntry["preModelId"] - 1]["inferenceDelay"];
 
                           let i = 1;
                           let layersLength = res.layers.length;
@@ -4902,7 +5084,11 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                        console.log("--- pre-model done ---");
                                        // --mask_3d = slices_3d_mask.greater([0]).asType('bool');
                                        // --slices_3d_mask.dispose();
-                                       inferenceFullVolumePhase2(model, slices_3d_mask, slices_3d.transpose(), num_of_slices, slice_height, slice_width);
+                                       if(isModelFullVol) {
+                                            inferenceFullVolumePhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                       } else {
+                                            inferenceSubVolumes(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                       }
 
                                     }
                                     
@@ -4931,9 +5117,14 @@ get3dObjectBoundingVolume = async(slices_3d) => {
            } else {   
                
                //--Phase-2, After remove the skull try to allocate brain volume and make inferece
-               console.log("--- No pre-model is selected with FV Atlas ---");
+               console.log("--- No pre-model is selected ---");
                //-- mask_3d = slices_3d.greater([0]).asType('bool');
-               inferenceFullVolumePhase2(model, null, slices_3d, num_of_slices, slice_height, slice_width);
+             
+               if(isModelFullVol) {
+                    inferenceFullVolumePhase2(model, slices_3d, num_of_slices, slice_height, slice_width, null);
+               } else {
+                    inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width, null);
+               }               
            }
 
            
@@ -5083,13 +5274,13 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                 // } 
 
                 //--Check whether the model will make inference at once as FullVolumeModel 
-                let isFullVolModel;
+                let isModelFullVol;
 
                 if ( (batch_D == 256) && (batch_H == 256) && (batch_W == 256) ) {
-                        isFullVolModel = true;
+                        isModelFullVol = true;
 
                 } else {
-                        isFullVolModel = false;
+                        isModelFullVol = false;
 
                 } 
                  
@@ -5130,7 +5321,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                 //-- Timing data to collect
                 let today = new Date();
 
-                if(isFullVolModel) {
+                if(isModelFullVol) {
                      statData["Brainchop_Ver"] = "FullVolume";
                 } else {
                      statData["Brainchop_Ver"] = "SubVolumes";
@@ -5214,12 +5405,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
                 let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
 
-                if (isFullVolModel) {
+                if (isModelFullVol) {
 
-                    if( (outLabels >= opts.minSegLabels2enableCrop) && opts.enableFVCropOption) {
+                    if( (outLabels >= opts.minSegLabels2enableCrop) && opts.enableMriVolumeCrop) {
                         //-- FullVolume with Crop option before inference .. 
                         //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
-                        inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width);
+                        inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
                     } else { 
                         // Transpose MRI data to be match pytorch/keras input output
                         if(transpose) {
@@ -5232,15 +5423,23 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                        inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
                     } 
                 } else {
-                     // Transpose MRI data to be match pytorch/keras input output
-                     if(transpose) {
-                        slices_3d = slices_3d.transpose()
-                        console.log("Input transposed");
-                     } else {
-                        console.log("Transpose not enabled");
-                     }   
-                                               
-                     inferenceSubVolumes(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width, batch_D, batch_H, batch_W);
+
+                    if(opts.enableMriVolumeCrop) {
+                        //-- FullVolume with Crop option before inference .. 
+                        //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
+                        inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
+                    } else { 
+                        // Transpose MRI data to be match pytorch/keras input output
+                        if(transpose) {
+                           slices_3d = slices_3d.transpose()
+                           console.log("Input transposed");
+                        } else {
+                           console.log("Transpose not enabled");
+                        }                               
+
+                     inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width);
+                    }                   
+
                } 
        })    
 	            
