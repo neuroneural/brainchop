@@ -68,6 +68,7 @@
             fullVolCropPad:                       2, // Padding size add to cropped brain 
             drawBoundingVolume:                   false, // plot bounding volume used to crop the brain    
             isBrainCropMaskBased:                 true, // Check if brain masking will be used for cropping & optional show or brain tissue will be used
+            multFinalOutWithMask:                 false, // Can be used to multiply final output with premodel output mask to crean noisy areas
             showPhase1Output:                     false, // This will load to papaya the output of phase-1 (ie. brain mask or brain tissue)
 
             isPostProcessEnable:                  true,  // If true 3D Connected Components filter will apply  
@@ -91,7 +92,7 @@
                     Data_Load: null, Preprocess_t: null, Inference_t: null, Merge_t: null,  Postprocess_t: null, 
                     Model: null, Browser: null, Browser_Ver: null, OS: null, Texture_Size: null, Heap_Size_MB: Infinity, Used_Heap_MB: Infinity, Heap_Limit_MB: Infinity,
                     WebGL1: null, WebGL2: null, TF_Backend: null, GPU_Vendor: null, GPU_Vendor_Full: null, 
-                    GPU_Card: null, GPU_Card_Full:null, Status: null, CPU_Cores: null, Error_Type: null, Extra_Err_Info: null };
+                    GPU_Card: null, GPU_Card_Full:null, Status: null, CPU_Cores: null, Error_Type: null, Extra_Err_Info: null, Extra_Info: null };
 
 
 
@@ -258,7 +259,7 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       textureSize:  16384, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. This model partitions T1 image into cubes of smaller size for inference to helps overcoming browser limitations but leads to longer computation and lower accuracy."

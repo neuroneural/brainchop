@@ -3349,6 +3349,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       statData["Model_Param"] = getModelNumParameters(res);
                       statData["Model_Layers"] = getModelNumLayers(res);      
                       statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                      statData["Extra_Info"] = null;
 
                       let curProgBar = parseInt(document.getElementById("progressBar").style.width);
 
@@ -4320,7 +4321,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
            } else {
 
               mask_3d = pipeline1_out.greater([0]).asType('bool'); 
-              pipeline1_out.dispose();           
+              //-- pipeline1_out.dispose();           
 
            }    
 
@@ -4470,6 +4471,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                       statData["Model_Param"] = getModelNumParameters(res);
                       statData["Model_Layers"] = getModelNumLayers(res);      
                       statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                      statData["Extra_Info"] = null;
 
 
                       let curTensor = [];  
@@ -4648,6 +4650,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape); 
 
 
+                                  // To clean the skull area wrongly segmented inphase-2. 
+                                if(pipeline1_out != null && opts.isBrainCropMaskBased && opts.multFinalOutWithMask) { 
+                                    outLabelVolume = outLabelVolume.mul(pipeline1_out);
+                                }
+
+
                                 let unstackOutVolumeTensor =  tf.unstack(outLabelVolume); 
                                 tf.dispose(outLabelVolume);
 
@@ -4789,6 +4797,7 @@ checkInferenceModelList = () => {
 
                 statData["Brainchop_Ver"] = "PreModel_FV"  ;  // e.g. "PreModel_FV"
 
+
                 preModel.then(function (res) {
 
                      try {
@@ -4846,6 +4855,7 @@ checkInferenceModelList = () => {
                           statData["Model_Param"] = getModelNumParameters(preModelObject);
                           statData["Model_Layers"] = getModelNumLayers(preModelObject);      
                           statData["Model"] = inferenceModelsList[ modelEntry["preModelId"] - 1]["modelName"];
+                          statData["Extra_Info"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
 
                   
                           // maxLabelPredicted in whole volume of the brain
@@ -5376,6 +5386,7 @@ checkInferenceModelList = () => {
                 statData["Status"] = null;
                 statData["Error_Type"] = null;  
                 statData["Extra_Err_Info"] = null; 
+                statData["Extra_Info"] = null; 
 
             
                 if(isChrome()) {
