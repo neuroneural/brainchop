@@ -470,6 +470,10 @@
          ]
       }
 
+     // function to get masking model from inferenceModelsList
+     getMaskingModels = () => {
+        return ["", "Full Brain GWM (light)", "Full Brain GWM (large)"];
+     }
 
       let modelBrowsingForm = {view: "form", id: "modelBrowsingFormId", elements: [ 
               {  cols: [
@@ -659,14 +663,175 @@
                     }, 
 
                     { view: "select", 
-                      id: "tranposeStatus", 
+                      id: "transposeStatus", 
                       value: 1, 
                       options: ["true", "false"]
-                    }                                    
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Transpose Info"
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+
+                      }                        
+                    }                                                         
 
                 ]    
              }, 
 
+              {  cols: [
+                    {   view: "label", label: "Crop Input",  
+                        align: "left"
+                    }, 
+
+                    {
+                      view: "select", 
+                      id: "cropStatus", 
+                      value: 1, 
+                      options: ["false", "true"],
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue == "true") {
+                               $$("cropPadStatus").enable();
+                               $$("preModelStatus").enable();
+
+                          } else {
+                               $$("cropPadStatus").disable();
+                               $$("cropPadStatus").setValue(0);
+                               $$("preModelStatus").setValue("");
+                               $$("filterByMaskStatus").setValue("false");
+                          }
+
+                        }
+                      }                      
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "For speed-up the inference with limited browser memory, cropping brain from background before feeding the result to the inference model can lower memory use.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    } 
+
+                ]    
+             },   
+
+              {  cols: [
+                    {   view: "label", label: "Crop Padding",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "cropPadStatus", 
+                      value: 0, 
+                      disabled: true,
+                      options: ["0", "1", "2", "3"]
+                    },
+                    
+                    { 
+                      view: "label", 
+                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Add Padding to cropped brain 3D image. ";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+              {  cols: [
+                    {   view: "label", label: "Pre-Model Masking",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "preModelStatus", 
+                      value: 1, 
+                      disabled: true,
+                      options:  getMaskingModels(),
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue !== "") {
+                               $$("filterByMaskStatus").enable();
+            
+                          } else {
+                               $$("filterByMaskStatus").disable();
+                               $$("filterByMaskStatus").setValue("false");
+                          }
+
+                        }
+                      }  
+
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Select a masking model for cropping the brain.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                        
+
+
+                ]    
+             },                                     
+
+              {  cols: [
+                    {   view: "label", label: "Filter Output by Mask",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "filterByMaskStatus", 
+                      disabled: true,
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "This is a voxel-wise multiplication of resulted output and the mask resulted from the pre-model inference. This option can be used to clean any wrongly segmented regions (e.g. skull areas) but also it can result in removing some properly segmented regions."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                          
+
+                ]    
+             },
 
               {  cols: [
                     {   view: "label", label: "Model Name*",  
@@ -723,6 +888,13 @@
                                                 return 0;
                                             }
 
+                                           let preModelIdVal = null;
+                                           if($$("preModelStatus").getValue().length ){
+                                                preModelIdVal =   inferenceModelsList.filter(entry => entry.modelName === $$("preModelStatus").getValue())[0].id;
+
+                                            } 
+
+
                                            inferenceModelsList.push({
                                                  id: newId, 
                                                  type: "Segmentation", 
@@ -730,10 +902,13 @@
                                                  modelName: newModelName, 
                                                  labelsPath: labelFileUrl, 
                                                  colorsPath: colorFileUrl, 
-                                                 preModelId: null, 
+                                                 preModelId: preModelIdVal,
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
-                                                 enableTranpose: $$("tranposeStatus").getValue(),
+                                                 enableTranspose: $$("transposeStatus").getValue(),
+                                                 enableCrop: $$("cropStatus").getValue(), 
+                                                 cropPadding: parseInt($$("cropPadStatus").getValue()), 
+                                                 filterOutWithPreMask: $$("filterByMaskStatus").getValue(), 
                                                  textureSize: 0,
                                                  warning: null, 
                                                  inferenceDelay: 100,                                                
@@ -771,8 +946,8 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:400,
-                  width:300,
+                  height:600,
+                  width:400,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[
                           { type:"header", template:"Load tfjs Model", css:"windowtitleclass" },
@@ -791,8 +966,13 @@
       $$("modelBrowsingWindow").attachEvent("onShow", function(){
           $$("weightsIconId").config.icon = "";
           $$("modelIconId").config.icon = "";
+          $$("labelsIconId").config.icon = "";
+          $$("colorsIconId").config.icon = "";
           $$("weightsIconId").refresh();
           $$("modelIconId").refresh();
+          $$("labelsIconId").refresh();
+          $$("colorsIconId").refresh();  
+          $$("cropStatus").setValue("false");       
           modelFile = null;
           weightFile = null;
           labelFile = null;

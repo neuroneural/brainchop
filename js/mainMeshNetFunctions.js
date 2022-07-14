@@ -1659,7 +1659,7 @@ mergeSubVolumesV2 = (allPredictions, num_of_slices, slice_height, slice_width, n
         
         let outVolumeTensor;
 
-        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
 
         let isValidBuf = isArrBufSizeValid(num_of_slices, slice_height, slice_width, numSegClasses, 'uint16');
 
@@ -1821,7 +1821,7 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
         console.log("Wait while generate output labels... ");
         let unstackOutVolumeTensor;
 
-        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+        let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
 
         let isValidBuf = isArrBufSizeValid(num_of_slices, slice_height, slice_width, numSegClasses);
 
@@ -3142,8 +3142,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
   inferenceSubVolumes = async(model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out = null) => {
 
           let refVoxel = [], boundVolSizeArr = [];
+          let enableCrop = inferenceModelsList[$$("selectModel").getValue() - 1]["enableCrop"];
 
-          if(opts.enableMriVolumeCrop) {
+          if(enableCrop) {
 
                   //--Phase-2, After remove the skull try to allocate brain volume and make inferece
                   console.log(" ---- Start SubVolume inference phase-II ---- "); 
@@ -3211,7 +3212,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                   
 
                   //-- Padding size add to cropped brain  
-                  let pad = opts.fullVolCropPad;          
+                  let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];         
 
                   // Create margin around the bounding volume
                   slices_3d = addZeroPaddingTo3dTensor(slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
@@ -3235,7 +3236,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
           }    
 
 
-          let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+          let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
           if(transpose) {
              slices_3d = slices_3d.transpose()
              console.log("Input transposed for model");
@@ -3460,8 +3461,8 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  allPredictions = [];
                                  let Merge_t = ((performance.now() - startTime)/1000).toFixed(4);
 
-                                 if(opts.enableMriVolumeCrop) {
-                                     let pad = opts.fullVolCropPad; 
+                                 if(enableCrop) {
+                                     let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];  
                                      outLabelVolume = removeZeroPaddingFrom3dTensor(outLabelVolume, pad, pad, pad);
                                      console.log(" outLabelVolume without padding shape :  ", outLabelVolume.shape);
                                      outLabelVolume =  resizeWithZeroPadding(outLabelVolume, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
@@ -3582,7 +3583,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
-                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
                       let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
 
@@ -4033,10 +4034,13 @@ generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_
         
         if(opts.isPostProcessEnable) {
             console.log("Post processing enabled ... "); 
-            // Remove noisy regions using 3d CC   
-            let sliceWidth = niftiHeader.dims[1];
-            let sliceHeight = niftiHeader.dims[2];                                
-            allOutputSlices3DCC = postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+            allOutputSlices3DCC = tf.tidy(() => {  
+                  // Remove noisy regions using 3d CC   
+                  let sliceWidth = niftiHeader.dims[1];
+                  let sliceHeight = niftiHeader.dims[2];                                
+                  return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+            })       
+            console.log("Post processing done ");      
         }   
 
 
@@ -4375,7 +4379,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
           slices_3d.dispose();
 
           //-- Padding size add to cropped brain  
-          let pad = opts.fullVolCropPad;          
+          let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];          
 
           // Create margin around the bounding volume
           cropped_slices_3d_w_pad = addZeroPaddingTo3dTensor(cropped_slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
@@ -4418,7 +4422,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                       let inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
-                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
                       let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
 
@@ -4649,10 +4653,10 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 outLabelVolume =  resizeWithZeroPadding(outLabelVolume, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
                                 console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape); 
 
-
+                                let filterOutWithPreMask =  inferenceModelsList[$$("selectModel").getValue() - 1]["filterOutWithPreMask"];   
                                   // To clean the skull area wrongly segmented inphase-2. 
-                                if(pipeline1_out != null && opts.isBrainCropMaskBased && opts.multFinalOutWithMask) { 
-                                    outLabelVolume = outLabelVolume.mul(pipeline1_out);
+                                if(pipeline1_out != null && opts.isBrainCropMaskBased && filterOutWithPreMask) { 
+                                    outLabelVolume = outLabelVolume.mul(binarizeVolumeDataTensor(pipeline1_out));
                                 }
 
 
@@ -4784,7 +4788,7 @@ checkInferenceModelList = () => {
             if(modelEntry["preModelId"]) {
 
                 preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] );  
-                let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranpose"];
+                let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranspose"];
 
                 //-- Transpose MRI data to be match pytorch/keras input output
                 //-- Check if pre-model needs transpose..
@@ -5414,11 +5418,12 @@ checkInferenceModelList = () => {
                 } 
 
 
-                let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranpose"];
+                let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
+                let enableCrop = inferenceModelsList[$$("selectModel").getValue() - 1]["enableCrop"];
 
                 if (isModelFullVol) {
 
-                    if( (outLabels >= opts.minSegLabels2enableCrop) && opts.enableMriVolumeCrop) {
+                    if( enableCrop) {
                         //-- FullVolume with Crop option before inference .. 
                         //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
                         inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
@@ -5435,7 +5440,7 @@ checkInferenceModelList = () => {
                     } 
                 } else {
 
-                    if(opts.enableMriVolumeCrop) {
+                    if(enableCrop) {
                         //-- FullVolume with Crop option before inference .. 
                         //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
                         inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);

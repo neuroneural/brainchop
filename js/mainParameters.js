@@ -63,12 +63,8 @@
             isAutoColors:                         true, // If false, manualColorsRange will be in use
             bgLabelValue:                         0, // Semenatic Segmentation background label value  
              
-            enableMriVolumeCrop:                  true, // For Full volume inference, crop brain from zero background before feeding to inference model to lower memory use.
-            minSegLabels2enableCrop:              1, // Minimum number of segmenations resulted from the model must meet to run the two phases pipeline
-            fullVolCropPad:                       2, // Padding size add to cropped brain 
             drawBoundingVolume:                   false, // plot bounding volume used to crop the brain    
             isBrainCropMaskBased:                 true, // Check if brain masking will be used for cropping & optional show or brain tissue will be used
-            multFinalOutWithMask:                 false, // Can be used to multiply final output with premodel output mask to crean noisy areas
             showPhase1Output:                     false, // This will load to papaya the output of phase-1 (ie. brain mask or brain tissue)
 
             isPostProcessEnable:                  true,  // If true 3D Connected Components filter will apply  
@@ -108,7 +104,10 @@
                                        preModelId: null, // Model run first e.g.  crop the brain  {null, 1, 2, ..  }                                                                         
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: null, // Warning message to show when select the model.      
                                        inferenceDelay: 0, // Delay in ms time while looping layers applying.
@@ -125,7 +124,10 @@
                                        preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.      
                                        warning: null, // Warning message to show when select the model.       
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
@@ -142,7 +144,10 @@
                                        preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
                                        warning: "This model needs dedicated graphics card.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
@@ -159,7 +164,10 @@
                                        preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
                                        textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
                                        warning: null, // Warning message to show when select the model.    
                                        inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
@@ -176,7 +184,10 @@
                                        preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference 
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        textureSize:  0,  // Requested Texture size for the model, if unknown can be 0. 
                                        warning: null, // Warning message to show when select the model.    
                                        inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
@@ -192,7 +203,10 @@
                                        preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: null, // Warning message to show when select the model.   
                                        inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
@@ -209,7 +223,10 @@
                                        preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: null, // Warning message to show when select the model.   
                                        inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
@@ -226,7 +243,10 @@
                                        preModelId: 6,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model needs dedicated graphics card", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
@@ -239,10 +259,13 @@
                                        modelName:"FS aparc+aseg Atlas 104", 
                                        labelsPath: "./ModelToLoad/model21_104class/labels.json", 
                                        colorsPath: "./ModelToLoad/model21_104class/colorLUT.json",     
-                                       preModelId: 6,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
+                                       preModelId: 2,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
@@ -258,9 +281,12 @@
                                        preModelId: 6,  // model run first e.g.  Brain_Extraction { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranpose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  16384, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
+                                       warning: "This model may need dedicated graphics card, for browser with Texture_Size of 16384 it is recommended Safari 605", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. This model partitions T1 image into cubes of smaller size for inference to helps overcoming browser limitations but leads to longer computation and lower accuracy."
                                   }                                                                                                        
