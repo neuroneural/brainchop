@@ -170,7 +170,7 @@
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
                                        textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
                                        warning: null, // Warning message to show when select the model.    
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
                                   }, 
 
@@ -209,7 +209,7 @@
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: null, // Warning message to show when select the model.   
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
                                   },                                  
 

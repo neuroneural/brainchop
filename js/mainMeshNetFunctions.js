@@ -5322,7 +5322,7 @@ checkInferenceModelList = () => {
                 console.log(tf.getBackend());
                 //-- set this flag so that textures are deleted when tensors are disposed.
                 tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
-                tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+                // tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
 
                 console.log("tf env() features :", tf.env().features);
                 console.log("tf env total features: ", Object.keys(tf.env().features).length);
