@@ -191,6 +191,30 @@
 
 
 /**
+* Convert rgb object to hex string.  
+* Credit: https://stackoverflow.com/questions/5623838/
+*
+* @since 1.2.0
+* @param {object} rgbOb 
+* @returns {string} Returns hex as string
+* @example
+* 
+* rgbToHex( { r: 255, g: 0, b: 0 } )
+* // => "#"
+*
+*/ 
+
+rgbToHex = (rgbObj) => {
+     chToHex = (ch) => {
+      let hex = ch.toString(16);
+      return hex.length == 1 ? "0" + hex : hex;
+    }
+
+    return "#" + chToHex(rgbObj.r) + chToHex(rgbObj.g) + chToHex(rgbObj.b);
+}
+
+
+/**
 * For Dice calculations- find the intersection 
 *
 * @since 1.0.0
@@ -1164,6 +1188,37 @@ getCustomColorTable = (numSegClasses) => {
         return customColorTable;
 }
 
+
+
+/**
+* Get object from external json file 
+*
+* @since 1.2.0
+* @param {string} jsonURL - External file URL
+* @returns {object} 
+* @example
+*
+* getExternalJSON("colorLUT.json")
+* // => {0: "rgb(0,0,0)", 1: "rgb(0,255,0)", 2: "rgb(255,0,255)"} 
+*
+*/  
+
+getExternalJSON = (jsonURL) => {
+        let jsonObj; 
+        // read json file in sync mode
+        $.ajax({
+              url: jsonURL,
+              async: false,
+              dataType: 'json',
+              success: function (response) {
+                jsonObj = response
+                //-- colors : {0: "rgb(0,0,0)", 1: "rgb(0,255,0)", 2: "rgb(255,0,255)"} 
+              }
+            });
+
+        return jsonObj;
+
+}
 
 
 getCustomColorTableFromUrl = (numSegClasses, colorURL ) => { 
@@ -2154,7 +2209,8 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         } 
 
 
-        console.log("Output Segmentation Labels (ROI) volumes : ",  arrValuesFreq(allOutputSlices3DCC1DimArray));  
+
+        let maskBrainExtraction = false; 
 
         let labelArrayBuffer;
         let modelType = inferenceModelsList[$$("selectModel").getValue() - 1]["type"];
@@ -2162,10 +2218,13 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         switch ( modelType) {
                  case 'Brain_Masking':
                                      { 
-                                        let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray));
+                                        let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray)).mul(255);
                                         let brainMask = Array.from(brainMaskTensor1d.dataSync());
+                                        brainMaskTensor1d.dispose();
                                         labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainMask);  
                                         allOutputSlices3DCC1DimArray = brainMask;
+                                        // --labelsHistogramMap = null;
+                                        maskBrainExtraction = true;
                                         break;             
                                      }             
                case 'Brain_Extraction':
@@ -2186,6 +2245,8 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                                        
                                         labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainExtractionData1DimArr); 
                                         allOutputSlices3DCC1DimArray = brainExtractionData1DimArr;
+                                        //-- labelsHistogramMap = null;
+                                        maskBrainExtraction = true;
                                         break;             
                                     }  
                              default:
@@ -2195,6 +2256,20 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                                     }                                        
         }
 
+
+        // Find voxel values frequency
+        let labelsHistogramMap = arrValuesFreq(allOutputSlices3DCC1DimArray);
+        console.log("Output Segmentation Labels (ROI) volumes : ",  labelsHistogramMap); 
+
+        // Convert map to object 
+        let labelsHistoObj = map2Object(labelsHistogramMap);
+
+        // to plot 3d shape
+        console.log("convert out1DArr to 3DArr")
+        outVolumeStatus['out3DArr'] = tf.tensor(allOutputSlices3DCC1DimArray, [num_of_slices, slice_height, slice_width]).reverse(1).arraySync();
+
+
+        let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
 
         if(opts.isColorEnable) {   
             let blob = new Blob([labelArrayBuffer], {type: "application/octet-binary;charset=utf-8"});
@@ -2214,7 +2289,6 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                                         }  
                                  default:
                                         {
-                                            let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
                                             if(colorURL) { // colorURL file exists
                                                     let customColorTable = getCustomColorTableFromUrl(numSegClasses, colorURL);  
                                                      params_label[file["name"]] = {lut:  new customColorTable(), interpolation: false};
@@ -2260,11 +2334,13 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         // set 1 for label viewer 
         papaya.Container.resetViewer(1, params_label);    
 
+        let labelsURL = inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"]; 
+
         //Activate annotation for papaya container 0
-        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 0);
+        addMouseMoveHandler(labelsURL , 0);
 
         //Activate annotation for papaya container 1        
-        addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+        addMouseMoveHandler(labelsURL, 1);
 
         // Activate Swap view button for MRI viewer
         // This needed to deactivated because of async behave  
@@ -2279,8 +2355,93 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
 
         document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
               papayaContainers[0].viewer.rotateViews()
+        }) 
 
-        })                  
+
+        outVolumeStatus['labelsHistoObj'] = labelsHistoObj;
+
+        //--Remvoe background volume
+        delete labelsHistoObj['0'];
+        let totalTissueVol = 0;
+        Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+              //-- Make sure to delete labelsHistoObj['0'] before
+              totalTissueVol += labelsHistoObj[labelKey];
+        })        
+
+        let roiData = [];
+        let roiLabels = [];
+        let chartXaxisStep = 1;
+
+        if(! maskBrainExtraction) { // If Atlas 50, 104  or GMWM Segmenations
+
+             let colorLutObj = getExternalJSON(colorURL);
+             outVolumeStatus['colorLutObj'] = colorLutObj;
+             //--e.g. colorLutObj- e.g. {"0": "rgb(0,0,0)", "1": "rgb(245,245,245)", "2": "rgb(196,58,250)", ... }
+
+             let labelsObj = getExternalJSON(labelsURL);
+             outVolumeStatus['labelsObj'] = labelsObj;
+             //-- e.g. labelsObj- { "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle",..}
+
+
+              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                   roiData.push({y: labelsHistoObj[labelKey] * 100/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+                   roiLabels[idx] =  labelsObj[labelKey];
+              }) 
+
+              //-- roiData = [ {y: 34.4, color: 'red'}, {y: 20.1, color: '#aaff99'}];
+              //-- roiLabels = ['Roi-1','Roi-2'];
+       
+
+              // $$("out3DIcon").enable(); 
+              // $$("outChartIcon").enable(); 
+              // document.getElementById("out3D-1").style.opacity = 1;
+              // document.getElementById("outChart-1").style.opacity = 1;
+              // document.getElementById("out3D-1").style.filter = "alpha(opacity=100)";
+              // document.getElementById("outChart-1").style.filter = "alpha(opacity=100)";            
+
+        } else { // For mask or brain extraction models
+              
+              let colorLutObj = {};
+              let labelsObj = {};
+
+              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                    colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
+                    labelsObj[labelKey] = labelKey;
+              }) 
+
+              // if(Object.keys(labelsHistoObj).length == 1) {
+              //      roiLabels = ['255']; 
+              // } else {
+              //      roiLabels = [];
+              // } 
+
+              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                   roiData.push({y: labelsHistoObj[labelKey] * 100/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+                   if(idx == 0 || idx == Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent) || idx == Object.keys(labelsHistoObj).length -1 ){
+                       roiLabels[idx] =  labelsObj[labelKey];
+                   }
+
+              })               
+
+              chartXaxisStep = Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent);
+
+              outVolumeStatus['colorLutObj'] = colorLutObj;
+              // To only show All make label null
+              outVolumeStatus['labelsObj'] = null;
+
+        }
+
+        $$("hchart").config.settings.xAxis.categories = roiLabels;
+        $$("hchart").config.settings.xAxis.labels.step = chartXaxisStep;
+        $$("hchart").config.settings.series[0].data  = roiData;
+        $$("hchart")._render();  
+
+        $$("out3DIcon").enable(); 
+        $$("outChartIcon").enable(); 
+        document.getElementById("out3D-1").style.opacity = 1;
+        document.getElementById("outChart-1").style.opacity = 1;
+        document.getElementById("out3D-1").style.filter = "alpha(opacity=100)";
+        document.getElementById("outChart-1").style.filter = "alpha(opacity=100)";            
 
   }
 
@@ -5177,9 +5338,27 @@ checkInferenceModelList = () => {
                         console.log(tf.getBackend());                        
  }
 
+/**
+* Pre-Inference settings
+* @since 1.3.0
+*
+*/
+
+resetMainParameters = () => {
+    // free global variable of 16777216 voxel
+    allOutputSlices3DCC1DimArray = [];
+    if(sceneRendered) {
+        clearScene(scene);
+        gui.domElement.style.display = "none"; 
+        sceneRendered = false;
+    }
+
+    Object.keys(outVolumeStatus).forEach(key => outVolumeStatus[key] = null);
+    $$("threejsWinId").hide();
+}
 
 /**
-* Inference Function 
+* Inference function 
 * @since 1.0.0
 *
 */
@@ -5195,6 +5374,7 @@ checkInferenceModelList = () => {
         //-- Reset Label Viewer        
         resetLabelViewer();        
                  
+        resetMainParameters();
 
 	      if (isNaN(batchSize) || batchSize != 1) {
                 webix.alert("The batch Size for input shape must be 1");
@@ -5231,7 +5411,8 @@ checkInferenceModelList = () => {
                 let batchInputShape = [];    
 
                 // free global variable of 16777216 voxel
-                allOutputSlices3DCC1DimArray = [];
+                // allOutputSlices3DCC1DimArray = [];
+                // sceneRendered = false;
                 // read input shape from model.json object 
                 batchInputShape = modelObject.layers[0].batchInputShape; 
                 console.log(" Model batch input shape : ", batchInputShape)

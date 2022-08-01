@@ -342,6 +342,41 @@ downloadNifti = (mriData, rawNiftiData, fileName ) => {
 }
 
 
+/**
+* Download Json  data as *.json file
+*
+* @since 1.2.0
+* @param {Object} jsonObj - 
+* @param {string} fileName 
+* @example
+*
+* downloadJsonObj( {1: "test1", 2: "test2"}, "test.json")
+*
+*/ 
+
+
+downloadJsonObj = (jsonObj, fileName ) => {
+      var downloadFileData = (function () {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        return function (data, fileName) {
+            // create Blob "Binary Large Object" of type octet-binary for the ArrayBuffer
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonObj));
+            a.href = dataStr;
+            a.download = fileName;
+            a.click();
+            };
+     }());
+
+     if (Object.keys(jsonObj).length) {
+          // save arraybuffer data to disk  
+          downloadFileData(jsonObj, fileName);
+      } else {
+          console.log("Not JSON  data found....... ");
+      }   
+}
+
 
 /**
 * Download current viewer canvas data as *.png or *.jpg image file
@@ -420,6 +455,27 @@ arrValuesFreq = (arr)=> {
    return resultMap;
 
 }
+
+
+/**
+* Function to convert Map to Json object need JS ES6, 
+* Object.fromEntries add to ES6 since 2017
+* 
+* @param {Map} map  { a → 1, b → 2 } 
+* @returns {Object}  e.g.  Object { a: 1, b: 2 }
+* @example
+*
+*
+* map2Object(  new Map().set('a', 1).set('b', 2) )
+* // =>  Object { a: 1, b: 2 }
+*
+*/ 
+
+
+map2Object = (map)=> {
+   return Object.fromEntries(map);
+}
+
 
 /**
 * Find if browser supports Workers

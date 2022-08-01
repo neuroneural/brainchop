@@ -20,10 +20,6 @@
 
     //---------- initialize Globals-------//  
 
-    // var model;
-    // var modelObject;
-
-    var  allOutputSlices3DCC1DimArray = [];
 
     //Raw Nifti Data and header
     var  rawNiftiData = [];
@@ -54,6 +50,14 @@
     var numOfModelsWithoutBrowse;
 
 
+    // Parameters  change with each inference
+    var  allOutputSlices3DCC1DimArray = [];    
+    var sceneRendered = false;
+    var gui = {};
+
+
+
+
     var opts = {
             // General  settings for input shape  [batchSize, batch_D, batch_H, batch_W, numOfChan]; 
             batchSize:                            1, //How many batches are used during each inference iteration
@@ -74,6 +78,8 @@
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
             telemetryFlag:                        true, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
+
+            chartXaxisStepPercent:                10, // percent from total labels on Xaxis
 
             uiSampleName:                         "BC_UI_Sample", // Sample name used by interface
 
@@ -293,6 +299,9 @@
                                  
                             ];   
 
+
+   //--For use with three.js
+   var outVolumeStatus = { out3DArr: null, totalVolume: 0, labelsHistoObj: null, colorLutObj: null, labelsObj: null};
 
    //Heatmap colors, for reproduce:  https://www.w3schools.com/colors/colors_hsl.asp
    var manualColorsRange = [/*Red*/ "hsla(0,100%,50%)", /*Vermillion*/ "hsla(30,100%,50%)", /*Orange*/ "hsla(60,100%,50%)",

@@ -12,7 +12,7 @@
  </p>
 
  <p align="justify">
- We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> integrated for MRI view.  For more information on brainchop please refer to this <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b> . For questions or sharing ideas please refere to our  <b><a href="https://github.com/neuroneural/brainchop/discussions/"  style="text-decoration: none"> Discussions </a></b> board.
+ We make implementation of brainchop.org freely available releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based  end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> integrated for MRI view. In version 1.3.0 <b><a href="https://threejs.org/"  style="text-decoration: none">Three.js</a></b> is used to for MRI 3D rendering.  For more information on brainchop please refer to this <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b> . For questions or sharing ideas please refere to our  <b><a href="https://github.com/neuroneural/brainchop/discussions/"  style="text-decoration: none"> Discussions </a></b> board.
 
  </p>
 
@@ -36,8 +36,17 @@
 
 To see the tool in action please click  [here](https://neuroneural.github.io/brainchop).
 
-Sample data can be accessed [here](https://drive.google.com/file/d/10KlnB4ykh_4WG5OmYt0m9BBSfeFCOcPT/view?usp=sharing).
+<div align="center">
 
+![Interface](https://github.com/neuroneural/brainchop/blob/master/style/BrainchopThreeJS.gif)
+
+**brainchop V1.3.0**
+</div>
+
+
+## Citation
+
+Mohamed Masoud, Farfalla Hu and Sergey Plis. (2022). Brainchop.org : In-browser deep learning framework for volumetric neuroimaging. Zenodo. https://doi.org/10.5281/zenodo.6565234
 
 ## Funding
 

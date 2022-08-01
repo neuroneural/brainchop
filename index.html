@@ -1,6 +1,6 @@
 <!--
   =========================================================
-* Brainchop - v1.1.0
+* Brainchop - v1.3.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -32,7 +32,7 @@
   <link rel="stylesheet" type="text/css" href="lib/papaya_lib/papaya.css" />
   <link rel="stylesheet" type="text/css" href="style/style.css">  
 
-<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 
 
   <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
@@ -62,6 +62,18 @@
   <script type="text/javascript" src="js/utilities.js"></script>  
   <script type="text/javascript"  src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
   <script type="text/javascript" src="js/mri_convert.js"></script>  
+
+  <script type="text/javascript" src="//cdn.webix.com/components/edge/highcharts/hcharts.js"></script>
+
+  <script type="text/javascript" charset="UTF-8" src="lib/three/three.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="lib/three/controls/TrackballControls.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="lib/three/controls/OrbitControls.js"></script>
+  <script type="text/javascript" src="lib/util/Stats.js"></script>
+  <script type="text/javascript" src="lib/util/dat.gui.js"></script>
+
+  <script type="text/javascript" src="js/util.js"></script>
+  <script type="text/javascript" src="js/BCBrain3D.js"></script>
+  <link rel="stylesheet" href="style/default.css">
 
 
 
@@ -160,6 +172,28 @@
         background: #396D9E !important;
       }    
 
+      #gui_container{
+        position: absolute;
+        top: 10%;
+        right: 1%;
+        height: auto;
+      }
+
+      #threejs-container{
+          background-color: black!important;
+      }
+  
+/*      #gui{
+        transform:translate(-50%, -75px);
+      }*/
+
+      .panel{
+            position: fixed;
+            z-index: 1;
+            scrollbar-color: rgba(255,255,255, 1);
+            scrollbar-width: thin;
+            transition: 0.5s;
+          }     
 
     </style>
 
@@ -178,7 +212,7 @@
       let aboutWindowForm = {view: "form", id: "aboutWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable you to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the nifti format. The output may also be downloaded as a nifti file. <br><br> <br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2022).<br> <b>Version:</b> 1.1.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='style/TReNDS_logo.jpg' width='180' height='60'></img></center>" 
+                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable you to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the nifti format. The output may also be downloaded as a nifti file. <br><br> <br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2022).<br> <b>Version:</b> 1.3.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='style/TReNDS_logo.jpg' width='180' height='60'></img></center>" 
                         
                     }                 
 
@@ -279,6 +313,55 @@
           template:"  <div class='w3-container' style='margin-top: 1vh;' id='mriConvertProgBarDiv' > <div class='w3-border' > <div class='w3-green' style='height:2vh;width:0%;' id='mriConvertProgBar'></div> </div> </div> "
         }
       });
+
+
+
+      // Window to show brain 3D..
+
+      // Progress bar for threeJS
+     // webix.ui({
+     //    view:"window",
+     //    id: "threeJsPrgBarWin",
+     //    height:50,
+     //    width:500,
+     //    position:"center",
+     //    head:false,
+     //    body:{
+     //      template:"  <div class='w3-container' style='margin-top: 1vh;' id='threeJsProgBarDiv' > <div class='w3-border' > <div class='w3-green' style='height:2vh;width:50%;' id='threeJsProgBar'></div> </div> </div> "
+     //    }
+     //  });
+
+      webix.ui({
+                  view:"window",
+                  id: "threejsWinId",
+                  height: Math.round(window.innerHeight * 0.7),
+                  width: Math.round(window.innerWidth * 0.7),
+                  move: true,
+                  resize: true,
+                  //width:400,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template: "3D Segmentation Regions", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("threejsWinId").hide();
+                              gui.domElement.style.display="none"; 
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+
+                  on:{ 
+                       onShow:function() {
+                         //-- $$("threeJsPrgBarWin").show();
+                       } 
+                     },     
+
+                  body:{
+                       template:"  <div id='threejs-container'> <div id='gui_container'></div>     <div id='loadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' > <i id='loadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div>    </div> "
+                  }
+      })  
+
 
 
       let referenceImage = { view: "form",  id: "referenceImage", elements: [ 
@@ -450,6 +533,12 @@
 
                                                   numOfOverlays = 0;   
                                                   $$("downloadBtn").disable(); 
+                                                  $$("out3DIcon").disable(); 
+                                                  $$("outChartIcon").disable();       
+                                                  document.getElementById("out3D-1").style.opacity = 0.3;
+                                                  document.getElementById("outChart-1").style.opacity = 0.3;  
+                                                  document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
+                                                  document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";                                                     
                                               }
                                          };
 
@@ -1029,7 +1118,32 @@
           "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"          
       }
 
+      resestDependency = () => {
+        //-- For future use
+        document.getElementById("out3D-1").style.opacity = 0.3;
+        document.getElementById("outChart-1").style.opacity = 0.3;  
+        document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
+        document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";               
+      }     
 
+      disableControls = () => {
+         $$("out3DIcon").disable(); 
+         $$("outChartIcon").disable();   
+         $$("downloadBtn").disable(); 
+         $$("segmentBtn").disable(); 
+      }     
+
+      newRunInference = () => {
+        var defer = $.Deferred();
+        disableControls();
+        resestDependency();
+       
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;
+      }
 
       let Segmentation = {view: "form", id: "Segmentation", elements: [ 
               { type:"header", template:"Segmentation Options",
@@ -1147,9 +1261,12 @@
                                        let maxTextureAvail = getMaxTextureSize();
                                        let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
                                        if( maxTextureAvail >= requiredTexture ) {
-                                           $$("downloadBtn").disable();
-                                           $$("segmentBtn").disable();                                        
-                                           runInference();
+                                           // $$("out3DIcon").disable(); 
+                                           // $$("outChartIcon").disable();   
+                                           // $$("downloadBtn").disable(); 
+                                           // $$("segmentBtn").disable();  
+                                           newRunInference().then(res => { runInference();})                                     
+                                           // runInference();
                                        } else {
                                          webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
                                        }
@@ -1157,10 +1274,97 @@
                           }
                       ]    
               }, 
-              { content: "progressBarDiv" , height:50}
-              // { content: "subProgressBarDiv" , height:50}
+              { content: "progressBarDiv" , height:50} 
+              // { content: "subProgressBarDiv" , height:50},
+                           
           ]
        }
+
+
+      showThreejsWindow = () => {
+        var defer = $.Deferred();
+        $$("threejsWinId").show(); 
+
+        if(! sceneRendered) { // if false,  render 
+            document.getElementById("loadingIconDiv").style.display = "";
+        } else {
+            document.getElementById("loadingIconDiv").style.display = "none";
+        } 
+
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;         
+      }
+
+      let outputOptions = {view: "form", id: "OutputOptionsId", elements: [ 
+              // { type:"header", template:"Output Options",
+              //   css: "headerclass"
+              // },
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Output Volumes",  
+                            id: "outChartLabel", 
+                            align: "left"
+                          },                 
+
+                          { 
+                            view: "label", 
+                            id: "outChartIcon", 
+                            label: '<img src="style/outChart-1.svg" id="outChart-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: true,
+                            click: function() {
+
+                                  $$("labelsHistogramWinId").show();                                
+
+                            }                        
+                          }                           
+
+                      ]    
+              },  
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Output 3D",  
+                            id: "out3DLabel", 
+                            align: "left"
+                          },                 
+                          { 
+                            view: "label", 
+                            id: "out3DIcon", 
+                            label: '<img src="style/out3D-1.svg" id="out3D-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: true,
+                            click: function() {
+                                  //-- $$("threejsWinId").show(); 
+                                 showThreejsWindow().then(res => {    
+                                    if(! sceneRendered) { // if false, will render scene and gui
+
+                                       init(outVolumeStatus['out3DArr'], outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
+                                       sceneRendered = true;
+                                       document.getElementById("loadingIconDiv").style.display = "none";
+
+                                    } else { // if already rendered
+                                         gui.domElement.style.display = "";
+                                    }
+                                 })    
+                            }                        
+                          }                         
+
+                      ]    
+              }                            
+          ]
+       }
+
+
+
 
 
 
@@ -1346,26 +1550,174 @@
               },
 
               {  cols: [
-                    {   view: "label", label: "WebGL-2",  
+                    {   view: "label", label: "WebGL-2",  width:70,
                         align: "left"
                     },                 
                     { 
-                      view: "label", label: "<span id='webGl2Status' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>",  align: "right" 
-                    }
-                ]    
-             }, 
+                      view: "label", label: "<span id='webGl2Status' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>",  align: "left" 
+                    },
+             //    ]    
+             // }, 
 
-             {  cols: [
-                    {   view: "label", label: "Memory",  
-                        align: "left"
+             // {  cols: [
+                    {   view: "label", label: "Memory",  width:80,
+                        align: "right"
                     },  // memoryView              
                     { 
-                      view: "label", label: "<span id='memoryStatus' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>", align: "right"  
+                      view: "label", label: "<span id='memoryStatus' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>", align: "left"  
                     }
                 ]    
              }             
           ]
        }
+
+
+       //-------------------------chart-------------------------//
+       //-------------------------chart-------------------------//
+       //-------------------------chart-------------------------//
+        
+
+         rioHChart = { type: "space", rows:[
+                        
+                        {
+                          id: "hchart", view:"highchart", 
+                          modules:["series-label", "exporting", "export-data", "accessibility"],
+                          settings:{
+                                    chart: {
+                                        type: 'column',
+                                        width: 800,
+                                        // height: 400,
+                                        // marginLeft: 0,
+                                        // marginRight: 0,
+                                        scrollablePlotArea: {
+                                            minWidth: 900,
+                                            scrollPositionX: 1
+                                        }
+                                    },                            
+
+                                    title: {
+                                        text: ''
+                                    },
+                                    subtitle: {
+                                        text: ''
+                                    },
+                                    credits: {
+                                        enabled: false
+                                    }, 
+                                    plotOptions: {
+                                        series: {
+                                            borderWidth: 1,
+                                            borderColor: 'black',
+                                            maxPointWidth: 20
+                                        },                                      
+                                        bar: {
+                                            dataLabels: {
+                                                enabled: true
+                                            }
+                                        }
+                                  },                                                                       
+                                  xAxis: {
+                                      type: 'category',
+
+                                      categories: null,                                      
+                                      labels: {
+                                          rotation: -45,
+                                          step: 1,
+                                          style: {
+                                              fontSize: '10px',
+                                              fontFamily: 'Verdana, sans-serif'
+                                          }
+                                      }
+                                  },
+
+                                  yAxis: {
+                                      min: 0,
+                                     // max: 100,
+                                      title: {
+                                          text: "Histogram PR('%')"
+                                          // align: 'high'
+                                      }
+                                  },  
+
+                                  legend: {
+                                      enabled: false
+                                  },
+
+          
+                                  series: [{
+                                          name: 'volumes',
+                                          data: null,
+
+                                  }]                                    
+                          }
+                        }
+                      ]
+       };
+
+
+      // Output labels histogram  form
+      let histogramWindowForm = {view: "form", id: "histogramWindowFormId", 
+           elements: [ 
+                       rioHChart,  
+
+                        {  cols: [
+                                  {}, 
+
+                                  { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                          align:"center",
+                                          click: function() {
+                                               $$("labelsHistogramWinId").hide();
+                                         }
+                                  },
+                                  { view:"button", value:"Save Data", css:"bt_1", width:100,  
+                                          align:"center",
+                                          click: function() {
+                                               
+                                               let labelsHistoObj = outVolumeStatus['labelsHistoObj'];
+                                               let fileName = refFileName == "" ? opts.uiSampleName: refFileName;
+                                               downloadJsonObj(labelsHistoObj, fileName +"_Seg" + Object.keys(labelsHistoObj).length + "_volumes.json");
+
+                                         }
+                                  },                                  
+
+                                  {}
+                                 ]
+                        } 
+
+                    ]
+       }
+
+
+
+      // Output labels histogram Window 
+      webix.ui({
+                  view:"window",
+                  id: "labelsHistogramWinId",
+                  height:600,
+                  width:800,
+                  move: true,
+                  resize: true,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Labels Histogram", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function() {
+                              $$("labelsHistogramWinId").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: histogramWindowForm
+
+      })
+
+
+
+
+
+       //-------------------------------------------------------//
+       //-------------------------Main--------------------------//
+       //-------------------------------------------------------// 
 
 
        webix.ui({
@@ -1378,6 +1730,7 @@
                        { width: 250, margin:10,  rows:[
                                                         referenceImage,
                                                         Segmentation,
+                                                        outputOptions,
                                                         downloadNiftiFile,
                                                         hardwareStatus,
                                                         {}
