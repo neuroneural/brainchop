@@ -989,7 +989,12 @@
         document.getElementById("out3D-1").style.opacity = 0.3;
         document.getElementById("outChart-1").style.opacity = 0.3;  
         document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
-        document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";               
+        document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";      
+        //-- Reset papaya MRI viewer overlay if exists
+        resetMriViewerOverlay(1);
+        //-- Reset Label Viewer        
+        resetLabelViewer();        
+        resetMainParameters();                 
       }     
 
       disableControls = () => {
@@ -1127,12 +1132,9 @@
                                        let maxTextureAvail = getMaxTextureSize();
                                        let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
                                        if( maxTextureAvail >= requiredTexture ) {
-                                           // $$("out3DIcon").disable(); 
-                                           // $$("outChartIcon").disable();   
-                                           // $$("downloadBtn").disable(); 
-                                           // $$("segmentBtn").disable();  
+
                                            newRunInference().then(res => { runInference();})                                     
-                                           // runInference();
+
                                        } else {
                                          webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
                                        }

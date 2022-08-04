@@ -168,6 +168,8 @@ init = (labelVol3dArr, colorLutObj = null, labelsObj = null) => {
     let roiSelectionArr = [];      
     let roiList = document.getElementById('roiList');
     let roiItems = document.getElementById('roiItems');
+    roiItems.innerHTML = '';
+
     roiList.getElementsByClassName('anchor')[0].onclick = function (evt) {
         if (roiItems.classList.contains('visible')){
             roiItems.classList.remove('visible');

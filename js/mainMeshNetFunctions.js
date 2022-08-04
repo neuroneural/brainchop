@@ -5337,6 +5337,8 @@ resetMainParameters = () => {
     if(sceneRendered) {
         clearScene(scene);
         gui.domElement.style.display = "none"; 
+        document.getElementById('roiList').style.display = "none"; 
+        document.getElementById('roiItems').innerHTML = '';
         sceneRendered = false;
     }
 
