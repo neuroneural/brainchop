@@ -38,7 +38,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/style/BrainchopThreeJS.gif)
+![Interface](https://github.com/neuroneural/brainchop/blob/master/style/Brainchop3D.gif)
 
 **brainchop V1.3.0**
 </div>

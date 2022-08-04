@@ -67,7 +67,7 @@ init = (labelVol3dArr, colorLutObj = null, labelsObj = null) => {
     const fov = 50;
     const aspect = $$("threejsWinId").config.width/$$("threejsWinId").config.height;
     const camera = new THREE.PerspectiveCamera( fov, aspect );
-    camera.position.z = 200;
+    camera.position.z = 300;
 
 
     //For camera to orbit around a brain target
@@ -141,10 +141,93 @@ init = (labelVol3dArr, colorLutObj = null, labelsObj = null) => {
     }  
 
 
+    filterVoxelsByMultiLabel = (roiLabelArr) => {
 
+            let selectedRoiNumArr = [];
+            roiLabelArr.forEach(roiLabel => {
+                selectedRoiNumArr.push(parseInt( swapNumAndLabels[roiLabel]) );
+            })  
+
+            scene.traverse(function(child) {
+                if(parseInt(child.name) > 0 || child.type === "Points"){
+                    if( selectedRoiNumArr.indexOf( parseInt(child.name) ) != -1 ) { // -1 means not exist
+                        child.visible = true;
+                    } else {
+                        child.visible = false;
+                    }
+                }
+            }); 
+                  
+            
+    }     
+
+    /****************************************************************/
+    /************************ Roi CheckList Ext *********************/
+    /****************************************************************/
+
+    let roiSelectionArr = [];      
+    let roiList = document.getElementById('roiList');
+    let roiItems = document.getElementById('roiItems');
+    roiList.getElementsByClassName('anchor')[0].onclick = function (evt) {
+        if (roiItems.classList.contains('visible')){
+            roiItems.classList.remove('visible');
+            roiItems.style.display = "none";
+        }
+        else{
+            roiItems.classList.add('visible');
+            roiItems.style.display = "block";
+        }
+    }
+
+    roiItems.onblur = function(evt) {
+        roiItems.classList.remove('visible');
+    }
+
+    removeArrayItem = (arr, item) => {
+      let index = arr.indexOf(item);
+      if (index > -1) {
+        arr.splice(index, 1);
+      }
+      return arr;
+    } 
+
+    preSelectRoi = (roi) => {
+       roiSelectionArr.push(roi);
+       document.getElementById(roi).checked = true;
+    }
+
+    updateRoiSelectArr = (inputElem) => {
+
+        if(inputElem.checked) {
+            roiSelectionArr.push(inputElem.id);
+        } else {
+           removeArrayItem(roiSelectionArr, inputElem.id)
+        }
+
+        filterVoxelsByMultiLabel(roiSelectionArr);
+        
+    }
+
+    creatRoiList = (roiLabelArray) => {
+       let nodes = "";        
+       roiSelectionArr = []; 
+
+       roiLabelArray.forEach (roi => {
+          if(roi !== "All") {
+             nodes += '<li><input id="' + roi + '"  type="checkbox" onclick = "updateRoiSelectArr(this) "/><label for="checkbox"> ' + roi + '</label></li>'
+          }
+       })
+       return nodes;
+    }    
+
+    /****************************************************************/
+    /****************************************************************/
+
+    //-- Init the gui  
     let gui_controls = new function () {
       this.opacity = 0.5;
       this.roi_label = "All";
+      this.multi_roi = false;
     };
 
 
@@ -163,7 +246,35 @@ init = (labelVol3dArr, colorLutObj = null, labelsObj = null) => {
         let roiSelector = gui.add( gui_controls, 'roi_label', allLabelsTxtArr).onChange(function (value) {
                filterVoxelsByLabel(value);
         })
+
+        let multiRoi = gui.add( gui_controls, 'multi_roi').onChange(function (value) {
+ 
+               roiItems.innerHTML =  creatRoiList(allLabelsTxtArr);
+               
+               if(value == true) {
+                        if(roiSelector.getValue() !== "All") {
+                           preSelectRoi(roiSelector.getValue());
+                        }
+
+                        roiList.style.display = "inline-block";
+                        roiSelector.domElement.style.pointerEvents = "none";
+                        roiSelector.domElement.style.opacity = .5;                    
+               } else {
+                        filterVoxelsByLabel(roiSelector.getValue());
+                        roiList.style.display = "none"; 
+                        roiSelector.domElement.style.pointerEvents = "";
+                        roiSelector.domElement.style.opacity = 1;   
+               }    
+                          
+        }) 
+
+        if(allLabelsTxtArr.length <= 1) { // if no labels.json
+             roiSelector.domElement.style.pointerEvents = "none";
+             roiSelector.domElement.style.opacity = .5;  
+             multiRoi.remove();
+        }       
     }
+
 
 
     render();

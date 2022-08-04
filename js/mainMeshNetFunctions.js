@@ -2384,21 +2384,13 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
 
 
               Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
-                   roiData.push({y: labelsHistoObj[labelKey] * 100/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+                   roiData.push({y: labelsHistoObj[labelKey] * 1/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
                    roiLabels[idx] =  labelsObj[labelKey];
               }) 
 
               //-- roiData = [ {y: 34.4, color: 'red'}, {y: 20.1, color: '#aaff99'}];
               //-- roiLabels = ['Roi-1','Roi-2'];
        
-
-              // $$("out3DIcon").enable(); 
-              // $$("outChartIcon").enable(); 
-              // document.getElementById("out3D-1").style.opacity = 1;
-              // document.getElementById("outChart-1").style.opacity = 1;
-              // document.getElementById("out3D-1").style.filter = "alpha(opacity=100)";
-              // document.getElementById("outChart-1").style.filter = "alpha(opacity=100)";            
-
         } else { // For mask or brain extraction models
               
               let colorLutObj = {};
@@ -2409,14 +2401,9 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                     labelsObj[labelKey] = labelKey;
               }) 
 
-              // if(Object.keys(labelsHistoObj).length == 1) {
-              //      roiLabels = ['255']; 
-              // } else {
-              //      roiLabels = [];
-              // } 
 
               Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
-                   roiData.push({y: labelsHistoObj[labelKey] * 100/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+                   roiData.push({y: labelsHistoObj[labelKey] * 1/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
                    if(idx == 0 || idx == Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent) || idx == Object.keys(labelsHistoObj).length -1 ){
                        roiLabels[idx] =  labelsObj[labelKey];
                    }
