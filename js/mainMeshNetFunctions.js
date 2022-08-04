@@ -5358,12 +5358,7 @@ resetMainParameters = () => {
 	      const batchSize = opts.batchSize;
 	      const numOfChan = opts.numOfChan;
 
-        //-- Reset papaya MRI viewer overlay if exists
-        resetMriViewerOverlay(1);
-        //-- Reset Label Viewer        
-        resetLabelViewer();        
-                 
-        resetMainParameters();
+
 
 	      if (isNaN(batchSize) || batchSize != 1) {
                 webix.alert("The batch Size for input shape must be 1");

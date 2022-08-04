@@ -235,7 +235,7 @@ init = (labelVol3dArr, colorLutObj = null, labelsObj = null) => {
 
     initGUI = () => {
 
-        // gui = new dat.GUI();
+        //-- gui = new dat.GUI();
         gui = new dat.GUI({ autoPlace: false });
         gui.domElement.id = 'gui';
         guiContainer = document.getElementById("gui_container");
