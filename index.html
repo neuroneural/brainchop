@@ -21,17 +21,17 @@
 <head>
   <meta charset="utf-8"/>
   <title>Brainchop </title>
-  <link rel="apple-touch-icon" sizes="180x180" href="style/favicon_io/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="style/favicon_io/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="style/favicon_io/favicon-16x16.png">
-  <link rel="manifest" href="style/favicon_io/site.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="css/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="css/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="css/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="css/favicon_io/site.webmanifest">
 
-  <link rel="stylesheet" href="style/w3.css">
-  <link rel="stylesheet" href="style/font-awesome-4.7.0/css/font-awesome.min.css"/>   
-  <link rel="stylesheet" type="text/css" href="lib/webix/codebase/webix.css"/> 
-  <link rel="stylesheet" type="text/css" href="lib/papaya_lib/papaya.css" />
-  <link rel="stylesheet" type="text/css" href="style/style.css"> 
-  <link rel="stylesheet" type="text/css" href="style/brainchop.css">
+  <link rel="stylesheet" href="css/w3.css">
+  <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css"/>   
+  <link rel="stylesheet" type="text/css" href="js/libs/webix/codebase/webix.css"/> 
+  <link rel="stylesheet" type="text/css" href="js/libs/papaya_lib/papaya.css" />
+  <link rel="stylesheet" type="text/css" href="css/style.css"> 
+  <link rel="stylesheet" type="text/css" href="css/brainchop.css">
 
 
 
@@ -43,40 +43,40 @@
   <script src="https://docs.opencv.org/3.4.0/opencv.js"></script> 
   <script src="https://www.lactame.com/lib/image-js/0.21.2/image.min.js"></script>  
 
-  <script src="lib/webix/codebase/webix.js"></script>  
-  <script src="lib/tf.min.js"></script> 
+  <script src="js/libs/webix/codebase/webix.js"></script>  
+  <script src="js/libs/tf.min.js"></script> 
   <!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"> </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>   -->
-  <script src="lib/float16.js"></script>  
+  <script src="js/libs/float16.js"></script>  
 
-  <script type="text/javascript" src="lib/papaya_lib/papaya.js"></script>
+  <script type="text/javascript" src="js/libs/papaya_lib/papaya.js"></script>
   
-  <script type="text/javascript" src="js/nifti-reader.js"></script>
-  <script type="text/javascript" src="js/nifti-reader-min.js"></script>
-  <script type="text/javascript" src="js/connectedComponents3DAll.js"></script>
-  <script type="text/javascript" src="js/mainParameters.js"></script>  
-  <script type="text/javascript" src="js/mainMeshNetFunctions.js"></script>
-  <script type="text/javascript" src="js/mainNiftiReadingFunctions.js"></script> 
-  <script type="text/javascript" src="js/mainTypes.js"></script> 
+  <script type="text/javascript" src="js/libs/nifti-reader.js"></script>
+  <script type="text/javascript" src="js/libs/nifti-reader-min.js"></script>
+  <script type="text/javascript" src="js/brainchop/connectedComponents3DAll.js"></script>
+  <script type="text/javascript" src="js/brainchop/mainParameters.js"></script>  
+  <script type="text/javascript" src="js/brainchop/mainMeshNetFunctions.js"></script>
+  <script type="text/javascript" src="js/brainchop/mainNiftiReadingFunctions.js"></script> 
+  <script type="text/javascript" src="js/brainchop/mainTypes.js"></script> 
 
   
-  <script type="text/javascript" src="js/checkCompatibility.js"></script> 
+  <script type="text/javascript" src="js/brainchop/checkCompatibility.js"></script> 
 
-  <script type="text/javascript" src="js/utilities.js"></script>  
+  <script type="text/javascript" src="js/libs/utilities.js"></script>  
   <script type="text/javascript"  src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
-  <script type="text/javascript" src="js/mri_convert.js"></script>  
+  <script type="text/javascript" src="js/brainchop/mri_convert.js"></script>  
 
   <script type="text/javascript" src="//cdn.webix.com/components/edge/highcharts/hcharts.js"></script>
 
-  <script type="text/javascript" charset="UTF-8" src="lib/three/three.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="lib/three/controls/TrackballControls.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="lib/three/controls/OrbitControls.js"></script>
-  <script type="text/javascript" src="lib/util/Stats.js"></script>
-  <script type="text/javascript" src="lib/util/dat.gui.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/three.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/controls/TrackballControls.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/controls/OrbitControls.js"></script>
+  <script type="text/javascript" src="js/libs/util/Stats.js"></script>
+  <script type="text/javascript" src="js/libs/util/dat.gui.min.js"></script>
 
-  <script type="text/javascript" src="js/util.js"></script>
-  <script type="text/javascript" src="js/BCBrain3D.js"></script>
-  <link rel="stylesheet" href="style/default.css">
+  <script type="text/javascript" src="js/libs/util.js"></script>
+  <script type="text/javascript" src="js/brainchop/BCBrain3D.js"></script>
+  <link rel="stylesheet" href="css/default.css">
 
   <style> 
     /*For Testing*/
@@ -97,7 +97,7 @@
       let aboutWindowForm = {view: "form", id: "aboutWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable you to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the nifti format. The output may also be downloaded as a nifti file. <br><br> <br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2022).<br> <b>Version:</b> 1.3.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='style/TReNDS_logo.jpg' width='180' height='60'></img></center>" 
+                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable users to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the Nifti format. The output can also be saved as a Nifti file. <br><br> <br><b>Authors:</b> Mohamed Masoud and Sergey Plis (2022).<br> <b>Version:</b> 1.4.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='css/logo/TReNDS_logo.jpg' width='180' height='60'></img></center>" 
                         
                     }                 
 
@@ -169,7 +169,7 @@
           id: "myToolbar",
           rows:[{ cols: 
                   [
-                   { view: "label", label: '<img src="style/Artboard2.svg"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
+                   { view: "label", label: '<img src="css/svg/Artboard2.svg"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
                    { view: "label", label: '<p>Brain<span>chop</span></p>', css: {"margin":"0!important"},  inputWidth: 100, align: "left" },
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
@@ -201,9 +201,207 @@
 
 
 
+      //--------------Preprocessing Options -------------//
+
+
+      clearInputThreejsWin = () => {
+          if(inputSceneRendered) {
+              clearScene(inputScene);
+              input_gui.domElement.style.display = "none"; 
+              inputSceneRendered = false;
+          }
+
+          $$("inputThreejsWinId").hide();
+      }  
+
+
+      showInputPreprocessWindow = () => {
+        var defer = $.Deferred();
+        $$("inputThreejsWinId").show();  
+
+        if(! inputSceneRendered) { // if false,  render 
+            document.getElementById("inputLoadingIconDiv").style.display = "";
+        } else {
+            document.getElementById("inputLoadingIconDiv").style.display = "none";
+        } 
+
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;         
+      }
+
+
+      let inputOptions = {view: "form", id: "inputOptionsId", elements: [ 
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Input 3D (Enhancement)",  
+                            id: "preprocessId", 
+                            align: "left"
+                          },                 
+
+                          { 
+                            view: "label", 
+                            id: "inputPrepIcon", 
+                            label: '<i class="fa fa-cube fa-lg" aria-hidden="true" id="preprocessIcon" style="opacity:0.9;filter:alpha(opacity=90);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: false,
+                            click: function() {
+                                     
+                                showInputPreprocessWindow().then(res => {    
+                                    if(! inputSceneRendered) { // if false, will render scene and gui
+
+                                        // Convert niftiImage arrayBuffer to array
+                                        //-- let imageDataFlat1D = new Uint8Array(niftiImage);
+                                        //-- imageDataFlat1D = [...imageDataFlat1D];
+
+                                        let imageDataFlat1D = arrayBuffer2Array(niftiImage, niftiHeader.datatypeCode );
+
+                                        // -- tf.tensor(imageDataFlat1D).max().print()
+                                        
+                                        if( ! isNiftiFileVerified(niftiHeader)) { // To render also non-sampled MRI
+                                            imageDataFlat1D = tf.tidy(() => {  
+                                               //Round image data
+                                               let imageDataTensor = tf.round(tf.tensor1d(imageDataFlat1D));
+                                               //Normalize image data
+                                               return tensor2Array( tf.round(tf.mul(normalizeVolumeData(imageDataTensor), tf.scalar(255)) ) );
+                                            });
+                                        }
+
+                                        // convert to 3D                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<  256 256 256
+                                        let numSlices = niftiHeader.dims[3];
+                                        let sliceHeight =  niftiHeader.dims[2];
+                                        let sliceWidth = niftiHeader.dims[1]; 
+
+                                        let input = tf.tensor(imageDataFlat1D, [numSlices, sliceHeight , sliceWidth]).reverse(1).arraySync(); 
+
+                                        let colorLutObj = {};
+
+                                        // Find voxel values frequency
+                                        let labelsHistogramMap = arrValuesFreq(imageDataFlat1D);
+
+                                        // Convert map to object 
+                                        let labelsHistoObj = map2Object(labelsHistogramMap);
+                                        delete labelsHistoObj['0'];
+
+                                        Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                                            colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
+                                        }) 
+
+                                        // clearScene(scene)
+
+                                        initInput(input, "inputThreejsWinId", 'input-threejs-container', "input_gui_container", "inputLoadingIconDiv", rawNiftiData, niftiImage, colorLutObj );
+
+                                        inputSceneRendered = true;
+                                        
+
+                                    } else { // if already rendered
+                                         input_gui.domElement.style.display = "";
+                                    }
+                                })    
+
+                            }                        
+                          }                           
+
+                      ]    
+              },  
+
+                          
+          ]
+       }
+
+
+
+      // Welcome Window
+      let inputThreejsWinForm = {view: "form", id: "inputThreejsWinFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: "  <div id='input-threejs-container'> <div id='input_gui_container'></div> <div id='inputLoadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' >  <i id='inputLoadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div> </div> <div id='progressLine' class='progress-line'></div>",  
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", id: "inputApplyId", value:"Apply", css:"bt_1", width:100,  
+                                align:"center",
+                                disabled: true
+                        },
+
+                        { view:"button", value:"Cancel", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("inputThreejsWinId").hide();
+                               }
+                        },  
+
+                        { view:"button", id: "inputSaveId", value:"Save Copy", css:"bt_1", width:100,  
+                                align:"center",
+                                disabled: true
+                        },                                                                     
+
+                        {}
+                       ]
+              }             
+
+          ]
+       }
+
+
+
       webix.ui({
                   view:"window",
-                  id: "threejsWinId",
+                  id: "inputThreejsWinId",
+                  height: Math.round(window.innerHeight * 0.7),
+                  width: Math.round(window.innerWidth * 0.7),
+                  move: true,
+                  resize: true,
+                  //width:400,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template: "Input Enhancement", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("inputThreejsWinId").hide();
+                              input_gui.domElement.style.display="none"; 
+                          } }
+                      ]
+                  },                  
+                  position:"center",
+                  body: inputThreejsWinForm
+                  // body:{
+                  //      // create custom list with checkboxes for different ROI.
+                  //      template:"  <div id='input-threejs-container'> <div id='input_gui_container'></div> <div id='inputLoadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' >  <i id='inputLoadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div> </div> "
+                  // }
+              }
+      ) 
+
+      //-----------------Output 3D Options------------------// 
+
+      clearOutputThreejsWin = () => {
+          if(outputSceneRendered) {
+              clearScene(outputScene);
+              output_gui.domElement.style.display = "none"; 
+              document.getElementById('roiList').style.display = "none"; 
+              document.getElementById('roiItems').innerHTML = '';
+              outputSceneRendered = false;
+          }
+
+          $$("outputThreejsWinId").hide();
+      }        
+
+      webix.ui({
+                  view:"window",
+                  id: "outputThreejsWinId",
                   height: Math.round(window.innerHeight * 0.7),
                   width: Math.round(window.innerWidth * 0.7),
                   move: true,
@@ -213,8 +411,8 @@
                       view:"toolbar", css: "toolbarclass", elements:[
                           { type:"header", template: "3D Segmentation Regions", css:"windowtitleclass" },
                           { view:"icon", icon:"wxi-close", click:function(){
-                              $$("threejsWinId").hide();
-                              gui.domElement.style.display="none"; 
+                              $$("outputThreejsWinId").hide();
+                              output_gui.domElement.style.display="none"; 
                           } }
                       ]
                   },                  
@@ -224,11 +422,12 @@
 
                   body:{
                        //-- create custom list with checkboxes for different ROI.
-                       template:"  <div id='threejs-container'> <div id='gui_container'></div>    <div id='roiList' class='dropdown-check-list'> <span class='anchor'><p style='color:white; font-size:0.6vw; margin-top: 0em; margin-bottom: 0em;'>Select_ROI</p></span>  <ul id='roiItems' class='items'></ul> </div>  <div id='loadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' > <i id='loadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div>    </div> "
+                       template:"  <div id='output-threejs-container'> <div id='output_gui_container'></div>    <div id='roiList' class='dropdown-check-list'> <span class='anchor'><p style='color:white; font-size:0.6vw; margin-top: 0em; margin-bottom: 0em;'>Select_ROI</p></span>  <ul id='roiItems' class='items'></ul> </div>  <div id='loadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' > <i id='loadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div>    </div> "
                   }
       })  
 
 
+      //-----------------Open Brain T1 MRI ----------------------------------//  
 
       let referenceImage = { view: "form",  id: "referenceImage", elements: [ 
               { type:"header", template:"Open Brain T1 MRI", 
@@ -294,8 +493,18 @@
                                                       });
                                                      
                                                      $$("segmentBtn").disable();
+                                                     // Disable input 3d preprocess button
+                                                     $$("inputPrepIcon").disable();
+                                                     document.getElementById("preprocessIcon").style.opacity = 0.3;  
+                                                     document.getElementById("preprocessIcon").style.filter = "alpha(opacity=30)";                                                     
                                                      return 0;
                                                   }
+
+                                                  // If new MRI loaded, clear last 3D window if rendered before.
+                                                  clearInputThreejsWin();
+                                                  $$("inputPrepIcon").enable();
+                                                  document.getElementById("preprocessIcon").style.opacity = 0.9;  
+                                                  document.getElementById("preprocessIcon").style.filter = "alpha(opacity=90)";                                                   
 
                                                   niftiHeader = readNiftiHeader(rawNiftiData);
                                                   niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
@@ -625,7 +834,7 @@
 
                     { 
                       view: "label", 
-                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
                       css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                       width: 25,
                       height: 25,
@@ -670,7 +879,7 @@
 
                     { 
                       view: "label", 
-                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
                       css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                       width: 25,
                       height: 25,
@@ -699,7 +908,7 @@
                     
                     { 
                       view: "label", 
-                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
                       css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                       width: 25,
                       height: 25,
@@ -742,7 +951,7 @@
 
                     { 
                       view: "label", 
-                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
                       css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                       width: 25,
                       height: 25,
@@ -773,7 +982,7 @@
 
                     { 
                       view: "label", 
-                      label: '<img src="style/info-circle-solid.svg"/>', 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
                       css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                       width: 25,
                       height: 25,
@@ -993,7 +1202,8 @@
         //-- Reset papaya MRI viewer overlay if exists
         resetMriViewerOverlay(1);
         //-- Reset Label Viewer        
-        resetLabelViewer();        
+        resetLabelViewer();  
+        clearOutputThreejsWin();      
         resetMainParameters();                 
       }     
 
@@ -1004,7 +1214,7 @@
          $$("segmentBtn").disable(); 
       }     
 
-      newRunInference = () => {
+      newRunInferencePrepare = () => {
         var defer = $.Deferred();
         disableControls();
         resestDependency();
@@ -1102,7 +1312,7 @@
 
                       { 
                         view: "label", 
-                        label: '<img src="style/info-circle-solid.svg"/>', 
+                        label: '<img src="css/svg/info-circle-solid.svg"/>', 
                         css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                         width: 25,
                         height: 25,
@@ -1133,7 +1343,7 @@
                                        let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
                                        if( maxTextureAvail >= requiredTexture ) {
 
-                                           newRunInference().then(res => { runInference();})                                     
+                                           newRunInferencePrepare().then(res => { runInference();})                                     
 
                                        } else {
                                          webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
@@ -1149,11 +1359,19 @@
        }
 
 
+
+
+      //--------------------------------------------//
+      //---------- Output Rendering ----------------//
+      //--------------------------------------------//
+
+
+
       showThreejsWindow = () => {
         var defer = $.Deferred();
-        $$("threejsWinId").show(); 
+        $$("outputThreejsWinId").show(); 
 
-        if(! sceneRendered) { // if false,  render 
+        if(! outputSceneRendered) { // if false,  render 
             document.getElementById("loadingIconDiv").style.display = "";
         } else {
             document.getElementById("loadingIconDiv").style.display = "none";
@@ -1181,7 +1399,7 @@
                           { 
                             view: "label", 
                             id: "outChartIcon", 
-                            label: '<img src="style/outChart-1.svg" id="outChart-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            label: '<img src="css/svg/outChart-1.svg" id="outChart-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
                             css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                             width: 25,
                             height: 25,
@@ -1205,22 +1423,23 @@
                           { 
                             view: "label", 
                             id: "out3DIcon", 
-                            label: '<img src="style/out3D-1.svg" id="out3D-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            label: '<img src="css/svg/out3D-1.svg" id="out3D-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
                             css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
                             width: 25,
                             height: 25,
                             disabled: true,
                             click: function() {
-                                  //-- $$("threejsWinId").show(); 
+                                  //-- $$("outputThreejsWinId").show(); 
                                  showThreejsWindow().then(res => {    
-                                    if(! sceneRendered) { // if false, will render scene and gui
+                                    if(! outputSceneRendered) { // if false, will render scene and gui
 
-                                       init(outVolumeStatus['out3DArr'], outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
-                                       sceneRendered = true;
+                                       init(outVolumeStatus['out3DArr'], "outputThreejsWinId",'output-threejs-container', "output_gui_container",outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
+
+                                       outputSceneRendered = true;
                                        document.getElementById("loadingIconDiv").style.display = "none";
 
                                     } else { // if already rendered
-                                         gui.domElement.style.display = "";
+                                         output_gui.domElement.style.display = "";
                                     }
                                  })    
                             }                        
@@ -1240,11 +1459,21 @@
       let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
 
               {  cols: [
-                    {   view: "template", template: " <img src='style/Artboard2.svg'  width='20%' align='right'>" + 
+                    {   view: "template", template: " <img src='css/svg/Artboard2.svg'  width='20%' align='right'>" + 
                        " <p align='justify'> Welcome to brainchop, a"+ " frontend" +" tool for  volumetric segmentation of neuroimaging that works locally on the user side.</p>" + 
                        " <p align='justify'> You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. </p>" +  
                        "<p align='justify'> To see the tool in action please select a model from the list and run the inference. For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog</b></a>. For questions or sharing ideas please refere to our  <b><a href='https://github.com/neuroneural/brainchop/discussions/'  target='_blank'> Discussions </a></b> board. </p>" + 
-                       "<input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'> Don't show again</label>",  
+                       " <center> <video id='advVideo' autoplay muted width='400' controls poster='css/images/BrainchopBanner.png'>  <source src='css/media/brainchopV1_3.mp4' type='video/mp4'>Your browser does not support the video tag</video> </center> <br>" +
+                       "<input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'><font color='black'>  Don't show again </font></label>", 
+
+                       on: {
+                          onAfterRender: function() {
+                                if(fetchWelcomeScreenStatus() == null || fetchWelcomeScreenStatus()) {
+                                    // document.getElementById('advVideo').muted = false; 
+                                }
+
+                          }
+                        }
                         
                     }                 
 
@@ -1260,6 +1489,7 @@
                                 align:"center",
                                 click: function() {
                                      $$("welcomeWindow").hide();
+                                     document.getElementById('advVideo').pause();
                                      webix.storage.local.put("showWelcomeScreen", ! document.getElementById("noShowWelcomeWindow").checked);
                                }
                         },
@@ -1269,6 +1499,7 @@
               } 
 
           ]
+
        }
 
 
@@ -1293,22 +1524,22 @@
       webix.ui({
                   view:"window",
                   id: "welcomeWindow",
-                  height:370,
+                  height:620,
                   width:600,
-
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[
                           { type:"header", template:"Welcome", css:"windowtitleclass" },
                           { view:"icon", icon:"wxi-close", click:function(){
                               $$("welcomeWindow").hide();
+                              document.getElementById('advVideo').pause();
                           } }
                       ]
                   },                  
 
                   position:"center",
                   body: welcomeWindowForm
-
       })
+      
 
       fetchWelcomeScreenStatus = () => {
           return webix.storage.local.get("showWelcomeScreen");
@@ -1593,6 +1824,7 @@
               cols: [
                        { width: 250, margin:10,  rows:[
                                                         referenceImage,
+                                                        inputOptions,
                                                         Segmentation,
                                                         outputOptions,
                                                         downloadNiftiFile,
@@ -1628,11 +1860,11 @@
         papayaContainers[0].preferences.smoothDisplay = 'Yes';
         papayaContainers[1].preferences.smoothDisplay = 'No';
 
-        //-- papaya.Container.restartViewer(0, ["MRI/t1_c.nii.gz"], true);
-        papaya.Container.restartViewer(1, ["MRI/labels.nii.gz"], true);  
+        //-- papaya.Container.restartViewer(0, ["data/t1_c.nii.gz"], true);
+        papaya.Container.restartViewer(1, ["data/labels.nii.gz"], true);  
 
 
-        fetch('MRI/t1_c.nii.gz')
+        fetch('data/t1_c.nii.gz')
           .then((response) => {
             if (response.status >= 200 && response.status <= 299) {
               return response.blob();
@@ -1695,7 +1927,7 @@
 
        //--Activate annotation for papaya container 1- default    
        //-- addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
-       addMouseMoveHandler("./ModelToLoad/GT/labels.json", 1);
+       addMouseMoveHandler("./models/GT/labels.json", 1);
 
 
       document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
