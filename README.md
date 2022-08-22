@@ -7,20 +7,16 @@
     <img width="100%" src="https://github.com/neuroneural/brainchop/blob/master/css/images/Banner.png">
   </a>
 
-<<<<<<< HEAD
-**Frontend For Neuroimaging.  Open Source. [Demo](https://neuroneural.github.io/brainchop)**
+
+**Frontend For Neuroimaging.  Open Source**
+
 **[Demo](https://neuroneural.github.io/brainchop)  [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/)  [Updates](#Updates)**
 
 </div>
 
-<br>
-=======
-**Brainchop. Frontend For Neuroimaging.  Open Source. [Demo](https://neuroneural.github.io/brainchop)**
 
-</div>
 
 <br><br>
->>>>>>> 172520b6da1f4bf0736fea27cd7308b76731e630
  <img src="https://github.com/neuroneural/brainchop/blob/master/css/logo/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
@@ -52,16 +48,14 @@
 
 To see the tool in action please click  [here](https://neuroneural.github.io/brainchop).
 
-<<<<<<< HEAD
+
 ## Updates
 
-=======
->>>>>>> 172520b6da1f4bf0736fea27cd7308b76731e630
 <div align="center">
 
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
 
-<<<<<<< HEAD
+
 **brainchop V1.3.0 rendering segmentation output in 3D**
 </div>
 
@@ -74,12 +68,8 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 **brainchop V1.4.0 rendering MRI Nifti file in 3D**
 </div>
 
-<br>
-=======
-**brainchop V1.3.0**
-</div>
 
->>>>>>> 172520b6da1f4bf0736fea27cd7308b76731e630
+
 
 ## Citation
 
