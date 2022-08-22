@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) emsp [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) emsp [Updates](#Updates)**
+**[Demo](https://neuroneural.github.io/brainchop) -- [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) -- [Updates](#Updates)**
 
 </div>
 
