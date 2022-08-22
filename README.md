@@ -10,13 +10,13 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) -- [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) -- [Updates](#Updates)**
+**[Demo](https://neuroneural.github.io/brainchop) &emsp; [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) &emsp; [Updates](#Updates)**
 
 </div>
 
 
 
-<br><br>
+<br>
  <img src="https://github.com/neuroneural/brainchop/blob/master/css/logo/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
