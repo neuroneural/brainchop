@@ -7,9 +7,9 @@
     <img width="100%" src="https://github.com/neuroneural/brainchop/blob/master/css/images/Banner.png">
   </a>
 
-**Brainchop. Frontend For Neuroimaging.  Open Source**
+**Brainchop. Frontend For Neuroimaging.  Open Source. [Demo](https://neuroneural.github.io/brainchop)**
 
-[Demo](https://neuroneural.github.io/brainchop)
+
 
 </div>
 
