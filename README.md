@@ -9,11 +9,9 @@
 
 **Brainchop. Frontend For Neuroimaging.  Open Source. [Demo](https://neuroneural.github.io/brainchop)**
 
-
-
 </div>
 
-
+<br><br>
  <img src="https://github.com/neuroneural/brainchop/blob/master/css/logo/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
