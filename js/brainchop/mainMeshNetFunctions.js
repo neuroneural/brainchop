@@ -2920,7 +2920,7 @@ submitTiming2GoogleSheet = (dataObj) => {
             }) 
 
             //-- Settings of submission
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbz_upISiPpQ4CWL2B2oRGcF416RFEvCc6bRKAbM-xvAkMuTGRz8SFoq41vHxIKYWM2c/exec'
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbyC9L-nc125Ux03TsUoSHQUCP50bwAL9y0sli-51GJOANRJ5N1hgAICnU2J79s-FuRl/exec'
             const form = document.forms['google-sheet']
           
             //-- Add event handler to the form.
@@ -5343,7 +5343,7 @@ resetMainParameters = () => {
 *
 */
  
-  runInference = () => {
+  runInference = async() => {
         let startTime = performance.now();
 
 	      const batchSize = opts.batchSize;
