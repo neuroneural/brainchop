@@ -84,7 +84,7 @@ Also, brainchop supports 3D real-time rendering of the input and output volume b
 The accessibility, scalability, ease of use, lack of installation requirements and cross-platform operation are just a few of the unique and  enabling features that brainchop can provide while also preserving  end-user data privacy and residency. 
 
 
-Detailed step-by-step [documentation](https://github.com/neuroneural/brainchop/wiki) is provided alongside the [source code](https://github.com/neuroneural/brainchop). A built-in models also are provided with brainchop  [live demo](https://neuroneural.github.io/brainchop/). 
+Detailed step-by-step [documentation](https://github.com/neuroneural/brainchop/wiki) is provided alongside the [source code](https://github.com/neuroneural/brainchop). Built-in models also are provided with brainchop  [live demo](https://neuroneural.github.io/brainchop/). 
 
 
 # Acknowledgments
