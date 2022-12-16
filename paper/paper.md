@@ -61,7 +61,10 @@ The advantage of MeshNet small size is due to its simple  architecture and using
 
 ![MeshNet architecture.\label{fig:MeshNet-Arch}](MeshNetArch.png)
 
+While MeshNet Model has fewer number of parameters compared to the classical segmentation model U-Net, it is also can achieve a competitive DICE score as shown in \autoref{tab:Table-1}.
 
+
+\begin{table}[h] \centering \caption{\label{tab:Table-1} Segmentation models performance.}  \begin{tabular}{l|ccc} \hline  {\bf Model} & {\bf Inference Speed} & {\bf Model Size} & {\bf Macro DICE} \\\hline MeshNet GMWM & 116 subvolumes/sec & .89 mb & 0.96 \\ U-Net GMWM & 13  subvolumes/sec &  288 mb & 0.96 \\ MeshNet GMWM (full brain model) & 0.001 sec/volume &  0.022 mb & 0.96\\\hline \end{tabular} \end{table}
 
 
 # Results
