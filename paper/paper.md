@@ -37,7 +37,7 @@ Accurate segmentation of brain tissue from MRI volumes is a crucial step in vari
 
 # Pipeline
 
-In order to deploy the PyTorch MeshNet model in the browser, there is a  need to convert it first to tensorflow.js model (tfjs) [@tensorflow-js]. Brainchop has a pre-processing pipeline, full-volume and sub-volumes inference options, 3D input/output rendering, and post-processing capability as illustrated in \autoref{fig:Brainchop-Pipleline} for the tool high-level architecture.
+In order to deploy the PyTorch MeshNet model in the browser, there is a  need to convert it first to tensorflow.js [@tensorflow-js]. Brainchop has a pre-processing pipeline, full-volume and sub-volumes inference options, 3D input/output rendering, and post-processing capability as illustrated in \autoref{fig:Brainchop-Pipleline} for the tool high-level architecture.
 
 ![Brainchop high-level architecture.\label{fig:Brainchop-Pipleline}](BrainchopPipleline.png)
 
@@ -59,7 +59,7 @@ The advantage of MeshNet small size is due to its simple architecture and using 
 
 ![MeshNet architecture.\label{fig:MeshNet-Arch}](MeshNetArch.png)
 
-While MeshNet Model has fewer parameters compared to the classical segmentation model U-Net, it is also can achieve a competitive DICE score as shown in \autoref{tab:Table-1}.
+While MeshNet model has fewer parameters compared to the classical segmentation model U-Net, it also can achieve  a competitive DICE score as shown in \autoref{tab:Table-1}.
 
 
 \begin{table}[h] \centering \caption{\label{tab:Table-1} Segmentation models performance.}  \begin{tabular}{l|ccc} \hline  {\bf Model} & {\bf Inference Speed} & {\bf Model Size} & {\bf Macro DICE} \\\hline MeshNet GMWM & 116 subvolumes/sec & .89 mb & 0.96 \\ U-Net GMWM & 13  subvolumes/sec &  288 mb & 0.96 \\ MeshNet GMWM (full brain model) & 0.001 sec/volume &  0.022 mb & 0.96\\\hline \end{tabular} \end{table}
@@ -67,15 +67,15 @@ While MeshNet Model has fewer parameters compared to the classical segmentation 
 
 # Results
 
-Multiple pre-trained models are available with brainchop for full-volume and sub-volume inference including brain masking, gray matter white matter (GMWM) segmentation models, in addition to brain atlas models for 50 cortical regions and 104 cortical and sub-cortical structures as shown in \autoref{fig:Gallery-1}.
+Multiple pre-trained models are available with brainchop for full-volume and sub-volumes inference including brain masking, gray matter white matter (GMWM) segmentation models, in addition to brain atlas models for 50 cortical regions and 104 cortical and sub-cortical structures as shown in \autoref{fig:Gallery-1}.
 
 ![Brainchop outputs.\label{fig:Gallery-1}](Gallery.png)
 
-Normally 3D noisy regions may result from the inference process due to possible bias, variance and irreducible error (e.g. noise with data). To remove these noisy volumes we designed a 3D connected components algorithm to filter out those noisy regions. 
+Normally 3D noisy regions can result from the inference process due to possible bias, variance and irreducible error (e.g. noise with data). To remove these noisy volumes we designed a 3D connected components algorithm to filter out those noisy regions. 
 
-Papaya [@Papaya] viewers is used to visualize the input and output images, and a composite operation also provided to subjectively verify the output image accuracy comparing to the input. 
+Papaya [@Papaya] viewers is used to visualize the input and output images, and a composite operation is also provided to subjectively verify the output image accuracy comparing to the input. 
 
-Also, brainchop supports 3D real-time rendering of the input and output volume by using Three.js [@threejs] with capability of Region of Interest (ROI) selection as shown in \autoref{fig:rendering}.
+Also, brainchop supports 3D real-time rendering of the input and output volume by using Three.js [@threejs] with the capability of Region of Interest (ROI) selection as shown in \autoref{fig:rendering}.
 
 ![Brainchop rendering segmentation output in 3D.\label{fig:rendering}](Output.png)
 
