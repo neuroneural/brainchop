@@ -37,13 +37,13 @@ Accurate segmentation of brain tissue from MRI volumes is a crucial step in vari
 
 # Pipeline
 
-In order to deploy the PyTorch MeshNet model in the browser, there is a  need to convert it first to a workable tensorflow.js (tfjs) [@tensorflow-js]. The tool has a pre-processing pipeline, full-volume and sub-volume inference options, 3D input/output rendering, and post-processing capability as illustrated in \autoref{fig:Brainchop-Pipleline} for the brainchop high-level architecture.
+In order to deploy the PyTorch MeshNet model in the browser, there is a  need to convert it first to tensorflow.js model (tfjs) [@tensorflow-js]. Brainchop has a pre-processing pipeline, full-volume and sub-volumes inference options, 3D input/output rendering, and post-processing capability as illustrated in \autoref{fig:Brainchop-Pipleline} for the tool high-level architecture.
 
 ![Brainchop high-level architecture.\label{fig:Brainchop-Pipleline}](BrainchopPipleline.png)
 
 # Preprocessing
 
-Brainchop is designed to support T1 weighted MRI volume segmentation. The input is read in Nifti format [@NIfTI-Reader]. T1 image needs to be in shape 256x256x256, scaled, and resampled to 1mm isotropic voxels as a preprocessing step for proper results. This preprocessing can be made in brainchop by using mri_convert.js which uses pyodide [@pyodide_2022] to deploy the conform function used by FastSurfer [@Henschel:2020] for reshaping,  scaling, and re-sampling  MRI T1 raw image data as shown in  \autoref{fig:Convert-Enhance-Pipeline} (a).
+Brainchop is designed to support T1 weighted MRI volume segmentation. The input is read in Nifti format [@NIfTI-Reader]. T1 image needs to be in shape 256x256x256, scaled, and resampled to 1mm isotropic voxels as a preprocessing step for proper results. This preprocessing can be made in brainchop by using mri_convert.js which uses pyodide [@pyodide_2022] to deploy the conform function used by FastSurfer [@Henschel:2020] for reshaping, scaling, and re-sampling  MRI T1 raw image data as shown in  \autoref{fig:Convert-Enhance-Pipeline} (a).
 
 ![Brainchop preprocessing pipeline (a) Conform operation (b) MRI enhancement operations.\label{fig:Convert-Enhance-Pipeline}](ConvertAndEnhancePipeline.png)
 
@@ -80,7 +80,9 @@ Also, brainchop supports 3D real-time rendering of the input and output volume b
 ![Brainchop rendering segmentation output in 3D.\label{fig:rendering}](Output.png)
 
 
-Detailed step-by-step [documentation](https://github.com/neuroneural/brainchop/wiki) is provided alongside the [source code](https://github.com/neuroneural/brainchop). Built-in models also are provided with brainchop  [live demo](https://neuroneural.github.io/brainchop/). 
+# Code availability
+
+The source code is publicly accessible in a GitHub repository ([https://github.com/neuroneural/brainchop](https://github.com/neuroneural/brainchop)) with detailed step-by-step [documentation](https://github.com/neuroneural/brainchop/wiki). Built-in models also are provided with brainchop  [live demo](https://neuroneural.github.io/brainchop/).  
 
 
 # Acknowledgments
