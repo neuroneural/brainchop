@@ -70,7 +70,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## News!
 
-Tensorflow community spotlight award for brainchop [Linkedin](https://www.linkedin.com/posts/tensorflow-community_github-neuroneuralbrainchop-brainchop-activity-6978796859532181504-cfCW?utm_source=share&utm_medium=member_desktop) and [Twitter](https://twitter.com/TensorFlow/status/1572980019999264774)
+Google, Tensorflow community spotlight award for brainchop on [Linkedin](https://www.linkedin.com/posts/tensorflow-community_github-neuroneuralbrainchop-brainchop-activity-6978796859532181504-cfCW?utm_source=share&utm_medium=member_desktop) and [Twitter](https://twitter.com/TensorFlow/status/1572980019999264774)
 
 <div align="center">
 
@@ -86,7 +86,7 @@ Brainchop  invited to [Pytorch](https://pytorchconference22.splashthat.com/) fla
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Pytorch_Poster.jpg)
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/Pytorch_Poster.jpg"  width="50%">
 
 </div>
 
