@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp; [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) &emsp; [Updates](#Updates)**
+**[Demo](https://neuroneural.github.io/brainchop) &emsp; [Blog](https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/) &emsp; [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!)**
 
 </div>
 
@@ -68,7 +68,27 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 **brainchop V1.4.0 rendering MRI Nifti file in 3D**
 </div>
 
+## News!
 
+Tensorflow community spotlight award for brainchop [Linkedin](https://www.linkedin.com/posts/tensorflow-community_github-neuroneuralbrainchop-brainchop-activity-6978796859532181504-cfCW?utm_source=share&utm_medium=member_desktop) and [Twitter](https://twitter.com/TensorFlow/status/1572980019999264774)
+
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/TF_CommunityAward.png)
+
+
+**Google, TensorFlow Community Spotlight Award for Brainchop project (Sept 2022)**
+</div>
+
+<br>
+
+Brainchop  invited to [Pytorch](https://pytorchconference22.splashthat.com/) flag conference, New Orleans, Louisiana (Dec 2022) 
+
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Pytorch_Poster.jpg)
+
+</div>
 
 
 ## Citation
