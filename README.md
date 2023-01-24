@@ -15,7 +15,6 @@
 </div>
 
 
-
 <br>
  <img src="https://github.com/neuroneural/brainchop/blob/master/css/logo/brainchop_logo.png"  width="25%" align="right">
 
