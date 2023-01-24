@@ -20,11 +20,14 @@
 
     <!-- Mocha Setup -->
     <script class="mocha-init">
-      mocha.setup('bdd');
-     // mocha.checkLeaks();
-      mocha.setup({globals: ['hasCert']});
+        mocha.ui('tdd');
+        mocha.setup('bdd');
+        mocha.reporter('html');
+        var expect = chai.expect;
+        // var assert = chai.assert;
+        // mocha.checkLeaks();
+        mocha.setup({globals: ['hasCert']});
     </script>
-    <script src="spec.js"></script>
     <!-- src -->
     <script src="../js/brainchop/mainMeshNetFunctions.js"></script>
     <script src="../js/brainchop/connectedComponents3DAll.js"></script>

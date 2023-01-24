@@ -15,5 +15,5 @@
 
 <img src='https://github.com/neuroneural/brainchop/blob/master/css/logo/TReNDS_logo.jpg' width='300' height='100'></img>
 
-**Mohamed Masoud - Sergey Plis - 2023**
+**Mohamed Masoud - Sergey Plis - 2022**
 </div>
