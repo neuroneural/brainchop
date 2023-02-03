@@ -2760,6 +2760,9 @@ isOnline= () => {
         } else if (navigator.userAgent.indexOf("Edg/") > -1) {
             return  parseInt(navigator.userAgent.split('Edg/')[1]);              
                                      
+        } else if (navigator.userAgent.indexOf("Falkon/") > -1) {
+            return  parseInt(navigator.userAgent.split('Falkon/')[1]);
+
         } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
             return  parseInt(navigator.userAgent.split('Chrome/')[1]);
 
@@ -2840,6 +2843,9 @@ isOnline= () => {
 
         } else if (navigator.userAgent.indexOf("Edg/") > -1) {
             return "Edge";   
+
+        } else if (navigator.userAgent.indexOf("Falkon/") > -1) {
+            return "Falkon";   
 
         } else if (navigator.userAgent.indexOf("Chrome/") > -1) {
             return "Chrome";
@@ -3515,11 +3521,24 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                   } catch(err) {
 
                                         if( err.message === "Failed to compile fragment shader.") {
-                                            if( isChrome() ) {
-                                                webix.alert("Context lost due to limited Memory available, try please to use Safari/Firefox instead of current browser ");
-                                            } else {
-                                                webix.alert("Context lost due to limited Memory available ");
-                                            }
+                                                        webix.confirm({
+                                                          title:"",
+                                                          ok:"Ok", 
+                                                          cancel:"Cancel",
+                                                          type: "confirm-error",
+                                                          width: 500,
+                                                          text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                        })
+                                                          .then(() => {
+                                                                 //---
+                                                                 $$("browserResourcesWindow").show();
+
+
+                                                        }).fail(() => {
+                                                                 //---
+
+                                                        });
+                                            
                                         } else {
                                             webix.alert(err.message);
                                         }
@@ -3753,11 +3772,24 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                             } catch(err) {
 
                                   if( err.message === "Failed to compile fragment shader.") {
-                                      if( isChrome() ) {
-                                          webix.alert("Context lost due to limited Memory available, try please to use Safari/Firefox instead of Chrome ");
-                                      } else {
-                                          webix.alert("Context lost due to limited Memory available ");
-                                      }
+                                                  webix.confirm({
+                                                    title:"",
+                                                    ok:"Ok", 
+                                                    cancel:"Cancel",
+                                                    type: "confirm-error",
+                                                    width: 500,
+                                                    text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                  })
+                                                    .then(() => {
+                                                           //---
+                                                           $$("browserResourcesWindow").show();
+
+
+                                                  }).fail(() => {
+                                                           //---
+
+                                                  });
+                                      
                                   } else {
                                       webix.alert(err.message);
                                   }
@@ -4640,11 +4672,24 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                             } catch(err) {
 
                                   if( err.message === "Failed to compile fragment shader.") {
-                                      if( isChrome() ) {
-                                          webix.alert("Context lost due to limited Memory available, try please to use Safari/Firefox instead of Chrome ");
-                                      } else {
-                                          webix.alert("Context lost due to limited Memory available ");
-                                      }
+                                                  webix.confirm({
+                                                    title:"",
+                                                    ok:"Ok", 
+                                                    cancel:"Cancel",
+                                                    type: "confirm-error",
+                                                    width: 500,
+                                                    text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                  })
+                                                    .then(() => {
+                                                           //---
+                                                           $$("browserResourcesWindow").show();
+
+
+                                                  }).fail(() => {
+                                                           //---
+
+                                                  });
+                                      
                                   } else {
                                       webix.alert(err.message);
                                   }
@@ -5029,11 +5074,24 @@ checkInferenceModelList = () => {
                                 } catch(err) {
 
                                       if( err.message === "Failed to compile fragment shader.") {
-                                          if( isChrome() ) {
-                                              webix.alert("Context lost due to limited Memory available, try please to use Safari/Firefox instead of Chrome ");
-                                          } else {
-                                              webix.alert("Context lost due to limited Memory available ");
-                                          }
+                                                      webix.confirm({
+                                                        title:"",
+                                                        ok:"Ok", 
+                                                        cancel:"Cancel",
+                                                        type: "confirm-error",
+                                                        width: 500,
+                                                        text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                      })
+                                                        .then(() => {
+                                                               //---
+                                                               $$("browserResourcesWindow").show();
+
+
+                                                      }).fail(() => {
+                                                               //---
+
+                                                      });
+                                          
                                       } else {
                                           webix.alert(err.message);
                                       }

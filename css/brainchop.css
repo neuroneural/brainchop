@@ -52,6 +52,11 @@
   margin-right: 20px;
 }
 
+#resourcesHwSwId {
+  cursor: pointer;
+  margin-right: 20px;
+}
+
 #githubId {
   cursor: pointer;
   margin-right: 20px;

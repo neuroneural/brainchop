@@ -126,6 +126,7 @@
 
 
 
+
       // About Window to select local model
       webix.ui({
                   view:"window",
@@ -155,6 +156,114 @@
       }
 
 
+
+
+      let  gl2Temp = document.createElement('canvas').getContext('webgl2') ? 
+                  document.createElement('canvas').getContext('webgl2') : null;
+      let maxTextureSize =   gl2Temp ?  gl2Temp.getParameter(gl2Temp.MAX_TEXTURE_SIZE) :  "N/A";         
+
+      // Browser Resources Window
+      let browserResourcesWindowForm = {view: "form", id: "browserResourcesWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", 
+                        template: " <table>" +
+                                      // "<tr>" +
+                                      //   "<th>Model : </th>" +
+                                      //   "<td>" + inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"] + "</td>" +
+                                      // "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Browser : </th>" +
+                                        "<td>" + detectBrowser() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Browser Ver : </th>" +
+                                        "<td>" + detectBrowserVersion() + "</td>" +
+                                      "</tr>" +  
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Operating Sys. : </th>" +
+                                        "<td>" + detectOperatingSys() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Texture Size. : </th>" +
+                                        "<td>" + maxTextureSize + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>GPU : </th>" +
+                                        "<td>" + detectGPUCardType() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>CPU Cores : </th>" +
+                                        "<td>" + getCPUNumCores()+ "</td>" +
+                                      "</tr>" +
+
+                                    "</table>" +
+                                    "<br><br></b> - To see a List of tested S/W and H/W with each model please open this <a href='https://docs.google.com/spreadsheets/d/1PU4p6oN4aBfTbXZ8pO6n8fc890Y5Ck0agsIZbm_FO3I/edit#gid=0' target=”_blank”> link. </a> " + 
+
+                                    "<br><br></b> - If the browser above can detect only the internal graphics chip (e.g. HD, UHD), please check the external GPU driver or the system settings to fix the problem and try again." 
+
+
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("browserResourcesWindow").hide();
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+      // Browser Resources Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "browserResourcesWindow",
+                  height:550,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Browser Resources", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("browserResourcesWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: browserResourcesWindowForm
+
+      })
+
+      
+      browserResourcesClick = () => {
+            $$("browserResourcesWindow").show()
+      }
+
+
+
+
+
       feedbackClick = () => {
                    window.open("https://forms.gle/WzUyVEzgCCY2bHo79");
       }
@@ -162,6 +271,12 @@
       githubClick = () => {
                    window.open("https://github.com/neuroneural/brainchop");
       }
+
+
+
+
+
+
 
       toolbar = {
           view: "toolbar",
@@ -171,11 +286,12 @@
                   [
                    { view: "label", label: '<img src="css/svg/Artboard2.svg"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
                    { view: "label", label: '<p>Brain<span>chop</span></p>', css: {"margin":"0!important"},  inputWidth: 100, align: "left" },
+                   { view: "label", label: '<i id="resourcesHwSwId" class="fa fa-cogs"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: browserResourcesClick, tooltip:"Browser Resources" },                   
                    { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
                    css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
                    { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
-                   { view: "label", label: '',
-                   css: {"color":"black !important", "font-weight": "bold"},  width: 80, align:"right", click: githubClick, tooltip:"GitHub" },                   
+                   { view: "label", label: '',   css: {"color":"black !important", "font-weight": "bold"},  width: 80, align:"right", click: githubClick, tooltip:"GitHub" },                   
                   ]
                 }
           ]
