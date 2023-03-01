@@ -91,7 +91,7 @@ Writing – Original Draft: M.M., F.H., and S.P.;
 Writing – Review & Editing: M.M., and S.P.;
 Conceptualization and methodology: M.M., and S.P.;
 Software and data curation: M.M., F.H., and S.P.;
-Validation: M.M., and S.P.
+Validation: M.M., and S.P.;
 Resources: S.P.;
 Visualization: M.M., and F.H.;
 Supervision:  S.P.;
