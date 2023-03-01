@@ -84,8 +84,23 @@ Also, brainchop supports 3D real-time rendering of the input and output volume b
 
 The source code is publicly accessible in a GitHub repository ([https://github.com/neuroneural/brainchop](https://github.com/neuroneural/brainchop)) with detailed step-by-step [documentation](https://github.com/neuroneural/brainchop/wiki). Built-in models also are provided with brainchop  [live demo](https://neuroneural.github.io/brainchop/).  
 
+# Author contributions
+
+We describe contributions to this paper using the CRediT taxonomy [@credit].
+Writing – Original Draft: M.M., F.H., and S.P.; 
+Writing – Review & Editing: M.M., and S.P.;
+Conceptualization and methodology: M.M., and S.P.;
+Software and data curation: M.M., F.H., and S.P.;
+Validation: M.M., and S.P.
+Resources: S.P.;
+Visualization: M.M., and F.H.;
+Supervision:  S.P.;
+Project Administration: M.M., and S.P.;
+Funding Acquisition:  S.P.;
 
 # Acknowledgments
+
+We thank Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.
 
 This work was funded by the NIH grant RF1MH121885. Additional support from NIH R01MH123610, R01EB006841 and NSF 2112455.
 
