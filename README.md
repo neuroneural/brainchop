@@ -81,7 +81,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 * Google, Tensorflow community spotlight award for brainchop (Sept 2022) on [Linkedin](https://www.linkedin.com/posts/tensorflow-community_github-neuroneuralbrainchop-brainchop-activity-6978796859532181504-cfCW?utm_source=share&utm_medium=member_desktop) and [Twitter](https://twitter.com/TensorFlow/status/1572980019999264774)
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_CommunityAward.png"  width="40%">
+   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_CommunityAward.png"  width="30%">
 </div>
 
 <br>
