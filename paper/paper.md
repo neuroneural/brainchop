@@ -96,11 +96,11 @@ Resources: S.P.;
 Visualization: M.M., and F.H.;
 Supervision:  S.P.;
 Project Administration: M.M., and S.P.;
-Funding Acquisition:  S.P.;
+Funding Acquisition:  S.P.
 
 # Acknowledgments
 
-We thank Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.
+The authors would like to thank Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.
 
 This work was funded by the NIH grant RF1MH121885. Additional support from NIH R01MH123610, R01EB006841 and NSF 2112455.
 
