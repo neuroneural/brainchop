@@ -1,13 +1,13 @@
 /*
 =========================================================
-* Brainchop - v1.0.0
+* Brainchop - v2.0.1
 =========================================================
 
 * Discription:  Pure Javascript code for 3D and 2D connected components
 *                                 
 *                     
 *
-* Authors:  Mohamed Masoud  and Sergey Plis  - 2021
+* Authors:  Mohamed Masoud  and Sergey Plis  - 2022
 =========================================================
 
 

@@ -1,13 +1,13 @@
 /*
 =========================================================
-* Brainchop - v1.0.0
+* Brainchop - v2.0.1
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
 *               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]                
 *               Model : Meshnet or similar     
 *
-* Authors:  Mohamed Masoud  and Sergey Plis  - 2021
+* Authors:  Mohamed Masoud  and Sergey Plis  - 2023
 =========================================================
 
 
