@@ -156,7 +156,7 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
-                                       warning: "This model needs dedicated graphics card.",           
+                                       warning: "This model may need dedicated graphics card.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy among the provided models."
                                   }, 
@@ -255,7 +255,7 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model needs dedicated graphics card", // Warning message to show when select the model.  
+                                       warning: "This model may need dedicated graphics card.", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "Parcellate cortical areas into 50 regions."
                                   }  
@@ -274,9 +274,9 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model may need dedicated graphics card", // Warning message to show when select the model.  
+                                       warning: "This model may need dedicated graphics card.", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
-                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions"
+                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions."
                                   }  
                                   ,{
                                        id: 10, 
@@ -293,9 +293,9 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  16384, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model may need dedicated graphics card, for browser with Texture_Size of 16384 it is recommended Safari 605", // Warning message to show when select the model.  
+                                       warning: "This model may need dedicated graphics card. For browser with Texture_Size of 16384 it is recommended to use Safari 605.", // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
-                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. This model partitions T1 image into cubes of smaller size for inference to helps overcoming browser limitations but leads to longer computation and lower accuracy."
+                                       description: "FreeSurfer aparc+aseg atlas 104 parcellates brain into 104 regions. It combines Desikan-Killiany cortical atlas  and subcortical regions. The model partitions T1 volume into smaller cubes for inference to overcome browser limitations but leads to longer computation and lower accuracy."
                                   }                                                                                                        
                                  
                             ];   

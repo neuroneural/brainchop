@@ -1,6 +1,6 @@
 <!--
   =========================================================
-* Brainchop - v1.3.0
+* Brainchop - v2.0.1
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -1375,7 +1375,7 @@
                                                  if (curModelEntry["warning"] != null) {
                                                         $$("modelTooltip").show();
                                                         document.getElementById("tooltipDiv").innerHTML = 
-                                                        "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.9vw' >&nbsp&nbsp"+ curModelEntry["warning"] +" </font><br><br><input type='checkbox' id='noShowWarningId' onclick='onShowWarningCheck(this)' name='noShowWarning'><label for='noShowWarning'> Don't show </label>"
+                                                        "<i style='font-size:1.4vw'  class='fa fa-exclamation-triangle' ></i> <font style='font-size:0.9vw' >&nbsp&nbsp"+ curModelEntry["warning"] +" </font><br><br><input type='checkbox' id='noShowWarningId' onclick='onShowWarningCheck(this)' name='noShowWarning'><label for='noShowWarning' style='color: black'> Don't show again</label>"
                                                
                                                  }
                                              }    
@@ -1622,12 +1622,12 @@
     webix.ui({
       view:"popup",
       id: "modelTooltip",
-      // head:"<i style='font-size:1.8vw'  class='fa fa-info-circle' ></i>",
-        body:{
-            template:"<div id='tooltipDiv'></div>"
-        },
+       // head:"<i style='font-size:1.8vw'  class='fa fa-info-circle' ></i>",
+      body:{
+            template:"<div id='tooltipDiv' style = 'text-align:justify'></div>"
+      },
       position: function(state){
-        state.width=state.maxWidth*20/100;
+        state.width=state.maxWidth*24/100;
         state.height= state.maxHeight*15/100;
         state.left=(state.maxWidth-state.width)/1.01;
         state.top=(state.maxHeight-state.height)/1.1;
