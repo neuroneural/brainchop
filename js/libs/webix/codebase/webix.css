@@ -92,7 +92,7 @@ body.webix_noselect {
 }
 .webix_template {
   height: 100%;
-  padding: 4px 12px;
+  /*padding: 4px 12px;*/
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;

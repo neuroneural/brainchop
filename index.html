@@ -349,7 +349,7 @@
       }
 
 
-      let inputOptions = {view: "form", id: "inputOptionsId", elements: [ 
+      let inputOptions = {view: "form", css: {"border-radius": "20px"}, id: "inputOptionsId", elements: [ 
 
               {  cols: [
                           {   
@@ -545,7 +545,7 @@
 
       //-----------------Open Brain T1 MRI ----------------------------------//  
 
-      let referenceImage = { view: "form",  id: "referenceImage", elements: [ 
+      let referenceImage = { view: "form", css: {"border-radius": "20px"},  id: "referenceImage", elements: [ 
               { type:"header", template:"Open Brain T1 MRI", 
                 css: "headerclass"
               },
@@ -1342,7 +1342,7 @@
         return defer;
       }
 
-      let Segmentation = {view: "form", id: "Segmentation", elements: [ 
+      let Segmentation = {view: "form", css: {"border-radius": "20px"}, id: "Segmentation", elements: [ 
               { type:"header", template:"Segmentation Options",
                 css: "headerclass"
               },
@@ -1500,7 +1500,7 @@
         return defer;         
       }
 
-      let outputOptions = {view: "form", id: "OutputOptionsId", elements: [ 
+      let outputOptions = {view: "form", css: {"border-radius": "20px"}, id: "OutputOptionsId", elements: [ 
               // { type:"header", template:"Output Options",
               //   css: "headerclass"
               // },
@@ -1670,7 +1670,7 @@
 
 
 
-      let downloadNiftiFile = {view: "form", id: "downloadNiftiFileId", elements: [ 
+      let downloadNiftiFile = {view: "form", css: {"border-radius": "20px"}, id: "downloadNiftiFileId", elements: [ 
               { type:"header", template:"Save Labels", 
                 css:"headerclass"
               },
@@ -1759,7 +1759,7 @@
                   }
     
 
-      let hardwareStatus = {view: "form", id: "hardwareStatusId", elements: [ 
+      let hardwareStatus = {view: "form", css: {"border-radius": "20px"}, id: "hardwareStatusId", elements: [ 
               { type:"header", template:"Status", 
                 css: "headerclass"
               },
@@ -1931,6 +1931,7 @@
        //-------------------------------------------------------// 
 
 
+
        webix.ui({
           margin:5,
           rows:[toolbar,
@@ -1938,7 +1939,19 @@
               margin:20,
               padding: 20,
               cols: [
-                       { width: 250, margin:10,  rows:[
+
+
+                        {
+                            view:"form",
+                            scroll:true,  
+                            padding:{
+                                top:0, bottom:0, left:0, right:15
+                            },
+                            css:{"background":"#f3f3f6 !important"},
+                            borderless: true,
+                           
+                            elements:[{ margin:2,  width: 250,
+                                                 rows:[
                                                         referenceImage,
                                                         inputOptions,
                                                         Segmentation,
@@ -1946,8 +1959,11 @@
                                                         downloadNiftiFile,
                                                         hardwareStatus,
                                                         {}
-                                                      ]
-                       },
+                                                      ]   
+                         }]
+                        },
+
+
                        { rows: [ 
                                   { type:"header", template:"MRI  Viewer",
                                     css:"headerclass"
@@ -2056,7 +2072,6 @@
        
 
      })  
-
 
 
 
