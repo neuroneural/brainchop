@@ -31,7 +31,7 @@ bibliography: paper.bib
 
 # Statement of needs
 
-Accurate segmentation of brain tissue from MRI volumes is a crucial step in various brain imaging analysis pipelines, with applications ranging from surgical planning and measurement of brain changes to visualization of anatomical structures. However, few professionals possess both domain expertise and machine learning skills, as well as the necessary computational infrastructure, to take advantage of the benefits of artificial intelligence (AI)-assisted neuroimaging. This limitation is particularly pronounced in rural areas and developing countries. To address these challenges, we developed brainchop, an in-browser machine learning platform for volumetric neuroimaging that offers high accessibility, scalability, low latency, ease of use, lack of installation requirements, and cross-platform operation while also preserving end-user data privacy. Unlike traditional web applications, brainchop operates within the browser environment, avoiding the need for server-side processing and the associated privacy and portability issues.
+Accurate segmentation of brain tissue from MRI volumes is a crucial step in various brain imaging analysis pipelines, with applications ranging from surgical planning and measurement of brain changes to visualization of anatomical structures. However, few professionals possess both domain expertise and machine learning skills, as well as the necessary computational infrastructure, to take advantage of the benefits of artificial intelligence (AI)-assisted neuroimaging. This limitation is particularly pronounced in rural areas and developing countries. To address these challenges, we developed brainchop, an in-browser machine learning platform for volumetric neuroimaging that offers high accessibility, scalability, low latency, ease of use, lack of installation requirements, and cross-platform operation while also preserving end-user data privacy. Unlike traditional web applications, brainchop operates within the browser environment, avoiding the need for server-side processing and the associated privacy and portability issues. Current available tools for 3D Neuroimaging such as Freesurfer [@FS:1999] and SPM [@Friston:1994] are not web-based tools hence they lack the aforementioned features that the browser can bring to Neuroimaging applications. For many clinicians, setting up neuroimaging pipelines is a technological barrier and providing those pipelines through the browser will help democratize these computational approaches. 
 
 
 
@@ -73,7 +73,7 @@ Multiple pre-trained models are available with brainchop for full-volume and sub
 
 Normally 3D noisy regions can result from the inference process due to possible bias, variance and irreducible error (e.g. noise with data). To remove these noisy volumes we designed a 3D connected components algorithm to filter out those noisy regions. 
 
-Papaya [@Papaya] viewers is used to visualize the input and output images, and a composite operation is also provided to subjectively verify the output image accuracy comparing to the input. 
+Papaya [@Papaya] viewer is used to visualize the input and output images, and a composite operation is also provided to subjectively verify the output image accuracy comparing to the input. 
 
 Also, brainchop supports 3D real-time rendering of the input and output volume by using Three.js [@threejs] with the capability of Region of Interest (ROI) selection as shown in \autoref{fig:rendering}.
 
