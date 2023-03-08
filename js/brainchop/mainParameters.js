@@ -196,7 +196,7 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
                                        textureSize:  13585,  // Requested Texture size for the model, if unknown can be 0. 
-                                       warning: null, // Warning message to show when select the model.    
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version."
                                   },                                   
@@ -255,7 +255,7 @@
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: null, // Warning message to show when select the model.   
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "This masking model operates on full T1 image in a single pass, but uses 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than fast version."
                                   },                                                                    
