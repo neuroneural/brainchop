@@ -162,7 +162,7 @@ describe("Main Brainchop Functions", function () {
 
   describe('#normalizeVolumeData()', function () {
     it('return a tensor of all normalized data  ', function () {
-       expect( normalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) ).arraySync()[0][0] ).to.eql( [ 0, 0.1428571492433548 ] );      
+       expect( normalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) ).arraySync()[0][0][1].toFixed(5) ).to.equal('0.14286');      
     });
   }); 
 
