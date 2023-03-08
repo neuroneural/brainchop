@@ -1,7 +1,7 @@
 .grid-container {
   display: grid;
   grid-template-columns: auto;
-  padding: 1vh;
+  padding: 0vh;
 }
 
 .grid-item {
