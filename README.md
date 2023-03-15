@@ -72,7 +72,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 * Brainchop abstract is accepted for poster presentation during the 2023 [OHBM](https://www.humanbrainmapping.org/) Annual Meeting.
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/OHBM_2023.png"  width="40%">
+   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/OHBM_2023.jpeg"  width="40%">
 </div>
 
 <br>
