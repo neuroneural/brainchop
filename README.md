@@ -106,7 +106,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 <br>
 <br>
 
-* Brainchop  invited to [TensorFlow.js](https://www.tensorflow.org/js) Show & Tell episode #7 (Jul 2022). 
+* Brainchop  invited to TensorFlow.js Show & Tell episode #7 (Jul 2022). 
 
 <div align="center">
   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_show_tell.png"  width="50%">
