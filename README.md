@@ -69,6 +69,15 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## News!
 
+* Brainchop abstract is accepted for poster presentation during the 2023 [OHBM](https://www.humanbrainmapping.org/) Annual Meeting.
+
+<div align="center">
+   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/OHBM_2023.png"  width="40%">
+</div>
+
+<br>
+<br>
+
 * Brainchop 1-page abstract and poster is accepted in 20th IEEE International Symposium on Biomedical Imaging ([ISBI 2023](https://2023.biomedicalimaging.org/en/))
 
 <div align="center">
@@ -93,6 +102,15 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/Pytorch_Poster.jpg"  width="50%">
 </div>
 
+
+<br>
+<br>
+
+* Brainchop  invited to [TensorFlow.js](https://www.tensorflow.org/js) Show & Tell episode #7 (Jul 2022). 
+
+<div align="center">
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_show_tell.png"  width="50%">
+</div>
 
 ## Citation
 
