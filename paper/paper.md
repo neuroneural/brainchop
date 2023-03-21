@@ -15,9 +15,9 @@ authors:
       orcid: 0000-0003-0040-0365
       affiliation: "1, 2"
 affiliations:
-  - name: Tri-institutional Center for Translational Research in Neuroimaging and Data Science (TReNDS), Georgia State University, Georgia Institute of Technology, Emory University, Atlanta, GA, USA
+  - name: Tri-institutional Center for Translational Research in Neuroimaging and Data Science (TReNDS), Georgia State University, Georgia Institute of Technology, Emory University, Atlanta, United States of America
     index: 1
-  - name: Georgia State University, Department of Computer Science, Atlanta, GA, USA
+  - name: Department of Computer Science, Georgia State University, Atlanta, United States of America
     index: 2
 date: 9 December 2022
 bibliography: paper.bib
@@ -43,12 +43,12 @@ In order to deploy the PyTorch MeshNet model in the browser, there is a  need to
 
 # Preprocessing
 
-Brainchop is designed to support T1 weighted MRI volume segmentation. The input is read in Nifti format [@NIfTI-Reader]. T1 image needs to be in shape 256x256x256, scaled, and resampled to 1mm isotropic voxels as a preprocessing step for proper results. This preprocessing can be made in brainchop by using mri_convert.js which uses pyodide [@pyodide_2022] to deploy the conform function used by FastSurfer [@Henschel:2020] for reshaping, scaling, and re-sampling  MRI T1 raw image data as shown in  \autoref{fig:Convert-Enhance-Pipeline} (a).
+Brainchop is designed to support T1 weighted MRI volume segmentation. The input is read in Nifti format [@NIfTI-Reader]. T1 image needs to be in shape 256x256x256, scaled, and resampled to 1 mm isotropic voxels as a preprocessing step for proper results. This preprocessing can be made in brainchop by using mri_convert.js which uses Pyodide [@pyodide_2022] to deploy the conform function used by FastSurfer [@Henschel:2020] for reshaping, scaling, and re-sampling  MRI T1 raw image data as shown in  \autoref{fig:Convert-Enhance-Pipeline} (a).
 
 ![Brainchop preprocessing pipeline (a) Conform operation (b) MRI enhancement operations.\label{fig:Convert-Enhance-Pipeline}](ConvertAndEnhancePipeline.png)
 
 
-The rest of the preprocessing pipeline is to remove input noisy voxels and enhance input volume intensities to improve the segmentation accuracy \autoref{fig:Convert-Enhance-Pipeline} (b). In addition, brainchop also supports  MRI tissue cropping to speed up the inference process and lowering memory use. 
+The rest of the preprocessing pipeline is to remove input noisy voxels and enhance input volume intensities to improve the segmentation accuracy \autoref{fig:Convert-Enhance-Pipeline} (b). In addition, brainchop also supports  MRI tissue cropping to speed up the inference process and lower memory use. 
 
 
 
@@ -59,7 +59,7 @@ The advantage of MeshNet small size is due to its simple architecture and using 
 
 ![MeshNet architecture.\label{fig:MeshNet-Arch}](MeshNetArch.png)
 
-While MeshNet model has fewer parameters compared to the classical segmentation model U-Net, it also can achieve  a competitive DICE score as shown in \autoref{tab:Table-1}.
+While the MeshNet model has fewer parameters compared to the classical segmentation model U-Net, it also can achieve  a competitive DICE score as shown in \autoref{tab:Table-1}.
 
 
 \begin{table}[h] \centering \caption{\label{tab:Table-1} Segmentation models performance.}  \begin{tabular}{l|ccc} \hline  {\bf Model} & {\bf Inference Speed} & {\bf Model Size} & {\bf Macro DICE} \\\hline MeshNet GMWM & 116 subvolumes/sec & .89 mb & 0.96 \\ U-Net GMWM & 13  subvolumes/sec &  288 mb & 0.96 \\ MeshNet GMWM (full brain model) & 0.001 sec/volume &  0.022 mb & 0.96\\\hline \end{tabular} \end{table}
@@ -67,13 +67,13 @@ While MeshNet model has fewer parameters compared to the classical segmentation 
 
 # Results
 
-Multiple pre-trained models are available with brainchop for full-volume and sub-volumes inference including brain masking, gray matter white matter (GMWM) segmentation models, in addition to brain atlas models for 50 cortical regions and 104 cortical and sub-cortical structures as shown in \autoref{fig:Gallery-1}.
+Multiple pre-trained models are available with brainchop for full-volume and sub-volumes inference including brain masking, gray matter white matter (GMWM) segmentation models, in addition to brain atlas models for 50 cortical regions and 104 cortical and subcortical structures as shown in \autoref{fig:Gallery-1}.
 
 ![Brainchop outputs.\label{fig:Gallery-1}](Gallery.png)
 
 Normally 3D noisy regions can result from the inference process due to possible bias, variance and irreducible error (e.g. noise with data). To remove these noisy volumes we designed a 3D connected components algorithm to filter out those noisy regions. 
 
-Papaya [@Papaya] viewer is used to visualize the input and output images, and a composite operation is also provided to subjectively verify the output image accuracy comparing to the input. 
+Papaya [@Papaya] viewer is used to visualize the input and output images, and a composite operation is also provided to subjectively verify the output image accuracy compared to the input. 
 
 Also, brainchop supports 3D real-time rendering of the input and output volume by using Three.js [@threejs] with the capability of Region of Interest (ROI) selection as shown in \autoref{fig:rendering}.
 
