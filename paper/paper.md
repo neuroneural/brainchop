@@ -29,7 +29,7 @@ bibliography: paper.bib
 
 
 
-# Statement of needs
+# Statement of need
 
 Accurate segmentation of brain tissue from MRI volumes is a crucial step in various brain imaging analysis pipelines, with applications ranging from surgical planning and measurement of brain changes to visualization of anatomical structures. However, few professionals possess both domain expertise and machine learning skills, as well as the necessary computational infrastructure, to take advantage of the benefits of artificial intelligence (AI)-assisted neuroimaging. This limitation is particularly pronounced in rural areas and developing countries. To address these challenges, we developed brainchop, an in-browser machine learning platform for volumetric neuroimaging that offers high accessibility, scalability, low latency, ease of use, lack of installation requirements, and cross-platform operation, while also preserving end-user data privacy. Unlike traditional web applications, brainchop operates within the browser environment to process the end-users data locally on their machines without the need for server-side processing and the associated privacy and portability issues. Currently available tools for 3D Neuroimaging such as Freesurfer [@FS:1999] and SPM [@Friston:1994] are not web-based tools hence they lack the aforementioned features that the browser can bring to Neuroimaging applications. For many clinicians, setting up neuroimaging pipelines is a technological barrier, and providing those pipelines through the browser will help democratize these computational approaches.
 
