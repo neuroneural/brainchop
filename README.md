@@ -114,7 +114,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## Citation
 
-Mohamed Masoud, Farfalla Hu and Sergey Plis. (2022). Brainchop : In-browser MRI volumetric segmentation and rendering (v2.1.0). Zenodo. https://doi.org/10.5281/zenodo.7735848
+Mohamed Masoud, Farfalla Hu and Sergey Plis. (2023). Brainchop : In-browser MRI volumetric segmentation and rendering (v2.1.0). Zenodo. https://doi.org/10.5281/zenodo.7735848
 
 ## Funding
 
