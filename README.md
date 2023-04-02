@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!)**
+**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!) &emsp; [Cite!](#Citation)**
 
 </div>
 
@@ -69,6 +69,15 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## News!
 
+* Brainchop published in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098).
+
+<div align="center">
+   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/JOSS_Logo.png">
+</div>
+
+<br>
+<br>
+
 * Brainchop abstract is accepted for poster presentation during the 2023 [OHBM](https://www.humanbrainmapping.org/) Annual Meeting.
 
 <div align="center">
@@ -114,7 +123,61 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## Citation
 
-Mohamed Masoud, Farfalla Hu and Sergey Plis. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering (v2.1.0). Zenodo. https://doi.org/10.5281/zenodo.7735848
+Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published in March 2023 in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098) 
+
+<br>
+
+This work can be **cited** as follows:
+<br>
+
+For **APA** style: 
+
+
+```APA
+
+Masoud, M., Hu, F., & Plis, S. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering. Journal of Open Source Software, 8(83), 5098. https://doi.org/10.21105/joss.05098
+
+```
+<br>
+
+For **BibTeX** format that is used by some publishers,  please use: 
+
+```BibTeX: 
+
+@article{Masoud2023, 
+  doi = {10.21105/joss.05098}, 
+  url = {https://doi.org/10.21105/joss.05098}, 
+  year = {2023}, 
+  publisher = {The Open Journal}, 
+  volume = {8}, 
+  number = {83}, 
+  pages = {5098}, 
+  author = {Mohamed Masoud and Farfalla Hu and Sergey Plis}, 
+  title = {Brainchop: In-browser MRI volumetric segmentation and rendering}, 
+  journal = {Journal of Open Source Software} 
+} 
+
+```
+<br>
+
+For **MLA** style: 
+
+```MLA
+
+Masoud, Mohamed, Farfalla Hu, and Sergey Plis. ‘Brainchop: In-Browser MRI Volumetric Segmentation and Rendering’. Journal of Open Source Software, vol. 8, no. 83, The Open Journal, 2023, p. 5098, https://doi.org10.21105/joss.05098.
+
+```
+<br>
+
+For **IEEE** style:
+
+```IEEE
+
+M. Masoud, F. Hu, and S. Plis, ‘Brainchop: In-browser MRI volumetric segmentation and rendering’, Journal of Open Source Software, vol. 8, no. 83, p. 5098, 2023. doi:10.21105/joss.05098
+
+```
+
+
 
 ## Funding
 
