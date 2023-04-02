@@ -1,5 +1,5 @@
 
-# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
+# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() (https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
 
 
 <div align="center">
@@ -125,15 +125,13 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published in March 2023 in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098) 
 
-The paper can be **cited** as follows:
+
 <br>
 
-For **APA** style: 
+For **APA** style, the paper can be **cited** as follows:: 
 
+> Masoud, M., Hu, F., & Plis, S. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering. Journal of Open Source Software, 8(83), 5098. https://doi.org/10.21105/joss.05098
 
-`
-Masoud, M., Hu, F., & Plis, S. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering. Journal of Open Source Software, 8(83), 5098. https://doi.org/10.21105/joss.05098
-`
 <br>
 
 For **BibTeX** format that is used by some publishers,  please use: 
@@ -156,16 +154,14 @@ For **BibTeX** format that is used by some publishers,  please use:
 
 For **MLA** style: 
 
-`
-Masoud, Mohamed, Farfalla Hu, and Sergey Plis. ‘Brainchop: In-Browser MRI Volumetric Segmentation and Rendering’. Journal of Open Source Software, vol. 8, no. 83, The Open Journal, 2023, p. 5098, https://doi.org10.21105/joss.05098.
-`
+> Masoud, Mohamed, Farfalla Hu, and Sergey Plis. ‘Brainchop: In-Browser MRI Volumetric Segmentation and Rendering’. Journal of Open Source Software, vol. 8, no. 83, The Open Journal, 2023, p. 5098, https://doi.org10.21105/joss.05098.
+
 <br>
 
 For **IEEE** style:
 
-`
-M. Masoud, F. Hu, and S. Plis, ‘Brainchop: In-browser MRI volumetric segmentation and rendering’, Journal of Open Source Software, vol. 8, no. 83, p. 5098, 2023. doi:10.21105/joss.05098
-`
+> M. Masoud, F. Hu, and S. Plis, ‘Brainchop: In-browser MRI volumetric segmentation and rendering’, Journal of Open Source Software, vol. 8, no. 83, p. 5098, 2023. doi:10.21105/joss.05098
+
 
 
 
