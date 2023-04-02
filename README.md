@@ -1,5 +1,5 @@
 
-# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) 
+# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![HW ](https://img.shields.io/badge/HardWare-GPU-green)](https://github.com/neuroneural/brainchop/wiki/System-Requirements) [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
 
 
 <div align="center">
@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!) &emsp; [Cite!](#Citation)**
+**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!) &emsp; [Cite](#Citation)**
 
 </div>
 
@@ -69,10 +69,10 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## News!
 
-* Brainchop published in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098).
+* Brainchop [published](https://doi.org/10.21105/joss.05098) in the Journal of Open Source Software (JOSS).
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/JOSS_Logo.png">
+   <a href="https://doi.org/10.21105/joss.05098"><img src="https://github.com/neuroneural/brainchop/blob/master/css/news/JOSS_Logo.png"></a>
 </div>
 
 <br>
@@ -125,25 +125,20 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published in March 2023 in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098) 
 
-<br>
-
-This work can be **cited** as follows:
+The paper can be **cited** as follows:
 <br>
 
 For **APA** style: 
 
 
-```APA
-
+`
 Masoud, M., Hu, F., & Plis, S. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering. Journal of Open Source Software, 8(83), 5098. https://doi.org/10.21105/joss.05098
-
-```
+`
 <br>
 
 For **BibTeX** format that is used by some publishers,  please use: 
 
 ```BibTeX: 
-
 @article{Masoud2023, 
   doi = {10.21105/joss.05098}, 
   url = {https://doi.org/10.21105/joss.05098}, 
@@ -156,26 +151,21 @@ For **BibTeX** format that is used by some publishers,  please use:
   title = {Brainchop: In-browser MRI volumetric segmentation and rendering}, 
   journal = {Journal of Open Source Software} 
 } 
-
 ```
 <br>
 
 For **MLA** style: 
 
-```MLA
-
+`
 Masoud, Mohamed, Farfalla Hu, and Sergey Plis. ‘Brainchop: In-Browser MRI Volumetric Segmentation and Rendering’. Journal of Open Source Software, vol. 8, no. 83, The Open Journal, 2023, p. 5098, https://doi.org10.21105/joss.05098.
-
-```
+`
 <br>
 
 For **IEEE** style:
 
-```IEEE
-
+`
 M. Masoud, F. Hu, and S. Plis, ‘Brainchop: In-browser MRI volumetric segmentation and rendering’, Journal of Open Source Software, vol. 8, no. 83, p. 5098, 2023. doi:10.21105/joss.05098
-
-```
+`
 
 
 
