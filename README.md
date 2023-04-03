@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News!) &emsp; [Cite](#Citation)**
+**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation)**
 
 </div>
 
@@ -67,7 +67,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 **brainchop V1.4.0 rendering MRI Nifti file in 3D**
 </div>
 
-## News!
+## News
 
 * Brainchop [paper](https://doi.org/10.21105/joss.05098) is published in the Journal of Open Source Software (JOSS).
 
