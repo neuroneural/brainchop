@@ -128,7 +128,7 @@ Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published o
 
 <br>
 
-For **APA** style, the paper can be **cited** as follows:: 
+For **APA** style, the paper can be **cited** as: 
 
 > Masoud, M., Hu, F., & Plis, S. (2023). Brainchop: In-browser MRI volumetric segmentation and rendering. Journal of Open Source Software, 8(83), 5098. https://doi.org/10.21105/joss.05098
 
@@ -163,7 +163,7 @@ For **IEEE** style:
 > M. Masoud, F. Hu, and S. Plis, ‘Brainchop: In-browser MRI volumetric segmentation and rendering’, Journal of Open Source Software, vol. 8, no. 83, p. 5098, 2023. doi:10.21105/joss.05098
 
 
-
+<br>
 
 ## Funding
 
