@@ -69,7 +69,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## News
 
-* Brainchop [paper](https://doi.org/10.21105/joss.05098) is published in the Journal of Open Source Software (JOSS).
+* Brainchop [paper](https://doi.org/10.21105/joss.05098) is published in the Journal of Open Source Software (JOSS) on March 28, 2023.
 
 <div align="center">
    <a href="https://doi.org/10.21105/joss.05098"><img src="https://github.com/neuroneural/brainchop/blob/master/css/news/JOSS_Logo.png"></a>
@@ -123,7 +123,7 @@ To see the tool in action please click  [here](https://neuroneural.github.io/bra
 
 ## Citation
 
-Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published in March 2023 in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098) 
+Brainchop [paper](https://doi.org/10.21105/joss.05098) for v2.1.0 is published on March 28, 2023, in the Journal of Open Source Software (JOSS) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098) 
 
 
 <br>
