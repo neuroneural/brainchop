@@ -681,7 +681,7 @@
                                                             let blob = new Blob( params_mri["binaryImages"] , {type: "application/octet-binary;charset=utf-8"});
                                                             let rawImgurl = window.URL.createObjectURL(blob);
                                                              
-                                                            mri_convert(rawImgurl, rawNiftiData).then(function(res) {
+                                                            mri_convert(rawImgurl, rawNiftiData, file["name"]).then(function(res) {
                                                                 rawNiftiData = res;
                                                                 niftiHeader = readNiftiHeader(rawNiftiData);
                                                                 niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 

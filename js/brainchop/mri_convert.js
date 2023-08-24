@@ -300,11 +300,12 @@ modifyNifti2_Header = (ArrBuf, newHdrObj) =>  {
  * mri convert function to resample and normalize the input nifti file
  * @param {String} fileUrl : link to file of type : "application/octet-binary;charset=utf-8"
  * @param {ArrayBuffer} rawNiftiFile  
+ * @param {String}  fileName
  * @return {ArrayBuffer}
  */
 
 
-async function mri_convert(fileUrl,  rawNiftiFile) {
+async function mri_convert(fileUrl,  rawNiftiFile, fileName) {
 
          //-- To be accessed from python using js from import js, it should be global   
          mriTempUrl =   fileUrl;
@@ -316,7 +317,17 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
              return 0;
          }
 
-         
+
+        if (!fileName.endsWith('.nii') && !fileName.endsWith('.nii.gz')) {
+            webix.alert('Please select Nifti file *.nii or *.nii.gz ');
+            return 0;
+        } else {
+            niftiFileExtension = fileName.endsWith('.nii') ?  '.nii' : '.nii.gz';
+            console.log("Nifti File Extension :", niftiFileExtension);
+        }        
+
+ 
+            
          try {
             pyodide = await loadPyodide();
 
@@ -714,18 +725,22 @@ async function mri_convert(fileUrl,  rawNiftiFile) {
 
                #--------------------main------------------------#
                print("mriTempUrl:  " + format(js.mriTempUrl))
-               
+
                document.getElementById("mriConvertProgBar").style.width=   "75%"
                 
                # Fetch original MRI file from JS 
                response = await pyfetch(js.mriTempUrl)
+               
+               # Get temp Nifti file name with extension nii or nii.gz
+               inputFileName = "inputFile" + js.niftiFileExtension
+               print("inputFileName:  " + format(inputFileName))               
 
                if response.status == 200:
-                   with open("inputFile.nii.gz", "wb") as f:
+                   with open(inputFileName, "wb") as f:
                        f.write(await response.bytes())     
                           
                try:       
-                 input_NIFTIimg = nibabel.load("inputFile.nii.gz")
+                 input_NIFTIimg = nibabel.load(inputFileName)
 
                except: 
                  js_system_exit("File can not be converted.")    
