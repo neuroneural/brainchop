@@ -107,7 +107,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 <br>
 <br>
 
-* Brainchop  invited to [Pytorch](https://pytorchconference22.splashthat.com/) flag conference, New Orleans, Louisiana (Dec 2022) 
+* Brainchop  invited to [Pytorch](https://pytorch.org/ecosystem/ptc/2022) flag conference, New Orleans, Louisiana (Dec 2022) 
 
 <div align="center">
   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/Pytorch_Poster.jpg"  width="50%">
