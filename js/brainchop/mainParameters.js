@@ -232,8 +232,8 @@
                                        type: "Atlas", 
                                        path:"./models/model11_50class/model.json", 
                                        modelName:"Cortical Atlas 50", 
-                                       labelsPath: "./models/model30chan50cls/labels.json", 
-                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       labelsPath: "./models/model11_50class/labels.json", 
+                                       colorsPath: "./models/model11_50class/colorLUT.json",       
                                        preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
@@ -253,8 +253,8 @@
                                        type: "Atlas", 
                                        path:"./models/model11_50class/model.json", 
                                        modelName:"Cortical Atlas 50 (failsafe)", 
-                                       labelsPath: "./models/model30chan50cls/labels.json", 
-                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       labelsPath: "./models/model11_50class/labels.json", 
+                                       colorsPath: "./models/model11_50class/colorLUT.json",       
                                        preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
