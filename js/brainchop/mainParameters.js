@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v2.0.1
+* Brainchop - v3.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -102,27 +102,7 @@
    // Inference Models, the ids must start from 1 in sequence
    var inferenceModelsList = [
                                   {
-                                       id: 1,  // Must start from 1
-                                       type: "Segmentation", 
-                                       path: "./models/model21_3class/model.json", 
-                                       modelName: "Subvolume GWM (failsafe)",  
-                                       labelsPath: "./models/model21_3class/labels.json", 
-                                       colorsPath: "./models/model21_3class/colorLUT.json",  
-                                       preModelId: null, // Model run first e.g.  crop the brain  {null, 1, 2, ..  }                                                                         
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                          
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
-                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
-                                       warning: null, // Warning message to show when select the model.      
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.
-                                       description: "Gray and white matter segmentation model. This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
-                                  },
-
-                                  {
-                                       id: 2, 
+                                       id: 1, 
                                        type: "Segmentation", 
                                        path: "./models/model5_gw_ae/model.json", 
                                        modelName: "Full Brain GWM (light)",  
@@ -135,14 +115,15 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.      
                                        warning: null, // Warning message to show when select the model.       
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the subvolume model."
-                                  },
+                                  }
 
-                                  {
-                                       id: 3, 
+                                 ,{
+                                       id: 2, 
                                        type: "Segmentation", 
                                        path:"./models/model11_gw_ae/model.json", 
                                        modelName:"Full Brain GWM (large)", 
@@ -155,14 +136,15 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy among the provided models."
-                                  }, 
+                                  } 
 
-                                  {
-                                       id: 4, 
+                                 ,{
+                                       id: 3, 
                                        type: "Brain_Extraction", 
                                        path: "./models/model5_gw_ae/model.json", 
                                        modelName:"Extract the Brain (FAST)", 
@@ -175,14 +157,15 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
                                        warning: null, // Warning message to show when select the model.    
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
-                                  }, 
+                                  } 
 
-                                  {
-                                       id: 5, 
+                                 ,{
+                                       id: 4, 
                                        type: "Brain_Extraction", 
                                        path: "./models/model11_gw_ae/model.json", 
                                        modelName:"Extract the Brain (High Acc)", 
@@ -195,33 +178,15 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  13585,  // Requested Texture size for the model, if unknown can be 0. 
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version."
-                                  },                                   
+                                  }                                   
 
-                                  {
-                                       id: 6, 
-                                       type: "Brain_Extraction", 
-                                       path:"./models/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Extract the Brain (failsafe)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,         
-                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference 
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
-                                       textureSize:  0,  // Requested Texture size for the model, if unknown can be 0. 
-                                       warning: null, // Warning message to show when select the model.    
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
-                                       description: "This model partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
-                                  },
-                                  {
-                                       id: 7, 
+                                 ,{
+                                       id: 5, 
                                        type: "Brain_Masking", 
                                        path: "./models/model5_gw_ae/model.json", 
                                        modelName:"Compute Brain Mask (FAST)", 
@@ -234,14 +199,15 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: null, // Warning message to show when select the model.   
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
-                                  }, 
+                                  } 
 
-                                  {
-                                       id: 8, 
+                                  ,{
+                                       id: 6, 
                                        type: "Brain_Masking", 
                                        path: "./models/model11_gw_ae/model.json",  
                                        modelName:"Compute Brain Mask (High Acc)", 
@@ -254,90 +220,99 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
                                        description: "This masking model operates on full T1 image in a single pass, but uses 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than fast version."
-                                  },                                                                    
+                                  }       
 
-                                  {
-                                       id: 9, 
-                                       type: "Brain_Masking", 
-                                       path:"./models/mnm_tfjs_me_test/model.json", 
-                                       modelName:"Compute Brain Mask (failsafe)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,       
-                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
-                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: null, // Warning message to show when select the model.   
-                                       inferenceDelay: 0, // Delay in ms time while looping layers applying.                                  
-                                       description: "This masking version partitions T1 image into cubes of smaller 64x64x64 size and processes one at a time. This helps to overcome browser limitations but leads to longer computation and lower accuracy."
-                                  },
-                                 
-                                  {
-                                       id: 10, 
+                                 ,{
+                                       id: 7, 
                                        type: "Atlas", 
                                        path:"./models/model11_50class/model.json", 
                                        modelName:"Cortical Atlas 50", 
-                                       labelsPath: "./models/model11_50class/labels.json", 
-                                       colorsPath: "./models/model11_50class/colorLUT.json",       
-                                       preModelId: 7,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       labelsPath: "./models/model30chan50cls/labels.json", 
+                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "Parcellate cortical areas into 50 regions."
-                                  }  
-                                  ,{
-                                       id: 11, 
+                                  }
+
+                                 ,{
+                                       id: 8, 
+                                       type: "Atlas", 
+                                       path:"./models/model11_50class/model.json", 
+                                       modelName:"Cortical Atlas 50 (failsafe)", 
+                                       labelsPath: "./models/model30chan50cls/labels.json", 
+                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "Parcellate cortical areas into 50 regions. The model use sequential convolution for inference to overcome browser memory limitations but leads to longer computation time."
+                                  }
+
+                                 ,{
+                                       id: 9, 
                                        type: "Atlas", 
                                        path:"./models/model21_104class/model.json", 
                                        modelName:"FS aparc+aseg Atlas 104", 
                                        labelsPath: "./models/model21_104class/labels.json", 
                                        colorsPath: "./models/model21_104class/colorLUT.json",     
-                                       preModelId: 2,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
+                                       preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.     
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions."
-                                  }  
-                                  ,{
-                                       id: 12, 
+                                  }
+
+                                 ,{
+                                       id: 10, 
                                        type: "Atlas", 
-                                       path:"./models/model21_104class/model_D95.json", 
+                                       path:"./models/model21_104class/model.json", 
                                        modelName:"FS aparc+aseg Atlas 104 (failsafe)", 
                                        labelsPath: "./models/model21_104class/labels.json", 
                                        colorsPath: "./models/model21_104class/colorLUT.json",     
-                                       preModelId: 7,  // model run first e.g.  Brain_Extraction { null, 1, 2, ..  } 
+                                       preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
-                                       textureSize:  16384, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model may need dedicated graphics card. For browser with Texture_Size of 16384 it is recommended to use Safari 605.", // Warning message to show when select the model.  
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
-                                       description: "FreeSurfer aparc+aseg atlas 104 parcellates brain into 104 regions. It combines Desikan-Killiany cortical atlas  and subcortical regions. The model partitions T1 volume into smaller cubes for inference to overcome browser limitations but leads to longer computation and lower accuracy."
-                                  }                                                                                                        
-                                 
+                                       description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. The model use sequential convolution for inference to overcome browser memory limitations but leads to longer computation time. "
+                                  }                                                                                                                                                                                                               
+
+                                                                  
+                            
                             ];   
 
 

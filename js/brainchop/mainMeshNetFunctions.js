@@ -1,6 +1,6 @@
 /*
 =========================================================
-* Brainchop - v2.0.1
+* Brainchop - v3.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -333,9 +333,9 @@ rgbToHex = (rgbObj) => {
 * @returns {Array} Returns 2D labels array outputSlices[sliceIdx][sliceHeight*sliceWidth] after filtering noisy 3d regions
 * @example
 *
-* postProcessSlices3D( [ [0,0,0,0,  0,1,1,0,  0,0,0,0],
-*                        [0,0,0,0,  0,0,1,1,  0,0,0,0],
-*                        [0,0,0,0,  0,0,0,1,  0,1,1,0] ], 3, 4)
+* await postProcessSlices3D( [ [0,0,0,0,  0,1,1,0,  0,0,0,0],
+                             [0,0,0,0,  0,0,1,1,  0,0,0,0],
+                             [0,0,0,0,  0,0,0,1,  0,1,1,0] ], 3, 4)
 *
 * // =>  [ [0,0,0,0,  0,1,1,0,  0,0,0,0],
 *          [0,0,0,0,  0,0,1,1,  0,0,0,0],
@@ -354,7 +354,6 @@ rgbToHex = (rgbObj) => {
       delete cc3d;
       return outputSlices;
   }  
-
 
 
 
@@ -1063,6 +1062,104 @@ rgbToHex = (rgbObj) => {
 	}
 
 /**
+* For future use
+* Calculate the tensor data quantiles
+* @since 3.0.0
+* @param {tf.Tensor} tensor - Tensor1d/Tensor2d/Tensor3d,  e.g. Tensor3d of all MRI volume data 
+* @param {number} lowerQuantile 
+* @param {number} upperQuantile 
+* @returns {object}  
+* @example
+*
+* await calculateQuantiles (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
+*
+* // => Object { qmin: 0, qmax: 7 }
+*                
+*/ 
+
+
+  calculateQuantiles = async(tensor, lowerQuantile = 0.01, upperQuantile = 0.99) => {
+      // Flatten the tensor
+      const flatTensor = tensor.flatten();
+
+      // Convert the flattened tensor to an array to sort it
+      const flatArray = await flatTensor.array();
+      flatArray.sort((a, b) => a - b); // Sort the array in ascending order
+
+      // Convert the sorted array back to a tensor
+      const sortedTensor = tf.tensor1d(flatArray);
+
+      // Calculate the indices for the quantiles
+      const numElements = sortedTensor.shape[0];
+      const lowIndex = Math.floor(numElements * lowerQuantile);
+      const highIndex = Math.ceil(numElements * upperQuantile) - 1; // Subtract 1 because indices are 0-based
+
+      // Slice the sorted tensor to get qmin and qmax
+      const qmin = sortedTensor.slice(lowIndex, 1); // Get the value at the low index
+      const qmax = sortedTensor.slice(highIndex, 1); // Get the value at the high index
+
+      // Get the actual values from the tensors
+      const qminValue = (await qmin.array())[0];
+      const qmaxValue = (await qmax.array())[0];
+
+      // Clean up tensors to free memory
+      flatTensor.dispose();
+      sortedTensor.dispose();
+      qmin.dispose();
+      qmax.dispose();
+
+      return { qmin: qminValue, qmax: qmaxValue };
+  }
+
+
+/**
+* For future use
+* Normalize the tensor data using quantiles
+* @since 3.0.0
+* @param {tf.Tensor} tensor - Tensor1d/Tensor2d/Tensor3d,  e.g. Tensor3d of all MRI volume data 
+* @param {number} lowerQuantile 
+* @param {number} upperQuantile 
+* @returns {tf.Tensor}  
+* @example
+*
+* normTensor = await normalizeTensor (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
+*
+* // => Object Object { kept: false, isDisposedInternal: false, shape: (3) […], dtype: "float32", size: 8, 
+*                       strides: (2) […], dataId: {…}, id: 9, rankType: "3", scopeId: 5 }
+*
+* normTensor.print()
+*
+* //=>     Tensor
+*              [[[0        , 0.1428571],
+*                [0.2857143, 0.4285715]],
+*
+*               [[0.5714286, 0.7142857],
+*                [0.8571429, 1        ]]]                
+*/ 
+
+
+  normalizeTensor = async (tensor, lowerQuantile = 0.05, upperQuantile = 0.95) => {
+      // Call calculateQuantiles and wait for the result
+      const { qmin, qmax } = await calculateQuantiles(tensor, lowerQuantile, upperQuantile);
+
+      // Convert qmin and qmax back to scalars
+      const qminScalar = tf.scalar(qmin);
+      const qmaxScalar = tf.scalar(qmax);
+
+      // Perform the operation: (tensor - qmin) / (qmax - qmin)
+      const resultTensor = tensor.sub(qminScalar).div(qmaxScalar.sub(qminScalar));
+
+      // Dispose of the created scalars to free memory
+      qminScalar.dispose();
+      qmaxScalar.dispose();
+
+      // Return the resulting tensor
+      return resultTensor;
+  }
+
+
+
+/**
 * load pre-trained model from local drive
 *
 * @since 1.0.0
@@ -1093,9 +1190,9 @@ rgbToHex = (rgbObj) => {
 *
 */  
 
-    load_browser_model = async( modelFile, weightFile) => {
-        return await tf.loadLayersModel(tf.io.browserFiles( [ modelFile, weightFile ]));
-    }
+  load_browser_model = async( modelFile, weightFile) => {
+      return await tf.loadLayersModel(tf.io.browserFiles( [ modelFile, weightFile ]));
+  }
 
 /**
 * Generates range of colors for Segmentation classes -- (refine)
@@ -2188,7 +2285,7 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                   // Remove noisy regions using 3d CC   
                   let sliceWidth = niftiHeader.dims[1];
                   let sliceHeight = niftiHeader.dims[2];                                
-                  return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+                  return  postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth );
             })
 
             console.log("Post processing done ... ");             
@@ -3279,6 +3376,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
 /**
 * Inference Function for sub-volumes
+*
+* In version 3.0.0 this function not used, can reuse in future versions
+*
 * @since 1.0.0
 * @param {promise}  model
 * @param {tf.Tensor}  slices_3d
@@ -3517,7 +3617,18 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                             for (let i = 1; i < layersLength; i++) {
                                   try {
-                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                        if (res.layers[i].activation.getClassName() !== 'linear') {
+                                            curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                        } else {
+
+                                            curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                              res.layers[i].getWeights()[0],
+                                                                                              res.layers[i].getWeights()[1],
+                                                                                              res.layers[i].strides,
+                                                                                              res.layers[i].padding,
+                                                                                              res.layers[i].dilationRate,
+                                                                                              3); // important for memory use
+                                        }   
                                   } catch(err) {
 
                                         if( err.message === "Failed to compile fragment shader.") {
@@ -3564,7 +3675,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                   if( j == allBatches.length-1 ) {
                                     console.log("layer ", i);            
-                                    console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
+                                    console.log("layer output Tensor shape : ", curTensor[i].shape);                                              
                                     console.log("layer count params ", res.layers[i].countParams());
                                   }
 
@@ -3722,9 +3833,1030 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
   }   
 
+ /////////////////////////////////////////////////////////////////////////
+///////////////----------------SEQ LAYER-----------------////////////////
+////////////////////////////////////////////////////////////////////////
+
+/**
+* This function is designed to process a large tensor in smaller chunks to manage memory usage effectively.
+*
+* @since 3.0.0
+* @param {tf.Tensor} inputTensor e.g.[ D, H, W, Ch] or [ Ch, D, H, W]->[ 256, 256, 256, 5 ] or [ 5, 256, 256, 256 ]
+* @param {tf.Tensor} vector - e.g. filterWeight: [-1.4474995, 0.6897876, -0.2812168, -0.0344299, 1.266812]
+* @param {number} chunkSize -parameter important for memory, the larger it is, the more memory in use. e.g. 4
+* @return {tf.Tensor}
+*
+*/  
+
+function processTensorInChunks(inputTensor, vector, chunkSize) {
+    const rank = inputTensor.rank;
+    const lastDimension = inputTensor.shape[rank - 1];
+
+    if (lastDimension !== vector.size) {
+        throw new Error('The last dimension of the input tensor must match the length of the vector.');
+    }
+
+    if (chunkSize <= 0 || chunkSize > lastDimension) {
+        throw new Error('Invalid chunk size.');
+    }
+
+    return tf.tidy(() => {
+        let accumulatedResult = null;
+
+        for (let i = 0; i < lastDimension; i += chunkSize) {
+            const sliceSize = Math.min(chunkSize, lastDimension - i);
+
+            const tensorSlice = inputTensor.slice([...Array(rank - 1).fill(0), i], [-1, -1, -1, sliceSize]);
+            const vectorSlice = vector.slice(i, sliceSize);
+
+            const multiplied = tf.mul(tensorSlice, vectorSlice);
+            tensorSlice.dispose();
+            vectorSlice.dispose();
+
+            const summed = tf.sum(multiplied, -1);
+            multiplied.dispose(); // Dispose of the multiplied tensor, as we no longer need it.
+
+            if (accumulatedResult === null) {
+                accumulatedResult = summed;
+            } else {
+                // Before updating accumulatedResult, dispose of the previous tensor
+                const oldAccumulatedResult = accumulatedResult;
+                accumulatedResult = oldAccumulatedResult.add(summed);
+                oldAccumulatedResult.dispose(); // Dispose of the old accumulated result
+                summed.dispose(); // Dispose of the summed tensor, as it is now part of the accumulated result
+            }
+        }
+
+        return accumulatedResult;
+    });
+}
+
+
+/**
+* This function is show memory status while running sequential processing 
+*
+* @since 3.0.0
+* @param {number} chIdx 
+* @param {number} totalChannels 
+* @return {promise}
+*
+*/ 
+
+showMemStatus = async(chIdx, totalChannels) => {
+
+  return new Promise((resolve, reject) => {
+
+        let memStatus = tf.memory().unreliable ? "Red" : "Green";
+        let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons.fontcolor("red").bold() : "";
+        document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
+
+        document.getElementById("memStatusParagraph").innerHTML = "Channels completed:  " + (chIdx + 1) + " / " + totalChannels +
+                              // https://js.tensorflow.org/api/latest/#memory
+                              "<br><br>" +"TF Memory Status: " + memStatus.fontcolor(tf.memory().unreliable ? "red" : "green").bold()  +
+                              // numBytes: Number of bytes allocated (undisposed) at this time
+                              "<br>" + "numBytes :   " +  Math.round(tf.memory().numBytes/(1024*1024)) + "   MB" +
+                              //numBytesInGPU : Number of bytes allocated (undisposed) in the GPU only at this time
+                              "<br>" + "numBytesInGPU :   " + Math.round(tf.memory().numBytesInGPU/(1024*1024)) + "   MB" +
+                              "<br>" + "numBytesInGPUAllocated :   " + Math.round(tf.memory().numBytesInGPUAllocated/(1024*1024)) + "   MB" +
+                              "<br>" + "numBytesInGPUFree :   " + Math.round(tf.memory().numBytesInGPUFree/(1024*1024)) + "   MB" +
+                              // numDataBuffers : Number of unique data buffers allocated (undisposed) at this time, which is ≤ the number of tensors
+                              "<br>" + "numDataBuffers :   " + tf.memory().numDataBuffers +
+                              "<br>" + "numTensors :   " + tf.memory().numTensors +
+                              "<br>" + unreliableReasons ;
+
+        resolve(); // When this fires, the code in a().then(/..../); is executed.
+
+  });
+
+
+}
+
+
+class SequentialConvLayer {
+    constructor(model, chunkSize, isChannelLast) {
+        this.model = model;
+        this.outChannels = model.outputLayers[0].kernel.shape[4];
+        this.chunkSize = chunkSize;
+        this.isChannelLast = isChannelLast;
+    }
+
+    /**
+    * Apply sequential convolution layer
+    * @since 3.0.0
+    * @member SequentialConvLayer
+    * @param {tf.Tensor}  inputTensor  e.g.  [ 1, 256, 256, 256, 5 ]
+    * @return {promise}  
+    *
+    * convLayer.rank -> 3
+    * typeof(convLayer) -> "object"
+    * convLayer:  Object { dataFormat: "channelsLast", dilationRate: Array(3) [ 1, 1, 1 ], inputSpec: Array [ {…} ],
+    *                      name: "output", padding: "same", strides: Array(3) [ 1, 1, 1 ], ...}
+    *
+    * weights.shape ->  Array(5) [ 1, 1, 1, 5, 3 ] 
+    * weights.print()
+    * //=>    Tensor
+    *           [[[[[0.146999 , -1.4474995, -2.8961499],
+    *               [1.1067894, 0.6897876 , -0.7573005],
+    *               [-0.38512 , -0.2812168, -0.8637539],
+    *               [0.9341159, -0.0344299, -2.3668685],
+    *               [0.1052373, 1.266812  , 0.6542516 ]]]]]
+    * 
+    * biases.shape ->  Array [ 3 ] 
+    * biases.print() 
+    * //=>      Tensor
+    *             [-0.7850812, -2.3238883, 2.1639345]    
+    *
+    * for idx = 0 -> filterWeights.shape  -> Array(5) [ 1, 1, 1, 5, 1 ]
+    * filterWeights.print()
+    * //=>  Tensor
+    *         [[[[[0.146999 ],
+    *             [1.1067894],
+    *             [-0.38512 ],
+    *             [0.9341159],
+    *             [0.1052373]]]]]
+    *
+    * for idx = 0 -> filterBiases.shape  -> Array [1]
+    * filterBiases.print()
+    * //=>   Tensor
+    *          [-0.7850812]
+
+    */ 
+
+    async apply(inputTensor) {
+
+        const self = this;
+        // Important to avoid "undefined" class var members inside the timer.
+        // "this" has another meaning inside the timer.
+
+        document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
+
+        return new Promise((resolve, reject) => {
+
+              const startTime = performance.now();
+
+              const convLayer = self.model.layers[self.model.layers.length - 1];
+              const weights = convLayer.getWeights()[0]; //
+              const biases = convLayer.getWeights()[1];
+              const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
+              //-- e.g.  outputShape : [256,256,256] or cropped Dim
+              //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
+              //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
+
+              let outB = tf.mul(tf.ones(outputShape), -10000);
+              //-- e.g. outB.shape  [256,256,256]
+              let outC = tf.zeros(outputShape);
+              //-- e.g. outC.shape  [256,256,256]
+              let chIdx = 0;
+
+              // console.log("---------------------------------------------------------");
+              console.log(" channel loop");
+
+              let seqTimer = window.setInterval(function() {
+
+                  console.log(chIdx);
+
+                  const result = tf.tidy(() => {
+                      const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
+                      // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
+                      const filterBiases = biases.slice([chIdx], [1]);
+                      //-- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
+                      const outA = processTensorInChunks(tf.squeeze(inputTensor), tf.squeeze(filterWeights), Math.min(self.chunkSize, self.outChannels)).add(filterBiases);
+                      const greater = tf.greater(outA, outB);
+                      const newoutB = tf.where(greater, outA, outB);
+                      const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC);
+                      // Dispose the old tensors before reassigning
+                      tf.dispose([outB, outC]);
+                      return [newoutC, newoutB];
+                  });
+
+                  // -- await showMemStatus(chIdx, self.outChannels);
+
+                  // Assign the new values to outC and outB
+                  outC = result[0];
+                  outB = result[1];
+
+                  if(chIdx == (self.outChannels -1)) {
+
+                      window.clearInterval( seqTimer );
+                      document.getElementById("progressBarChild").style.width = 0 + "%";
+                      tf.dispose(outB);
+                      const endTime = performance.now();
+                      const executionTime = endTime - startTime;
+                      console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+                      resolve(outC);
+                  } else {
+
+                    chIdx++;
+                    document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
+                  }
+
+
+              }, 10);
+        });
+
+    }
+}
+
+
+
+/**
+* This function better memory managment during the model layer processing
+*
+* @since 3.0.0
+* @param {tf.Tensor} input 
+* @param {tf.Tensor} filter    
+* @param {tf.Tensor} biases 
+* @param {Array} stride           e.g. [ 1, 1, 1 ]
+* @param {string} pad             e.g. "same"
+* @param {Array} dilationRate     e.g. [ 1, 1, 1 ]
+* @param {number} sliceSize       e.g. 3 
+* @return {}
+*
+*/ 
+
+function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, dilationRate, sliceSize) {
+    const batchSize = input.shape[0];
+    const depth = input.shape[1];
+    const height = input.shape[2];
+    const width = input.shape[3];
+    const inChannels = input.shape[4];
+    const outChannels = filter.shape[4];
+
+    // Create an empty array to hold the output channels
+    let outputChannels = null;
+
+    // Slice the input tensor and process one output channel at a time
+    for (let channel = 0; channel < outChannels; channel++) {
+        const numSlices = Math.ceil(inChannels /  sliceSize);
+        const biasesSlice = biases.slice([channel], [1]);
+        let outputChannel = null;
+
+        for (let i = 0; i < numSlices; i++) {
+            const startChannel = i * sliceSize;
+            const endChannel = Math.min((i + 1) * sliceSize, inChannels);
+
+            // Only proceed if there are channels to process
+            if (startChannel < inChannels) {
+                const resultSlice = tf.tidy(() => {
+                    const inputSlice = input.slice([0, 0, 0, 0, startChannel], [-1, -1, -1, -1, endChannel - startChannel]);
+                    const filterSlice = filter.slice([0, 0, 0, startChannel, channel], [-1, -1, -1, endChannel - startChannel, 1]);
+                    // Perform the convolution for the current slice and output channel
+                    return tf.conv3d(inputSlice, filterSlice, stride, pad, 'NDHWC', dilationRate);
+                });
+
+                if (outputChannel === null) {
+                    outputChannel = resultSlice;
+                } else {
+                    const updatedOutputChannel = outputChannel.add(resultSlice);
+                    outputChannel.dispose();
+                    resultSlice.dispose();
+                    outputChannel = updatedOutputChannel;
+                }
+            }
+        }
+
+        // Add the biases to the accumulated convolutions for this channel
+        const biasedOutputChannel = outputChannel.add(biasesSlice);
+        outputChannel.dispose();
+        biasesSlice.dispose();
+
+        // Accumulate the channel to the output array
+        if (outputChannels == null){
+            outputChannels = biasedOutputChannel;
+        }else{
+            const updatedOutputChannels = tf.concat([outputChannels, biasedOutputChannel], 4);
+            biasedOutputChannel.dispose();
+            outputChannels.dispose();
+            outputChannels = updatedOutputChannels;
+        }
+    }
+
+    return outputChannels;
+}
+
+
+
+/**
+* Inference Function for full volume and also apply sequential convoluton layer  
+* Suitable for  low memory devices and low performance devices. 
+*
+* @since 1.0.0
+* @param {promise}  model
+* @param {tf.Tensor}  slices_3d
+* @param {Array} input_shape - e.g. [?, D, H, W, Ch] or [?, Ch, D, H, W]
+* @param {boolen} isChannelLast- check input shape for channel position.
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+*
+*/
+
+  inferenceFullVolumeSeqCovLayer = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width) => {
+            console.log(" ---- Start FullVolume Inference with Sequential Convoluton Layer ---- ");
+
+            statData["No_SubVolumes"] = 1;
+  
+            model.then(function (res) {
+
+                 try {
+                      startTime = performance.now();
+                      let inferenceStartTime = performance.now();
+                      // maxLabelPredicted in whole volume of the brain
+                      let maxLabelPredicted = 0;
+                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
+                      let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
+                      console.log("Inference delay :", delay);
+
+                      let i = 1;
+                      let layersLength = res.layers.length;
+                      console.log("Total num of layers ", layersLength);
+
+                      // Determine the number of output channels in the last layer of the model
+                      //  e.g. 3, 50, 104
+                      const outputLayer = res.layers[res.layers.length - 1];
+                      console.log("Output Layer : ", outputLayer);
+
+                      const expected_Num_labels = isChannelLast ?
+                                                  outputLayer.outputShape[outputLayer.outputShape.length - 1]:
+                                                  outputLayer.outputShape[1];
+                      console.log("Num of output channels : ", expected_Num_labels);
+
+
+                      let curTensor = [];
+                      curTensor[0] = slices_3d.reshape(input_shape);
+                      // console.log("curTensor[0] :", curTensor[0].dataSync());
+
+                      let timer = window.setInterval(async function() {
+
+                          try {
+                                if (res.layers[i].activation.getClassName() !== 'linear') {
+                                    curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                } else {
+
+                                    curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                      res.layers[i].getWeights()[0],
+                                                                                      res.layers[i].getWeights()[1],
+                                                                                      res.layers[i].strides,
+                                                                                      res.layers[i].padding,
+                                                                                      res.layers[i].dilationRate,
+                                                                                      3); // important for memory use
+                                }
+                                // Log memory usage
+                                const memoryInfo = tf.memory();
+                                console.log(`Iteration ${i}:`);
+                                console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                                console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                                console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                                console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                                console.log(`Unreliable: ${memoryInfo.unreliable}`);
+                                tf.dispose(curTensor[i-1]);
+
+                            } catch(err) {
+
+                                  if( err.message === "Failed to compile fragment shader.") {
+                                                  webix.confirm({
+                                                    title:"",
+                                                    ok:"Ok",
+                                                    cancel:"Cancel",
+                                                    type: "confirm-error",
+                                                    width: 500,
+                                                    text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                  })
+                                                    .then(() => {
+                                                           //---
+                                                           $$("browserResourcesWindow").show();
+
+
+                                                  }).fail(() => {
+                                                           //---
+
+                                                  });
+
+                                  } else {
+                                      webix.alert(err.message);
+                                  }
+
+                                  window.clearInterval( timer );
+                                  tf.engine().endScope();
+                                  tf.engine().disposeVariables();
+
+                                  statData["Inference_t"] = Infinity;
+                                  statData["Postprocess_t"] = Infinity;
+                                  statData["Status"] = "Fail";
+                                  statData["Error_Type"] = err.message;
+                                  statData["Extra_Err_Info"] = "Failed while model layer " + i + " apply";
+
+                                  if(opts.telemetryFlag) {
+                                      submitTiming2GoogleSheet(statData);
+                                  }
+
+                                  return 0;
+                            }  // end of catch
+
+                            console.log("layer ", i);
+                            console.log("layer output Tensor shape : ", curTensor[i].shape);
+                            console.log("layer count params ", res.layers[i].countParams());
+
+                            res.layers[i].dispose();
+                            curTensor[i-1].dispose();
+
+                            document.getElementById("progressBar").style.width = (i + 1)*100/layersLength + "%";
+                            let memStatus = tf.memory().unreliable ? "Red" : "Green";
+                            let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons : "";
+                            document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
+
+                            if( i == layersLength - 2) { //Stop before the last layer or classification layer.
+
+                                  window.clearInterval( timer );
+
+                                  // // Create an instance of SequentialConvLayer
+                                  // The second parameter is important for memory, 
+                                  // the larger it is, the more memory it uses
+                                  // it was 8, but I set it to 3, got a different error                                        
+                                  seqConvLayer = new SequentialConvLayer(res, 4, isChannelLast);
+
+                                  // Apply the last output tensor to the seq. instance
+                                  let outputTensor = null;
+
+                                  const profileInfo = await tf.profile(async() => {
+                                    // Your tensor operations here
+                                       outputTensor = await seqConvLayer.apply(curTensor[i]);
+                                  });
+
+                                  console.log("profileInfo : ",profileInfo);
+
+                                  //-- document.getElementById("progressBarChild").style.width = 0 + "%";;
+
+                                  // Dispose the previous layer input tensor
+                                  tf.dispose(curTensor[i]);
+                                  // delete the used class
+                                  delete seqConvLayer;
+
+                                  // You can now use 'outputTensor' as needed
+                                  console.log(outputTensor);
+                                  console.log(" Output tensor shape : ", outputTensor.shape);
+                                  // Array(3) [ 256, 256, 256 ]
+
+                                  if(outputTensor.shape.length != 3) {
+                                      webix.alert("Output tensor shape should be 3 dims but it is " + outputTensor.shape.length, "alert-error");
+                                  }
+
+                                  let Inference_t = ((performance.now() - startTime) / 1000).toFixed(4);
+
+                                  console.log("find array max: ");
+                                  let curBatchMaxLabel =  findArrayMax(Array.from(outputTensor.dataSync()));
+
+                                  if( maxLabelPredicted < curBatchMaxLabel ) {
+                                        maxLabelPredicted = curBatchMaxLabel;
+                                  }
+
+                                  let numSegClasses = maxLabelPredicted + 1;
+                                  console.log("Predicted num of segmentation classes", numSegClasses);
+                                  statData["Actual_Labels"] = numSegClasses;
+                                  statData["Expect_Labels"] = expected_Num_labels;
+                                  statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;
+
+                                  if( numSegClasses != expected_Num_labels ) {
+                                      webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses, "alert-error");
+                                      console.log("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses);
+                                  }
+
+
+                                  // Transpose MRI data to be match pytorch/keras input output
+                                  if(transpose) {
+                                     console.log("outLabelVolume transposed");
+                                     outputTensor = outputTensor.transpose();
+                                  }
+
+                                  let unstackOutVolumeTensor = tf.unstack(outputTensor);
+                                  tf.dispose(outputTensor);
+
+                                  startTime = performance.now();
+
+                                  // Generate output volume or slices
+                                  console.log("Generating output");
+
+                                  try {
+                                      generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                      console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
+                                  } catch (error) {
+
+                                          //-- Timing data to collect
+                                          tf.engine().endScope();
+                                          tf.engine().disposeVariables();
+
+                                          console.log("Error while generating output: ", error)
+
+                                          webix.alert("Failed while generating output due to limited browser memory available");
+
+                                          statData["Inference_t"] = Inference_t;
+                                          statData["Postprocess_t"] = Infinity;
+                                          statData["Status"] = "Fail";
+                                          statData["Error_Type"] = error.message;
+                                          statData["Extra_Err_Info"] = "Failed while generating output";
+
+                                         if(opts.telemetryFlag) {
+                                              submitTiming2GoogleSheet(statData);
+                                         }
+
+                                         return 0;
+                                  }
+
+                                  let Postprocess_t = ((performance.now() - startTime) / 1000).toFixed(4);
+
+                                  document.getElementById("progressBar").style.width = 0;
+
+                                  $$("downloadBtn").enable();
+                                  $$("segmentBtn").enable();
+
+                                  tf.engine().endScope();
+                                  tf.engine().disposeVariables();
+
+                                  console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
+                                                        ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
+
+                                  //-- Timing data to collect
+                                  statData["Inference_t"] = Inference_t;
+                                  statData["Postprocess_t"] = Postprocess_t;
+                                  statData["Status"] = "OK";
+
+                                  if(opts.telemetryFlag) {
+                                        submitTiming2GoogleSheet(statData);
+                                  }
+
+                            }  else {
+
+                                   i++;
+                            }
+
+
+                     }, delay);
+
+                  } catch(err) {
+
+                        webix.alert(err.message);
+                        console.log( err.message );
+                        console.log(
+                            "If webgl context is lost, try to restore webgl context by visit the link " +
+                            '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
+                        );
+
+
+                        document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green";
+
+                        document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green";
+                  }
+            });
+
+ }
+
+
+
+/**
+* Inference function for full volume that crops input MRI and also apply sequential convoluton layer (Phase 2)
+* Suitable for  low memory devices and low performance devices. 
+* Phase-1 find the mask
+*
+* @since 1.2.0
+* @param {promise}  model, selected model for inference.
+* @param {tf.Tensor}  pipeline1_out 3D  e.g. null or tensor
+* @param {tf.Tensor}  slices_3d
+* @param {Array} input_shape - e.g. [?, D, H, W, Ch] or [?, Ch, D, H, W]
+* @param {number} num_of_slices- Total Number of slices a.k.a z-dim
+* @param {number} slice_height- - Slice Height
+* @param {number} slice_width- Slice Width
+*
+*/
+
+ inferenceFullVolumeSeqCovLayerPhase2 = async(model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out) => {
+
+           //--Phase-2, After remove the skull try to allocate brain volume and make inferece
+           console.log(" ---- Start FullVolume Inference with Sequential Conv Layer for phase-II ---- ");
+
+           let mask_3d;
+
+           if(pipeline1_out == null) {
+              // binarize original image
+              mask_3d = slices_3d.greater([0]).asType('bool');
+
+           } else {
+
+              mask_3d = pipeline1_out.greater([0]).asType('bool');
+              //-- pipeline1_out.dispose();
+
+           }
+
+           console.log(" mask_3d shape :  ", mask_3d.shape);
+
+           const coords = await tf.whereAsync(mask_3d);
+           //-- Get each voxel coords (x, y, z)
+
+           mask_3d.dispose();
+
+           const coordsArr =    coords.arraySync();
+
+           let row_min = slice_height,  row_max = 0,  col_min = slice_width,  col_max = 0,  depth_min = num_of_slices,  depth_max = 0;
+
+           for(let i = 0; i < coordsArr.length; i++) {
+
+                 if ( row_min > coordsArr[i][0] ) {
+                      row_min = coordsArr[i][0];
+                 } else if(row_max < coordsArr[i][0]) {
+                      row_max = coordsArr[i][0];
+                 }
+
+                 if ( col_min > coordsArr[i][1] ) {
+                      col_min = coordsArr[i][1];
+                 } else if(col_max < coordsArr[i][1]) {
+                      col_max = coordsArr[i][1];
+                 }
+
+                 if ( depth_min > coordsArr[i][2] ) {
+                      depth_min = coordsArr[i][2];
+                 } else if(depth_max < coordsArr[i][2]) {
+                      depth_max = coordsArr[i][2];
+                 }
+           }
+
+
+          console.log( "row min and max  :", row_min, row_max);
+          console.log( "col min and max  :", col_min, col_max);
+          console.log( "depth min and max  :", depth_min, depth_max);
+
+          //-- Reference voxel that cropped volume started slice with it
+          let refVoxel = [row_min, col_min, depth_min];
+          // -- Starting form refVoxel, size of bounding volume
+          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];
+
+          coords.dispose();
+
+           //-- Extract 3d object (e.g. brain)
+          let cropped_slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
+
+          slices_3d.dispose();
+
+          //-- Padding size add to cropped brain
+          let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];
+
+          // Create margin around the bounding volume
+          cropped_slices_3d_w_pad = addZeroPaddingTo3dTensor(cropped_slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
+          console.log(" cropped slices_3d with padding shape:  ", cropped_slices_3d_w_pad.shape);
+
+          cropped_slices_3d.dispose();
+
+
+          if(opts.drawBoundingVolume) {
+
+                let testVol = removeZeroPaddingFrom3dTensor(cropped_slices_3d_w_pad, pad, pad, pad);
+                console.log(" outLabelVolume without padding shape :  ", testVol.shape);
+
+                testVol =  resizeWithZeroPadding(testVol, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
+                console.log(" outLabelVolume final shape after resizing :  ", testVol.shape);
+
+                draw3dObjBoundingVolume(tf.unstack(testVol));
+                testVol.dispose();
+
+                return 0;
+          }
+
+
+          statData["Brainchop_Ver"] = "FullVolume";
+
+          model.then(function (res) {
+
+                 try {
+                      startTime = performance.now();
+                      let inferenceStartTime = performance.now();
+                      // maxLabelPredicted in whole volume of the brain
+                      let maxLabelPredicted = 0;
+                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
+                      let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
+                      console.log("Inference delay :", delay);
+
+                      if(transpose) {
+                         cropped_slices_3d_w_pad = cropped_slices_3d_w_pad.transpose()
+                         console.log("Input transposed for pre-model");
+                      } else {
+                         console.log("Transpose not enabled for pre-model");
+                      }
+
+                      let i = 1;
+                      let layersLength = res.layers.length;
+                      console.log("res.layers.length ", layersLength);
+
+                      let isChannelLast = isModelChnlLast(res);
+                      const batchSize = opts.batchSize;
+                      const numOfChan = opts.numOfChan;
+
+                      //-- Adjust model input shape
+                      if(isChannelLast) {
+
+                          res.layers[0].batchInputShape[1] = cropped_slices_3d_w_pad.shape[0];
+                          res.layers[0].batchInputShape[2] = cropped_slices_3d_w_pad.shape[1];
+                          res.layers[0].batchInputShape[3] = cropped_slices_3d_w_pad.shape[2];
+
+                          adjusted_input_shape = [batchSize, res.layers[0].batchInputShape[1],
+                                                             res.layers[0].batchInputShape[2],
+                                                             res.layers[0].batchInputShape[3],
+                                                             numOfChan];
+
+                      } else {
+
+                          res.layers[0].batchInputShape[2] = cropped_slices_3d_w_pad.shape[0];
+                          res.layers[0].batchInputShape[3] = cropped_slices_3d_w_pad.shape[1];
+                          res.layers[0].batchInputShape[4] = cropped_slices_3d_w_pad.shape[2];
+
+                          adjusted_input_shape = [batchSize, numOfChan,
+                                                             res.layers[0].batchInputShape[2],
+                                                             res.layers[0].batchInputShape[3],
+                                                             res.layers[0].batchInputShape[4]];
+
+                      }
+
+                      console.log(" Model batch input shape : ", res.layers[0].batchInputShape);
+                      // -- batchInputShape {Array} input_shape - e.g. [?, D, H, W, Ch] or [?, Ch, D, H, W]
+
+                      statData["Input_Shape"] = JSON.stringify(res.layers[0].batchInputShape);
+                      statData["Output_Shape"] = JSON.stringify(res.output.shape);
+                      statData["Channel_Last"] = isChannelLast;
+                      statData["Model_Param"] = getModelNumParameters(res);
+                      statData["Model_Layers"] = getModelNumLayers(res);
+                      statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
+                      statData["Extra_Info"] = null;
+
+
+                      // Determine the number of output channels in the last layer of the model
+                      //  e.g. 3, 50, 104
+                      const outputLayer = res.layers[res.layers.length - 1];
+                      console.log("Output Layer : ", outputLayer);
+
+                      const expected_Num_labels = isChannelLast ?
+                                                  outputLayer.outputShape[outputLayer.outputShape.length - 1]:
+                                                  outputLayer.outputShape[1];
+                      console.log("Num of output channels : ", expected_Num_labels);
+
+
+
+                      let curTensor = [];
+                      curTensor[0] = cropped_slices_3d_w_pad.reshape(adjusted_input_shape);
+                      // console.log("curTensor[0] :", curTensor[0].dataSync());
+
+                      let curProgBar = parseInt(document.getElementById("progressBar").style.width);
+
+                      let timer = window.setInterval(async function() {
+
+                         try {
+                                  if (res.layers[i].activation.getClassName() !== 'linear') {
+                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  } else {
+
+                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                        res.layers[i].getWeights()[0],
+                                                                                        res.layers[i].getWeights()[1],
+                                                                                        res.layers[i].strides,
+                                                                                        res.layers[i].padding,
+                                                                                        res.layers[i].dilationRate,
+                                                                                        3); // important for memory use
+                                  }
+                                  // Log memory usage
+                                  const memoryInfo = tf.memory();
+                                  console.log(`Iteration ${i}:`);
+                                  console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                                  console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                                  console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                                  console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                                  console.log(`Unreliable: ${memoryInfo.unreliable}`);
+                                  tf.dispose(curTensor[i-1]);
+
+                            } catch(err) {
+
+                                  if( err.message === "Failed to compile fragment shader.") {
+                                                  webix.confirm({
+                                                    title:"",
+                                                    ok:"Ok",
+                                                    cancel:"Cancel",
+                                                    type: "confirm-error",
+                                                    width: 500,
+                                                    text: "Context lost due to limited Memory available, please check current browser resouces in the toolbar and verified GPUs for each model"
+                                                  })
+                                                    .then(() => {
+                                                           //---
+                                                           $$("browserResourcesWindow").show();
+
+
+                                                  }).fail(() => {
+                                                           //---
+
+                                                  });
+
+                                  } else {
+                                      webix.alert(err.message);
+                                  }
+
+                                  window.clearInterval( timer );
+                                  tf.engine().endScope();
+                                  tf.engine().disposeVariables();
+
+                                  statData["Inference_t"] = Infinity;
+                                  statData["Postprocess_t"] = Infinity;
+                                  statData["Status"] = "Fail";
+                                  statData["Error_Type"] = err.message;
+                                  statData["Extra_Err_Info"] = "Failed while model layer " + i + " apply";
+
+                                  if(opts.telemetryFlag) {
+                                      submitTiming2GoogleSheet(statData);
+                                  }
+
+                                  return 0;
+                            }
+
+                            console.log("layer ", i);
+                            console.log("layer output Tensor shape : ", curTensor[i].shape);
+                            console.log("layer count params ", res.layers[i].countParams());
+
+                            res.layers[i].dispose();
+                            curTensor[i-1].dispose();
+
+
+                            document.getElementById("progressBar").style.width = (curProgBar + (i + 1)*(100 - curProgBar)/layersLength) + "%";
+                            let memStatus = tf.memory().unreliable ? "Red" : "Green";
+                            let unreliableReasons  =  tf.memory().unreliable ?    "unreliable reasons :" + tf.memory().reasons : "";
+                            document.getElementById("memoryStatus").style.backgroundColor =  memStatus;
+
+                                
+                            if( i == layersLength - 2) { //Stop before the last layer or classification layer.
+
+                                    window.clearInterval( timer );
+
+ 
+                                    // // Create an instance of SequentialConvLayer
+                                    //The second parameter is important for memory, 
+                                    // the larger it is, the more memory it uses
+                                    // it was 8, but I set it to 3, got a different error                                        
+                                    seqConvLayer = new SequentialConvLayer(res, 4, isChannelLast);
+
+
+                                    // Apply the last output tensor to the seq. instance
+                                    let outputTensor = null;
+
+                                    const profileInfo = await tf.profile(async() => {
+                                      // Your tensor operations here
+                                         outputTensor = await seqConvLayer.apply(curTensor[i]);
+                                    });
+
+                                    console.log("profileInfo : ",profileInfo);
+
+                                    //-- document.getElementById("progressBarChild").style.width = 0 + "%";;
+
+                                    // Dispose the previous layer input tensor
+                                    tf.dispose(curTensor[i]);
+                                    // delete the used class
+                                    delete seqConvLayer;
+
+                                    // You can now use 'outputTensor' as needed
+                                    console.log(outputTensor);
+                                    console.log(" Output tensor shape : ", outputTensor.shape);
+                                    // Array(3) [ 256, 256, 256 ]
+
+                                    if(outputTensor.shape.length != 3) {
+                                        webix.alert("Output tensor shape should be 3 dims but it is " + outputTensor.shape.length, "alert-error");
+                                    }
+
+ 
+                                    let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
+
+                                    console.log(" find array max ");
+                                    let curBatchMaxLabel =  findArrayMax(Array.from(outputTensor.dataSync()));
+
+                                    if( maxLabelPredicted < curBatchMaxLabel ) {
+                                          maxLabelPredicted = curBatchMaxLabel;
+                                    }
+
+                                    let numSegClasses = maxLabelPredicted + 1;
+                                    console.log("Predicted num of segmentation classes", numSegClasses);
+                                    statData["Actual_Labels"] = numSegClasses;
+                                    statData["Expect_Labels"] = expected_Num_labels;
+                                    statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;
+
+                                    if( numSegClasses != expected_Num_labels ) {
+                                        webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses, "alert-error");
+                                        console.log("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses);
+                                    }                                    
+
+                                    //-- Transpose back to fit Papaya display settings
+                                    let outLabelVolume = outputTensor.reshape([cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2]]);
+                                    tf.dispose(outputTensor);
+
+                                    // Transpose MRI data to be match pytorch/keras input output
+                                    if(transpose) {
+                                       console.log("outLabelVolume transposed");
+                                       outLabelVolume = outLabelVolume.transpose();
+                                    }
+
+                                    outLabelVolume = removeZeroPaddingFrom3dTensor(outLabelVolume, pad, pad, pad);
+                                    console.log(" outLabelVolume without padding shape :  ", outLabelVolume.shape);
+                                    outLabelVolume =  resizeWithZeroPadding(outLabelVolume, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
+                                    console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape);
+
+                                    let filterOutWithPreMask =  inferenceModelsList[$$("selectModel").getValue() - 1]["filterOutWithPreMask"];
+                                    
+                                    // To clean the skull area wrongly segmented inphase-2.
+                                    if(pipeline1_out != null && opts.isBrainCropMaskBased && filterOutWithPreMask) {
+                                        outLabelVolume = outLabelVolume.mul(binarizeVolumeDataTensor(pipeline1_out));
+                                    }
+
+
+                                    let unstackOutVolumeTensor =  tf.unstack(outLabelVolume);
+                                    tf.dispose(outLabelVolume);
+
+                                    startTime = performance.now();
+                                    // Generate output volume or slices
+                                    console.log("Generating output");
+
+                                    try {
+
+                                           generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                           console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
+
+                                    } catch (error) {
+
+                                            //-- Timing data to collect
+                                            tf.engine().endScope();
+                                            tf.engine().disposeVariables();
+                                            console.log("Error while generating output: ", error)
+
+                                            webix.alert("Failed while generating output due to limited browser memory available");
+
+                                            statData["Inference_t"] = Inference_t;
+                                            statData["Postprocess_t"] = Infinity;
+                                            statData["Status"] = "Fail";
+                                            statData["Error_Type"] = error.message;
+                                            statData["Extra_Err_Info"] = "Failed while generating output";
+
+                                           if(opts.telemetryFlag) {
+                                                submitTiming2GoogleSheet(statData);
+                                           }
+
+                                           return 0;
+                                    }
+
+                                    let Postprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
+
+                                    document.getElementById("progressBar").style.width = 0;
+                                    //webix.message.hide("waitMessage");
+
+                                    $$("downloadBtn").enable();
+                                    $$("segmentBtn").enable();
+                                    //    $$("imageUploader").enable();
+                                    tf.engine().endScope();
+                                    tf.engine().disposeVariables();
+
+                                    console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
+                                                            ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
+
+
+                                    //-- Timing data to collect
+                                    statData["Inference_t"] = Inference_t;
+                                    statData["Postprocess_t"] = Postprocess_t;
+                                    statData["Status"] = "OK";
+
+                                    if(opts.telemetryFlag) {
+                                          submitTiming2GoogleSheet(statData);
+                                    }
+
+                            }  else {
+
+                                   i++;
+                            }
+
+                     }, delay);
+
+                  } catch(err) {
+
+                        webix.alert(err.message);
+                        console.log( err.message );
+                        console.log(
+                            "If webgl context is lost, try to restore webgl context by visit the link " +
+                            '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
+                        );
+
+
+                        document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green";
+
+                        document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green";
+                  }
+            });
+
+ }
+
+
+
 
 /**
 * Inference Function for full volume
+* No Sequential Convolution Layer 
+* Faster
+*
 * @since 1.0.0
 * @param {promise}  model
 * @param {tf.Tensor}  slices_3d
@@ -3740,8 +4872,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
             statData["No_SubVolumes"] = 1;
 
-            // let modelLayersOrg =  JSON.parse(JSON.stringify(modelObject));
-
+            //-- let modelLayersOrg =  JSON.parse(JSON.stringify(modelObject));
 
             model.then(function (res) {
 
@@ -3763,12 +4894,22 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                       curTensor[0] = slices_3d.reshape(input_shape);
                       // console.log("curTensor[0] :", curTensor[0].dataSync());
 
- 
     
                       let timer = window.setInterval(function() {
 
                             try {
-                                curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  if (res.layers[i].activation.getClassName() !== 'linear') {
+                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  } else {
+
+                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                        res.layers[i].getWeights()[0],
+                                                                                        res.layers[i].getWeights()[1],
+                                                                                        res.layers[i].strides,
+                                                                                        res.layers[i].padding,
+                                                                                        res.layers[i].dilationRate,
+                                                                                        3); // important for memory use
+                                  }   
                             } catch(err) {
 
                                   if( err.message === "Failed to compile fragment shader.") {
@@ -3812,7 +4953,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                             }      
 
                             console.log("layer ", i);            
-                            console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
+                            console.log("layer output Tensor shape : ", curTensor[i].shape);                                              
                             console.log("layer count params ", res.layers[i].countParams());
 
                             res.layers[i].dispose();
@@ -3834,7 +4975,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                 let axis = isChannelLast ? -1 : 1; 
                                 console.log(" find argmax ")
-                                console.log("last Tenosr shape : ", curTensor[i].shape);
+                                console.log("last Tensor shape : ", curTensor[i].shape);
                                 //-- curTensor[i].shape  : [ 1, 256, 256, 256, 3 ]
                                 let expected_Num_labels = isChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
                                 let prediction_argmax;
@@ -4218,7 +5359,7 @@ generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_
                   // Remove noisy regions using 3d CC   
                   let sliceWidth = niftiHeader.dims[1];
                   let sliceHeight = niftiHeader.dims[2];                                
-                  return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth ); 
+                  return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth );
             })       
             console.log("Post processing done ");      
         }   
@@ -4667,7 +5808,19 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                       let timer = window.setInterval(function() {
 
                             try {
-                                curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  //-- curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  if (res.layers[i].activation.getClassName() !== 'linear') {
+                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  } else {
+
+                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                        res.layers[i].getWeights()[0],
+                                                                                        res.layers[i].getWeights()[1],
+                                                                                        res.layers[i].strides,
+                                                                                        res.layers[i].padding,
+                                                                                        res.layers[i].dilationRate,
+                                                                                        3); // important for memory use
+                                  }                              
 
                             } catch(err) {
 
@@ -4712,7 +5865,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                             }      
 
                             console.log("layer ", i);            
-                            console.log("layer output Tenosr shape : ", curTensor[i].shape);                                              
+                            console.log("layer output Tensor shape : ", curTensor[i].shape);                                              
                             console.log("layer count params ", res.layers[i].countParams());
 
                             res.layers[i].dispose();
@@ -4734,7 +5887,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
                                 let axis = isChannelLast ? -1 : 1; 
                                 console.log(" find argmax ")
-                                console.log("last Tenosr shape : ", curTensor[i].shape);
+                                console.log("last Tensor shape : ", curTensor[i].shape);
                                 //-- curTensor[i].shape  e.g. [ 1, 256, 256, 256, 3 ]
                                 let expected_Num_labels = isChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
                                 let prediction_argmax;
@@ -4977,8 +6130,8 @@ checkInferenceModelList = () => {
             //-- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
             let slices_3d_mask = null;
 
-            // load pre-model for inference first
-            if(modelEntry["preModelId"]) {
+            // load pre-model for inference first, can be null if no pre-model such as GWM models
+            if(modelEntry["preModelId"]) {  
 
                 preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] );  
                 let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranspose"];
@@ -5070,7 +6223,18 @@ checkInferenceModelList = () => {
                           let timer = window.setInterval(function() {
 
                                 try {
-                                    curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                      if (res.layers[i].activation.getClassName() !== 'linear') {
+                                          curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                      } else {
+
+                                          curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                            res.layers[i].getWeights()[0],
+                                                                                            res.layers[i].getWeights()[1],
+                                                                                            res.layers[i].strides,
+                                                                                            res.layers[i].padding,
+                                                                                            res.layers[i].dilationRate,
+                                                                                            3); // important for memory use
+                                      }   
                                 } catch(err) {
 
                                       if( err.message === "Failed to compile fragment shader.") {
@@ -5134,7 +6298,7 @@ checkInferenceModelList = () => {
 
                                     let axis = isPreModelChannelLast ? -1 : 1; 
                                     console.log(" find argmax ")
-                                    console.log("last Tenosr shape : ", curTensor[i].shape);
+                                    console.log("last Tensor shape : ", curTensor[i].shape);
                                     //-- curTensor[i].shape  : [ 1, 256, 256, 256, 3 ]
                                     let expected_Num_labels = isPreModelChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
                                     let prediction_argmax;
@@ -5304,9 +6468,23 @@ checkInferenceModelList = () => {
                                        console.log("--- pre-model done ---");
                                        // --mask_3d = slices_3d_mask.greater([0]).asType('bool');
                                        // --slices_3d_mask.dispose();
+                                      
                                        if(isModelFullVol) {
-                                            inferenceFullVolumePhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+
+                                            if(modelEntry["enableSeqConv"]) {
+                                                 // Mask cropping & seq conv
+                                                 // Non-Atlas model (e.g. GWM) needs sequential convolution layer.
+                                                 // Sequential convolution layer to be used after cropping - slow but reliable on most machines 
+                                                 console.log("------ Mask Cropping & Seq Convoluton ------"); 
+                                                 inferenceFullVolumeSeqCovLayerPhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                            } else {
+                                                 // Mask cropping BUT no seq conv
+                                                 console.log("------ Mask Cropping  -  NO Seq Convoluton ------"); 
+                                                 inferenceFullVolumePhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                            } 
+
                                        } else {
+                                            // -- In version 3.0.0 this function not used
                                             inferenceSubVolumes(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
                                        }
 
@@ -5334,15 +6512,28 @@ checkInferenceModelList = () => {
                 });  
 
            //-- if(...)  end 
-           } else {   
+           } else { // No preModel  
                
                //--Phase-2, After remove the skull try to allocate brain volume and make inferece
                console.log("--- No pre-model is selected ---");
+               console.log("------ Run voxel cropping ------");
                //-- mask_3d = slices_3d.greater([0]).asType('bool');
              
                if(isModelFullVol) {
-                    inferenceFullVolumePhase2(model, slices_3d, num_of_slices, slice_height, slice_width, null);
+                    
+                    if(modelEntry["enableSeqConv"]) {
+                         // Voxel cropping & seq conv
+                         // Non-Atlas model (e.g. GWM) needs sequential convolution layer.
+                         // Sequential convolution layer to be used after cropping - slow but reliable on most machines 
+                         console.log("------ Seq Convoluton ------"); 
+                         inferenceFullVolumeSeqCovLayerPhase2(model, slices_3d, num_of_slices, slice_height, slice_width, null);
+                    } else {
+                         // Voxel cropping BUT no seq conv
+                         inferenceFullVolumePhase2(model, slices_3d, num_of_slices, slice_height, slice_width, null);
+                    }
+
                } else {
+                    // -- In version 3.0.0 this function not used
                     inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width, null);
                }               
            }
@@ -5402,23 +6593,23 @@ resetMainParameters = () => {
 */
  
   runInference = async() => {
-        let startTime = performance.now();
+          let startTime = performance.now();
 
-	      const batchSize = opts.batchSize;
-	      const numOfChan = opts.numOfChan;
+	        const batchSize = opts.batchSize;
+	        const numOfChan = opts.numOfChan;
 
 
 
-	      if (isNaN(batchSize) || batchSize != 1) {
+	        if (isNaN(batchSize) || batchSize != 1) {
                 webix.alert("The batch Size for input shape must be 1");
                 return 0;
 
-	      }   
+	        }   
 
-	      if (isNaN(numOfChan) || (numOfChan != 1)) {
+	        if (isNaN(numOfChan) || (numOfChan != 1)) {
                 webix.alert("The number of channels for input shape must be 1");
 	            return 0;
-	      }                
+	        }                
 
           tf.engine().startScope()
 
@@ -5521,18 +6712,23 @@ resetMainParameters = () => {
 
                 let allSlices_2D = getAllSlices2D(allSlices, slice_height, slice_width);
 
+                // free array from mem
+                allSlices = null;
+
                 // Get slices_3d tensor
                 let slices_3d = getSlices3D(allSlices_2D);
+
+                // free tensor from mem
                 tf.dispose(allSlices_2D);               
 
                 // Nomalize MRI data to be from 0 to 1
                 slices_3d = normalizeVolumeData(slices_3d);
+                // Another normalize function needs specific models to be used
+                // -- slices_3d = await normalizeTensor(slices_3d);
 
                 
                 let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);                    
-                
-             
-       
+
                 console.log(tf.getBackend());
                 //-- set this flag so that textures are deleted when tensors are disposed.
                 tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
@@ -5542,9 +6738,7 @@ resetMainParameters = () => {
                 console.log("tf env total features: ", Object.keys(tf.env().features).length);
                 // tf.env().set('WEBGL_PACK', false);
 
-
-                 // enableProductionMode();
-
+                // enableProductionMode();
 
                 //-- Timing data to collect
                 let today = new Date();
@@ -5635,43 +6829,62 @@ resetMainParameters = () => {
                 let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
                 let enableCrop = inferenceModelsList[$$("selectModel").getValue() - 1]["enableCrop"];
 
+
                 if (isModelFullVol) {
 
                     if( enableCrop) {
-                        //-- FullVolume with Crop option before inference .. 
-                        //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
+                        // FullVolume with Crop option before inference .. 
+                        // pre-model to mask the volume, can also be null and the cropping will be on the MRI.
                         inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
                     } else { 
                         // Transpose MRI data to be match pytorch/keras input output
+                        console.log("Cropping Disabled");
+
                         if(transpose) {
                            slices_3d = slices_3d.transpose()
                            console.log("Input transposed");
                         } else {
-                           console.log("Transpose not enabled");
+                           console.log("Transpose NOT Enabled");
                         }                               
 
-                       inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
+                       let enableSeqConv = inferenceModelsList[$$("selectModel").getValue() - 1]["enableSeqConv"];
+
+                       if(enableSeqConv) {
+                            console.log("Seq Convoluton Enabled");
+                            inferenceFullVolumeSeqCovLayer(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
+                       } else {
+                            console.log("Seq Convoluton Disabled");
+                            inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width);
+                       } 
+                       
+
                     } 
-                } else {
 
-                    if(enableCrop) {
-                        //-- FullVolume with Crop option before inference .. 
-                        //--pre-model to mask the volume, can also be null and the cropping will be on the MRI.
-                        inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
-                    } else { 
-                        // Transpose MRI data to be match pytorch/keras input output
-                        if(transpose) {
-                           slices_3d = slices_3d.transpose()
-                           console.log("Input transposed");
-                        } else {
-                           console.log("Transpose not enabled");
-                        }                               
+                } else {  
 
-                     inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width);
-                    }                   
+                    // // In version 3.0.0 this function not used 
+                    //-- if(enableCrop) {
+                    //       // FullVolume with Crop option before inference .. 
+                    //       // pre-model to mask the volume, can also be null and the cropping will be on the MRI.
+                    //--     inferenceFullVolumePhase1(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol);
+                    //-- } else { 
+                    //       // Transpose MRI data to be match pytorch/keras input output
+                    //--     if(transpose) {
+                    //--        slices_3d = slices_3d.transpose()
+                    //--        console.log("Input transposed");
+                    //--     } else {
+                    //--        console.log("Transpose not enabled");
+                    //--     }                               
+
+                    //--  inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width);
+                    //-- } 
+
+                   console.log("This is not a full volume model");
+                   webix.alert({title: "",    text: "This is not a full volume model",    type:"alert-error"});                                      
 
                } 
-       })    
+
+        }) //-- End of model.then  
 	            
 	 } //-- End of runInference
 

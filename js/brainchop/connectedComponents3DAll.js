@@ -541,6 +541,65 @@ class ConnectCompFor3D extends ConnectCompFor2D {
           return  label3D;              
     }
 
+    // For future use
+    
+    getConComponentsFor3DVolumeWithTimer = async(volumeSlices, sliceHeight, sliceWidth) => {
+
+        const self = this;
+        
+        return new Promise((resolve, reject) => {
+              document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
+              document.getElementById("progressBarChild").style.width = 0;
+
+              let binaryMaskData1D = [];
+              let binaryMaskData2D = [];     
+              let label3D = [];
+
+              let sliceIdx = 0;           
+
+              let ccTimer = window.setInterval(function() {
+
+                  binaryMaskData1D[sliceIdx] = getBinaryMaskData1D(volumeSlices[sliceIdx]); // binaryMaskData1D has values 0 or 1 
+                  binaryMaskData2D[sliceIdx] = convertBinaryDataTo2D(binaryMaskData1D[sliceIdx], sliceHeight, sliceWidth);
+
+                  if(sliceIdx == 0) {
+                        //Only called for once at begining with first slice
+                      label3D[sliceIdx] = self.getConComponentsFor2D(binaryMaskData2D[sliceIdx], sliceHeight, sliceWidth);
+
+                  } else {
+                      label3D[sliceIdx] = self._getConComponentsFor2Slices(binaryMaskData2D[sliceIdx], label3D[sliceIdx - 1], sliceHeight, sliceWidth);
+                  }
+
+
+                  if(sliceIdx == (volumeSlices.length -1)) {
+                      document.getElementById("progressBarChild").style.width = 0;
+                      window.clearInterval( ccTimer );
+
+                      // 3d connected components third pass
+                      for(let sliceIdx = 0; sliceIdx < volumeSlices.length; sliceIdx++) {
+                          let row, col;
+                          for(row = 0; row < sliceHeight; row++) {
+                              for(col = 0; col < sliceWidth; col++) {
+                                 
+                                 if( label3D[sliceIdx][row][col] != 0) {
+                                      label3D[sliceIdx][row][col] = self._equivalenceTabel[label3D[sliceIdx][row][col]];
+                                 }
+                              }
+                          }  
+                      } 
+
+                      resolve(label3D);
+                  }
+
+                  sliceIdx++;
+                  document.getElementById("progressBarChild").style.width = (sliceIdx + 1)*100/volumeSlices.length + "%";
+
+              }, 10); // timer delay
+  
+        })           
+    }
+
+
 
     /**
     * Get connected components For a Volume of 2 slices, current slice and previous slice.-- (refine)
@@ -643,9 +702,10 @@ class ConnectCompFor3D extends ConnectCompFor2D {
      findLargest3dRegion = (volumeSlices, sliceHeight, sliceWidth) => {
 
           let label3D = [];  
-
+       
           label3D = this.getConComponentsFor3DVolume(volumeSlices, sliceHeight, sliceWidth);
-
+          //-- label3D = await this.getConComponentsFor3DVolumeWithTimer(volumeSlices, sliceHeight, sliceWidth);
+       
           // Filter only largest volumetric 3d region with the most voxels of same label and remove noisy smaller 3d regions 
           let maxVolumeLabel =  this.getMostFreqVolumeLabel3D(label3D, sliceHeight, sliceWidth, volumeSlices.length);   
 

@@ -1,6 +1,6 @@
 <!--
   =========================================================
-* Brainchop - v2.0.1
+* Brainchop - v3.0.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
@@ -19,7 +19,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8">
   <title>Brainchop </title>
   <link rel="apple-touch-icon" sizes="180x180" href="css/favicon_io/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="css/favicon_io/favicon-32x32.png">
@@ -27,9 +27,9 @@
   <link rel="manifest" href="css/favicon_io/site.webmanifest">
 
   <link rel="stylesheet" href="css/w3.css">
-  <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css"/>   
-  <link rel="stylesheet" type="text/css" href="js/libs/webix/codebase/webix.css"/> 
-  <link rel="stylesheet" type="text/css" href="js/libs/papaya_lib/papaya.css" />
+  <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css">   
+  <link rel="stylesheet" type="text/css" href="js/libs/webix/codebase/webix.css"> 
+  <link rel="stylesheet" type="text/css" href="js/libs/papaya_lib/papaya.css">
   <link rel="stylesheet" type="text/css" href="css/style.css"> 
   <link rel="stylesheet" type="text/css" href="css/brainchop.css">
 
@@ -149,7 +149,7 @@
       })
 
       
-      let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis (2023) <br> Grant:  NIH RF1MH121885 ";
+      //-- let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis (2023) <br> Grant:  NIH RF1MH121885 ";
        
       aboutClick = () => {
             $$("aboutWindow").show()
@@ -204,9 +204,9 @@
                                       "</tr>" +
 
                                     "</table>" +
-                                    "<br><br></b> - To see a List of tested S/W and H/W with each model please open this <a href='https://docs.google.com/spreadsheets/d/1PU4p6oN4aBfTbXZ8pO6n8fc890Y5Ck0agsIZbm_FO3I/edit#gid=0' target=”_blank”> link. </a> " + 
+                                    "<br><br> - To see a List of tested S/W and H/W with each model please open this <a href='https://docs.google.com/spreadsheets/d/1PU4p6oN4aBfTbXZ8pO6n8fc890Y5Ck0agsIZbm_FO3I/edit#gid=0' target=”_blank”> link. </a> " + 
 
-                                    "<br><br></b> - If the browser above can detect only the internal graphics chip (e.g. HD, UHD), please check the external GPU driver or the system settings to fix the problem and try again." 
+                                    "<br><br> - If the browser above can detect only the internal graphics chip (e.g. HD, UHD), please check the external GPU driver or the system settings to fix the problem and try again." 
 
 
                     }                 
@@ -262,8 +262,6 @@
 
 
 
-
-
       feedbackClick = () => {
                    window.open("https://forms.gle/WzUyVEzgCCY2bHo79");
       }
@@ -271,10 +269,6 @@
       githubClick = () => {
                    window.open("https://github.com/neuroneural/brainchop");
       }
-
-
-
-
 
 
 
@@ -1114,6 +1108,36 @@
              },
 
               {  cols: [
+                    {   view: "label", label: "Sequential Convolution",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "seqConvStatus", 
+                      disabled: false,
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "This is enabling sequential convolution layer instead of the model last layer for segmenation. This option can be used to make large and atlas models run on limited resources browser but it takes longer time for inference."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                          
+
+                ]    
+             },
+
+              {  cols: [
                     {   view: "label", label: "Model Name*",  
                         align: "left"
                     },                 
@@ -1189,6 +1213,7 @@
                                                  enableCrop: $$("cropStatus").getValue(), 
                                                  cropPadding: parseInt($$("cropPadStatus").getValue()), 
                                                  filterOutWithPreMask: $$("filterByMaskStatus").getValue(), 
+                                                 enableSeqConv: $$("seqConvStatus").getValue(), 
                                                  textureSize: 0,
                                                  warning: null, 
                                                  inferenceDelay: 100,                                                
@@ -1226,7 +1251,7 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:600,
+                  height:700,
                   width:400,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[
@@ -1252,7 +1277,8 @@
           $$("modelIconId").refresh();
           $$("labelsIconId").refresh();
           $$("colorsIconId").refresh();  
-          $$("cropStatus").setValue("false");       
+          $$("cropStatus").setValue("false"); 
+          $$("seqConvStatus").setValue("false");    
           modelFile = null;
           weightFile = null;
           labelFile = null;
@@ -1315,6 +1341,8 @@
         document.getElementById("outChart-1").style.opacity = 0.3;  
         document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
         document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";      
+        document.getElementById("progressBarChild").parentElement.style.visibility = "hidden";
+        document.getElementById("progressBarChild").style.width = 0;        
         //-- Reset papaya MRI viewer overlay if exists
         resetMriViewerOverlay(1);
         //-- Reset Label Viewer        
@@ -1352,7 +1380,7 @@
                       { view:"select", 
                         label:"Models", 
                         id: "selectModel",
-                        value:2, 
+                        value:1, 
                         options: selectModelOptions,
                         on:{        
                             onChange: function(newValue, oldValue, config) {   
@@ -1457,10 +1485,12 @@
                                        // test for requirement 
                                        let maxTextureAvail = getMaxTextureSize();
                                        let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
+
+
+
                                        if( maxTextureAvail >= requiredTexture ) {
 
                                            newRunInferencePrepare().then(res => { runInference();})                                     
-
                                        } else {
                                          webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
                                        }
@@ -2083,7 +2113,7 @@
         <div  class="papaya" data-params="params_mri"></div>
      </div>
       <div class="grid-item">
-        <input type="text" id="annotOfContainer_0" disabled></div>
+        <input type="text" id="annotOfContainer_0" disabled></input>
       </div>        
     </div>  
 
@@ -2092,14 +2122,17 @@
         <div  class="papaya" data-params="params_label"></div>
       </div>
       <div class="grid-item">
-        <input type="text" id="annotOfContainer_1" disabled></div>
+        <input type="text" id="annotOfContainer_1" disabled></input>
       </div>      
     </div>  
 
 
-    <div class="w3-container" style="margin-top: 1vh;" id="progressBarDiv" >
-        <div class="w3-border" >
-          <div class="w3-blue" style="height:2vh;width:0%;" id="progressBar"></div>
+    <div class="w3-container" style="margin-top: 0.5vh;" id="progressBarDiv" >
+        <div class="w3-border" style="visibility: hidden;">
+          <div class="w3-blue" style="height:0.75vh;width:0%;" id="progressBarChild"></div>
+        </div>  
+        <div class="w3-border" style="margin-top: 0.75vh">   
+          <div class="w3-blue" style="height:1.5vh;width:0%;" id="progressBar"></div>
         </div>
     </div>
 <!--     <div class="w3-container" style="margin-top: 1vh;" id="subProgressBarDiv" >
