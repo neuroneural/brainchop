@@ -4193,7 +4193,14 @@ class SequentialConvLayer {
                   });
 
                   // -- await showMemStatus(chIdx, self.outChannels);
-
+                              // Log memory usage
+                              const memoryInfo = tf.memory();
+                              console.log(`Iteration ${chIdx}:`);
+                              console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                              console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                              console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                              console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                              console.log(`Unreliable: ${memoryInfo.unreliable}`);
                   // Assign the new values to outC and outB
                   outC = result[0];
                   outB = result[1];
@@ -4207,11 +4214,11 @@ class SequentialConvLayer {
                       const executionTime = endTime - startTime;
                       console.log(`Execution time for output layer: ${executionTime} milliseconds`);
                       resolve(outC);
-                  } else {
+                  } 
 
                     chIdx++;
                     document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
-                  }
+                  
 
 
               }, 10);
