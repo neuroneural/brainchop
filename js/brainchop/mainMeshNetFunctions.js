@@ -4207,13 +4207,9 @@ class SequentialConvLayer {
                       const executionTime = endTime - startTime;
                       console.log(`Execution time for output layer: ${executionTime} milliseconds`);
                       resolve(outC);
-                  } else {
-
-                    chIdx++;
-                    document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
                   }
-
-
+		  chIdx++;
+                  document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
               }, 10);
         });
 
