@@ -86,6 +86,104 @@
       return data1DimArr;    
   }
 
+
+/**
+* Check if string
+*
+* @since 3.0.0
+* @param {Any} variable
+* @returns {bool} 
+* @example
+*
+* isString("someString")
+* // => true
+*
+* isString({ "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle"})
+* // => false
+*
+* isString("")
+* // => false
+*/  
+
+ isString = (variable) => {
+     return  (typeof variable === 'string' || variable instanceof String) && 
+                     (variable !== null) && variable.length ?  true  : false;
+ } 
+
+
+/**
+* Check if object
+*
+* @since 3.0.0
+* @param {Any} variable
+* @returns {bool} 
+* @example
+*
+* isObject({ "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle"})
+* // => true
+*
+* isObject("someString")
+* // => false
+*
+*/  
+
+ isObject = (variable) => {
+     return  (typeof variable === 'object') && (variable !== null) ?  true  : false;
+ }  
+
+
+  /**
+   * Find  if two arrays are identical. 
+   *
+   * @function
+   * @since 3.0.0
+   * @version 3.0.0
+   * @category Array
+   * @param {Array} array1 - The array of values.
+   * @param {Array} array2 - The array of values.   
+   * @returns {boolean} 
+   * @example
+   *
+   * areArraysEquals( [1, 1, 2, 3], [1, 1, 2, 5])
+   *
+   * => false
+   */ 
+
+    areArraysEquals = (array1, array2) => {
+        return JSON.stringify(array1) === JSON.stringify(array2) ? true : false;
+    }
+
+
+  /**
+   * Verify if parent object has all keys of child object
+   * e.g.  child object: labelsHistoObj,  parent object: colorLutObj or labelsObj
+   * 
+   *
+   * @function
+   * @since 1.0.0
+   * @version 3.0.0
+   * @param {object} childObj - The child object e.g. labelsHistoObj
+   * @param {object} parentObj - The parent object e.g. colorLutObj or labelsObj
+   * @returns {boolean} 
+   * @example
+   *
+   * verifyChildParentObjects( {"x": 1, "y": 2}, {"y": 2, "z": 3, "x": 4})
+   *
+   * => true
+   */ 
+
+    verifyChildParentObjects = (childObj, parentObj) => {
+
+         Object.keys(childObj).forEach((childKey, idx) => {
+
+                if ( ! parentObj.hasOwnProperty(childKey)) {
+                       return false;
+                } 
+         })
+
+         return true;
+    }
+
 /**
 * Generates number of colors using HSL wheel hsl(hue, saturation, lightness).  
 *
@@ -2249,6 +2347,9 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
 }
 
 
+
+
+
 /**
 * Generate output labels of all slices. (refine)
 * Find current voxel value of the related seg class buffer, if we have numSegClasses = 3 then we have 3 buffers,
@@ -2469,51 +2570,113 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         let roiLabels = [];
         let chartXaxisStep = 1;
 
-        if(! maskBrainExtraction) { // If Atlas 50, 104  or GMWM Segmenations
-
-             let colorLutObj = getExternalJSON(colorURL);
-             outVolumeStatus['colorLutObj'] = colorLutObj;
-             //--e.g. colorLutObj- e.g. {"0": "rgb(0,0,0)", "1": "rgb(245,245,245)", "2": "rgb(196,58,250)", ... }
-
-             let labelsObj = getExternalJSON(labelsURL);
-             outVolumeStatus['labelsObj'] = labelsObj;
-             //-- e.g. labelsObj- { "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle",..}
+        console.log("labelsHistoObj Keys: ", Object.keys(labelsHistoObj));
 
 
-              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
-                   roiData.push({y: labelsHistoObj[labelKey] * 1/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
-                   roiLabels[idx] =  labelsObj[labelKey];
-              }) 
+        let colorLutObj = getExternalJSON(colorURL);
+        //--e.g. colorLutObj- e.g. {"0": "rgb(0,0,0)", "1": "rgb(245,245,245)", "2": "rgb(196,58,250)", ... }
+        let labelsObj = getExternalJSON(labelsURL);
+        //-- e.g. labelsObj- { "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle",..}       
 
-              //-- roiData = [ {y: 34.4, color: 'red'}, {y: 20.1, color: '#aaff99'}];
-              //-- roiLabels = ['Roi-1','Roi-2'];
-       
-        } else { // For mask or brain extraction models
-              
-              let colorLutObj = {};
-              let labelsObj = {};
+        // Color object, check if segmenation labels less or equal colors
+        if ( isObject(colorLutObj) ? verifyChildParentObjects( Object.keys(labelsHistoObj).length, Object.keys(colorLutObj).length) : false ) {
+                   
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                     roiData.push({y: labelsHistoObj[labelKey] * 1 / totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+                }) 
+                
+        } else {
+                colorLutObj = {};
 
-              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
-                    colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
-                    labelsObj[labelKey] = labelKey;
-              }) 
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                      colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
+                }) 
 
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                     roiData.push({y: labelsHistoObj[labelKey] * 1 / totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
 
-              Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
-                   roiData.push({y: labelsHistoObj[labelKey] * 1/totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
-                   if(idx == 0 || idx == Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent) || idx == Object.keys(labelsHistoObj).length -1 ){
-                       roiLabels[idx] =  labelsObj[labelKey];
-                   }
-
-              })               
-
-              chartXaxisStep = Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent);
-
-              outVolumeStatus['colorLutObj'] = colorLutObj;
-              // To only show All make label null
-              outVolumeStatus['labelsObj'] = null;
+                })                  
 
         }
+
+        outVolumeStatus['colorLutObj'] = colorLutObj;
+
+
+        // label object, check if segmenation classes have less or equal labels in the label json file
+        if ( isObject(labelsObj) ? verifyChildParentObjects( Object.keys(labelsHistoObj), Object.keys(labelsObj) ): false ) {
+
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                     roiLabels[idx] =  labelsObj[labelKey];
+                }) 
+
+                outVolumeStatus['labelsObj'] = labelsObj;
+
+        } else {
+                labelsObj = {};
+                
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                      labelsObj[labelKey] = labelKey;
+                }) 
+
+                Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                     if(idx == 0 || idx == Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent) || idx == Object.keys(labelsHistoObj).length -1 ){
+                         roiLabels[idx] =  labelsObj[labelKey];
+                     }
+
+                })  
+
+                chartXaxisStep = Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent);
+                // To only show All make label null
+                outVolumeStatus['labelsObj'] = null;                  
+        }
+
+
+
+        // if( (! maskBrainExtraction) && (labelsURL !== null) && (colorURL !== null) ) { // If Atlas 50, 104  or GMWM Segmenations
+
+        //      let colorLutObj = getExternalJSON(colorURL);
+        //      outVolumeStatus['colorLutObj'] = colorLutObj;
+        //      //--e.g. colorLutObj- e.g. {"0": "rgb(0,0,0)", "1": "rgb(245,245,245)", "2": "rgb(196,58,250)", ... }
+
+        //      let labelsObj = getExternalJSON(labelsURL);
+        //      outVolumeStatus['labelsObj'] = labelsObj;
+        //      //-- e.g. labelsObj- { "0": "BG",  "1": "Cerebral-White-Matter",  "2": "Ventricle",..}
+
+
+        //       Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+        //            roiData.push({y: labelsHistoObj[labelKey] * 1 / totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+        //            roiLabels[idx] =  labelsObj[labelKey];
+        //       }) 
+
+        //       //-- roiData = [ {y: 34.4, color: 'red'}, {y: 20.1, color: '#aaff99'}];
+        //       //-- roiLabels = ['Roi-1','Roi-2'];
+       
+        // } else { // For mask or brain extraction models or when label/color json not provided
+              
+        //       let colorLutObj = {};
+        //       let labelsObj = {};
+
+        //       Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+        //             colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
+        //             labelsObj[labelKey] = labelKey;
+        //       }) 
+
+
+        //       Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+        //            roiData.push({y: labelsHistoObj[labelKey] * 1 / totalTissueVol, color: rgbToHex( getRgbObject( colorLutObj[labelKey] ) ) });
+        //            if(idx == 0 || idx == Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent) || idx == Object.keys(labelsHistoObj).length -1 ){
+        //                roiLabels[idx] =  labelsObj[labelKey];
+        //            }
+
+        //       })               
+
+        //       chartXaxisStep = Math.round(Object.keys(labelsHistoObj).length * opts.chartXaxisStepPercent);
+
+        //       outVolumeStatus['colorLutObj'] = colorLutObj;
+        //       // To only show All make label null
+        //       outVolumeStatus['labelsObj'] = null;
+        // }
+
 
         $$("hchart").config.settings.xAxis.categories = roiLabels;
         $$("hchart").config.settings.xAxis.labels.step = chartXaxisStep;
@@ -6000,7 +6163,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape); 
 
                                 let filterOutWithPreMask =  inferenceModelsList[$$("selectModel").getValue() - 1]["filterOutWithPreMask"];   
-                                  // To clean the skull area wrongly segmented inphase-2. 
+                                  // To clean the skull area wrongly segmented in phase-2. 
                                 if(pipeline1_out != null && opts.isBrainCropMaskBased && filterOutWithPreMask) { 
                                     outLabelVolume = outLabelVolume.mul(binarizeVolumeDataTensor(pipeline1_out));
                                 }
