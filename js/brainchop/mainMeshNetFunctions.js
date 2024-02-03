@@ -4151,6 +4151,7 @@ class SequentialConvLayer {
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
 
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
         //document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
 
         return new Promise((resolve, reject) => {
@@ -4208,7 +4209,8 @@ class SequentialConvLayer {
                   if(chIdx == (self.outChannels -1)) {
 
                       window.clearInterval( seqTimer );
-                      //document.getElementById("progressBarChild").style.width = 0 + "%";
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
+                      // document.getElementById("progressBarChild").style.width = 0 + "%";
                       tf.dispose(outB);
                       const endTime = performance.now();
                       const executionTime = endTime - startTime;
@@ -4216,6 +4218,7 @@ class SequentialConvLayer {
                       resolve(outC);
                   }
 		  chIdx++;
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
                   //document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
               }, 10);
         });
