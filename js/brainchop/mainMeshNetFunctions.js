@@ -3780,18 +3780,8 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                             for (let i = 1; i < layersLength; i++) {
                                   try {
-                                        if (res.layers[i].activation.getClassName() !== 'linear') {
-                                            curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                        } else {
+                                        curTensor[i] = res.layers[i].apply( curTensor[i-1]);
 
-                                            curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                              res.layers[i].getWeights()[0],
-                                                                                              res.layers[i].getWeights()[1],
-                                                                                              res.layers[i].strides,
-                                                                                              res.layers[i].padding,
-                                                                                              res.layers[i].dilationRate,
-                                                                                              3); // important for memory use
-                                        }   
                                   } catch(err) {
 
                                         if( err.message === "Failed to compile fragment shader.") {
@@ -5061,18 +5051,8 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let timer = window.setInterval(function() {
 
                             try {
-                                  if (res.layers[i].activation.getClassName() !== 'linear') {
-                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  } else {
-
-                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                        res.layers[i].getWeights()[0],
-                                                                                        res.layers[i].getWeights()[1],
-                                                                                        res.layers[i].strides,
-                                                                                        res.layers[i].padding,
-                                                                                        res.layers[i].dilationRate,
-                                                                                        3); // important for memory use
-                                  }   
+                                  curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+ 
                             } catch(err) {
 
                                   if( err.message === "Failed to compile fragment shader.") {
@@ -5972,18 +5952,18 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
                             try {
                                   //-- curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  if (res.layers[i].activation.getClassName() !== 'linear') {
+                                  // if (res.layers[i].activation.getClassName() !== 'linear') {
                                       curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  } else {
+                                  // } else {
 
-                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                        res.layers[i].getWeights()[0],
-                                                                                        res.layers[i].getWeights()[1],
-                                                                                        res.layers[i].strides,
-                                                                                        res.layers[i].padding,
-                                                                                        res.layers[i].dilationRate,
-                                                                                        3); // important for memory use
-                                  }                              
+                                  //     curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                  //                                                       res.layers[i].getWeights()[0],
+                                  //                                                       res.layers[i].getWeights()[1],
+                                  //                                                       res.layers[i].strides,
+                                  //                                                       res.layers[i].padding,
+                                  //                                                       res.layers[i].dilationRate,
+                                  //                                                       3); // important for memory use
+                                  // }                              
 
                             } catch(err) {
 
@@ -6386,18 +6366,8 @@ checkInferenceModelList = () => {
                           let timer = window.setInterval(function() {
 
                                 try {
-                                      if (res.layers[i].activation.getClassName() !== 'linear') {
-                                          curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                      } else {
-
-                                          curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                            res.layers[i].getWeights()[0],
-                                                                                            res.layers[i].getWeights()[1],
-                                                                                            res.layers[i].strides,
-                                                                                            res.layers[i].padding,
-                                                                                            res.layers[i].dilationRate,
-                                                                                            3); // important for memory use
-                                      }   
+                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+ 
                                 } catch(err) {
 
                                       if( err.message === "Failed to compile fragment shader.") {
