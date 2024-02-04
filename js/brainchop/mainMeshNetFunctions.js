@@ -4167,7 +4167,7 @@ class SequentialConvLayer {
 
         // console.log("---------------------------------------------------------");
         console.log(" channel loop");
-
+        document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
             for (let chIdx = 0; chIdx < this.outChannels; chIdx++) {
                   console.log(chIdx);
 
@@ -4196,17 +4196,19 @@ class SequentialConvLayer {
                      console.log(`Unreliable: ${memoryInfo.unreliable}`);
 
                   // Assign the new values to outC and outB
-                  outC = result[0];
+                outC = result[0];
                 outB = result[1];
 
                 // Artificially introduce a pause to allow for garbage collection to catch up
                 await new Promise(resolve => setTimeout(resolve, 0));
-
+                document.getElementById("progressBarChild").style.width = 0 + "%";
+                document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
             }
             tf.dispose(outB);
             const endTime = performance.now();
             const executionTime = endTime - startTime;
-            console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+        console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+        document.getElementById("progressBarChild").parentElement.style.visibility = "hidden";
             return outC;
         }
     }
