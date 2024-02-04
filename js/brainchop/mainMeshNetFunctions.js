@@ -4135,80 +4135,179 @@ class SequentialConvLayer {
 
     */ 
 
+
     async apply(inputTensor) {
 
         const self = this;
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
+        const startTime = performance.now();
 
+        const convLayer = self.model.layers[self.model.layers.length - 1];
+        const weights = convLayer.getWeights()[0]; //
+        const biases = convLayer.getWeights()[1];
+        const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
+
+        //-- e.g.  outputShape : [256,256,256] or cropped Dim
+        //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
+        //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
+
+        let outB = tf.mul(tf.ones(outputShape), -10000);
+        //-- e.g. outB.shape  [256,256,256]
+        let outC = tf.zeros(outputShape);
+        //-- e.g. outC.shape  [256,256,256]
+        // let chIdx = 0;
+
+        // console.log("---------------------------------------------------------");
+        console.log(" channel loop");
         document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
 
-        return new Promise((resolve, reject) => {
-
-              const startTime = performance.now();
-
-              const convLayer = self.model.layers[self.model.layers.length - 1];
-              const weights = convLayer.getWeights()[0]; //
-              const biases = convLayer.getWeights()[1];
-              const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
-              //-- e.g.  outputShape : [256,256,256] or cropped Dim
-              //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
-              //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
-
-              let outB = tf.mul(tf.ones(outputShape), -10000);
-              //-- e.g. outB.shape  [256,256,256]
-              let outC = tf.zeros(outputShape);
-              //-- e.g. outC.shape  [256,256,256]
-              let chIdx = 0;
-
-              // console.log("---------------------------------------------------------");
-              console.log(" channel loop");
-
-              let seqTimer = window.setInterval(function() {
-
+            for (let chIdx = 0; chIdx < self.outChannels; chIdx++) {
                   console.log(chIdx);
 
-                  const result = tf.tidy(() => {
-                      const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
-                      // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
-                      const filterBiases = biases.slice([chIdx], [1]);
-                      //-- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
-                      const outA = processTensorInChunks(tf.squeeze(inputTensor), tf.squeeze(filterWeights), Math.min(self.chunkSize, self.outChannels)).add(filterBiases);
-                      const greater = tf.greater(outA, outB);
-                      const newoutB = tf.where(greater, outA, outB);
-                      const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC);
-                      // Dispose the old tensors before reassigning
-                      tf.dispose([outB, outC]);
-                      return [newoutC, newoutB];
+                  console.log('=======================');
+                  const memoryInfo0 = tf.memory();
+                  console.log(`| Number of Tensors: ${memoryInfo0.numTensors}`);
+                  console.log(`| Number of Data Buffers: ${memoryInfo0.numDataBuffers}`);
+
+                  const result = tf.tidy( () => {
+                        const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
+                        // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
+                        const filterBiases = biases.slice([chIdx], [1]);
+                        //-- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
+                        const outA = tf.squeeze(processTensorInChunks(inputTensor, filterWeights, filterBiases, self.chunkSize));
+                        const greater = tf.greater(outA, outB);
+                        const newoutB = tf.where(greater, outA, outB);
+                        const currentIdx = tf.fill(outC.shape, chIdx);
+                        const newoutC = tf.where(greater, currentIdx, outC);
+                        // Dispose the old tensors before reassigning
+                        tf.dispose([outB, outC, filterWeights, filterBiases, currentIdx, greater]);
+                        return [newoutC, newoutB];
                   });
 
+                  const memoryInfo1 = tf.memory();
+                  console.log(`| Number of Tensors: ${memoryInfo1.numTensors}`);
+                  console.log(`| Number of Data Buffers: ${memoryInfo1.numDataBuffers}`);
+                  console.log('=======================');
+
                   // -- await showMemStatus(chIdx, self.outChannels);
+                  // Log memory usage
 
-                  // Assign the new values to outC and outB
-                  outC = result[0];
-                  outB = result[1];
+                 const memoryInfo = tf.memory();
+                 console.log(`Iteration ${chIdx}:`);
+                 console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                 console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                 console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                 console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                 console.log(`Unreliable: ${memoryInfo.unreliable}`);
 
-                  if(chIdx == (self.outChannels -1)) {
+                 // If outB and outC were previously assigned, dispose of them before reassignment
+                 if (outB) {
+                    outB.dispose();
+                 }
 
-                      window.clearInterval( seqTimer );
-                      document.getElementById("progressBarChild").style.width = 0 + "%";
-                      tf.dispose(outB);
-                      const endTime = performance.now();
-                      const executionTime = endTime - startTime;
-                      console.log(`Execution time for output layer: ${executionTime} milliseconds`);
-                      resolve(outC);
-                  } else {
+                 if (outC) {
+                    outC.dispose();
+                 }
+                
+                 // Assign the new values to outC and outB
+                 outC = result[0];
+                 outB = result[1];
 
-                    chIdx++;
-                    document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
-                  }
+                 // Artificially introduce a pause to allow for garbage collection to catch up
+                 await new Promise(resolve => setTimeout(resolve, 0));
+                 document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
+            }
+
+            tf.dispose(outB);
+            const endTime = performance.now();
+            const executionTime = endTime - startTime;
+            console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+            document.getElementById("progressBarChild").parentElement.style.visibility = "hidden";
+            tf.dispose([weights, biases]);
+            return outC;
+   
+    } // end of apply fun
 
 
-              }, 50);
-        });
 
-    }
-}
+    // async apply(inputTensor) {
+
+    //     const self = this;
+    //     // Important to avoid "undefined" class var members inside the timer.
+    //     // "this" has another meaning inside the timer.
+
+    //     document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
+
+    //     return new Promise((resolve, reject) => {
+
+    //           const startTime = performance.now();
+
+    //           const convLayer = self.model.layers[self.model.layers.length - 1];
+    //           const weights = convLayer.getWeights()[0]; //
+    //           const biases = convLayer.getWeights()[1];
+    //           const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
+    //           //-- e.g.  outputShape : [256,256,256] or cropped Dim
+    //           //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
+    //           //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
+
+    //           let outB = tf.mul(tf.ones(outputShape), -10000);
+    //           //-- e.g. outB.shape  [256,256,256]
+    //           let outC = tf.zeros(outputShape);
+    //           //-- e.g. outC.shape  [256,256,256]
+    //           let chIdx = 0;
+
+    //           // console.log("---------------------------------------------------------");
+    //           console.log(" channel loop");
+
+    //           let seqTimer = window.setInterval(function() {
+
+    //               console.log(chIdx);
+
+    //               const result = tf.tidy(() => {
+    //                   const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
+    //                   // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
+    //                   const filterBiases = biases.slice([chIdx], [1]);
+    //                   //-- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
+    //                   const outA = processTensorInChunks(tf.squeeze(inputTensor), tf.squeeze(filterWeights), Math.min(self.chunkSize, self.outChannels)).add(filterBiases);
+    //                   const greater = tf.greater(outA, outB);
+    //                   const newoutB = tf.where(greater, outA, outB);
+    //                   const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC);
+    //                   // Dispose the old tensors before reassigning
+    //                   tf.dispose([outB, outC]);
+    //                   return [newoutC, newoutB];
+    //               });
+
+    //               // -- await showMemStatus(chIdx, self.outChannels);
+
+    //               // Assign the new values to outC and outB
+    //               outC = result[0];
+    //               outB = result[1];
+
+    //               if(chIdx == (self.outChannels -1)) {
+
+    //                   window.clearInterval( seqTimer );
+    //                   document.getElementById("progressBarChild").style.width = 0 + "%";
+    //                   tf.dispose(outB);
+    //                   const endTime = performance.now();
+    //                   const executionTime = endTime - startTime;
+    //                   console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+    //                   resolve(outC);
+    //               } else {
+
+    //                 chIdx++;
+    //                 document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
+    //               }
+
+
+    //           }, 50);
+    //     });
+
+    // }
+
+
+
+} // <<<< End of class
 
 
 
