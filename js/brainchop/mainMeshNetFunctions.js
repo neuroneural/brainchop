@@ -7035,7 +7035,10 @@ resetMainParameters = () => {
                 statData["GPU_Vendor_Full"] = detectGPUVendor_v0();
                 statData["GPU_Card_Full"] = detectGPUCardType_v0();   
                 statData["CPU_Cores"] = getCPUNumCores();                          
-                statData["TF_Backend"] = tf.getBackend();      
+                statData["TF_Backend"] = tf.getBackend();  
+                 
+                statData["Which_Brainchop"] = "latest";
+                statData["Seq_Conv"] =  inferenceModelsList[$$("selectModel").getValue() - 1]["enableSeqConv"];  
 
 
                 //-- Init 
