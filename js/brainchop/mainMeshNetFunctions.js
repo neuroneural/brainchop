@@ -4168,8 +4168,13 @@ class SequentialConvLayer {
         // console.log("---------------------------------------------------------");
         console.log(" channel loop");
         document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
-            for (let chIdx = 0; chIdx < this.outChannels; chIdx++) {
-                  console.log(chIdx);
+            for (let chIdx = 0; chIdx < self.outChannels; chIdx++) {
+                console.log(chIdx);
+
+                console.log('=======================');
+                const memoryInfo0 = tf.memory();
+                console.log(`| Number of Tensors: ${memoryInfo0.numTensors}`);
+                console.log(`| Number of Data Buffers: ${memoryInfo0.numDataBuffers}`);
 
                   const result = tf.tidy( () => {
                       const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
@@ -4179,11 +4184,16 @@ class SequentialConvLayer {
                       const outA = tf.squeeze(processTensorInChunks(inputTensor, filterWeights, filterBiases, self.chunkSize));
                       const greater = tf.greater(outA, outB);
                       const newoutB = tf.where(greater, outA, outB);
-                      const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC);
+                      const currentIdx = tf.fill(outC.shape, chIdx);
+                      const newoutC = tf.where(greater, currentIdx, outC);
                       // Dispose the old tensors before reassigning
-                      tf.dispose([outB, outC, filterWeights, filterBiases]);
+                      tf.dispose([outB, outC, filterWeights, filterBiases, currentIdx, greater]);
                       return [newoutC, newoutB];
                   });
+                      const memoryInfo1 = tf.memory();
+                     console.log(`| Number of Tensors: ${memoryInfo1.numTensors}`);
+                     console.log(`| Number of Data Buffers: ${memoryInfo1.numDataBuffers}`);
+                      console.log('=======================');
 
                   // -- await showMemStatus(chIdx, self.outChannels);
                   // Log memory usage
@@ -4195,22 +4205,29 @@ class SequentialConvLayer {
                      console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
                      console.log(`Unreliable: ${memoryInfo.unreliable}`);
 
+                    // If outB and outC were previously assigned, dispose of them before reassignment
+                if (outB) {
+                    outB.dispose();
+                }
+                if (outC) {
+                    outC.dispose();
+                }
                   // Assign the new values to outC and outB
                 outC = result[0];
                 outB = result[1];
 
                 // Artificially introduce a pause to allow for garbage collection to catch up
                 await new Promise(resolve => setTimeout(resolve, 0));
-                document.getElementById("progressBarChild").style.width = 0 + "%";
                 document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
             }
             tf.dispose(outB);
             const endTime = performance.now();
             const executionTime = endTime - startTime;
-        console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+            console.log(`Execution time for output layer: ${executionTime} milliseconds`);
         document.getElementById("progressBarChild").parentElement.style.visibility = "hidden";
+            tf.dispose([weights, biases]);
             return outC;
-        }
+    }
     }
 
 
