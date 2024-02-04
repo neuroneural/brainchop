@@ -4141,7 +4141,8 @@ class SequentialConvLayer {
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
 
-        document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
+        //document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
 
         return new Promise((resolve, reject) => {
 
@@ -4183,7 +4184,14 @@ class SequentialConvLayer {
                   });
 
                   // -- await showMemStatus(chIdx, self.outChannels);
-
+                  // Log memory usage
+                     const memoryInfo = tf.memory();
+                     console.log(`Iteration ${chIdx}:`);
+                     console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                     console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                     console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                     console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                     console.log(`Unreliable: ${memoryInfo.unreliable}`);
                   // Assign the new values to outC and outB
                   outC = result[0];
                   outB = result[1];
@@ -4191,19 +4199,17 @@ class SequentialConvLayer {
                   if(chIdx == (self.outChannels -1)) {
 
                       window.clearInterval( seqTimer );
-                      document.getElementById("progressBarChild").style.width = 0 + "%";
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
+                      // document.getElementById("progressBarChild").style.width = 0 + "%";
                       tf.dispose(outB);
                       const endTime = performance.now();
                       const executionTime = endTime - startTime;
                       console.log(`Execution time for output layer: ${executionTime} milliseconds`);
                       resolve(outC);
-                  } else {
-
-                    chIdx++;
-                    document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
                   }
-
-
+		  chIdx++;
+        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
+                  //document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
               }, 10);
         });
 
