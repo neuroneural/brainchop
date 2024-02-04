@@ -4052,48 +4052,6 @@ function processTensorInChunks(input, filter, biases, sliceSize) {
     return biasedOutputTensor;
 }
 
-function processTensorInChunks1(inputTensor, vector, chunkSize) {
-    const rank = inputTensor.rank;
-    const lastDimension = inputTensor.shape[rank - 1];
-
-    if (lastDimension !== vector.size) {
-        throw new Error('The last dimension of the input tensor must match the length of the vector.');
-    }
-
-    if (chunkSize <= 0 || chunkSize > lastDimension) {
-        throw new Error('Invalid chunk size.');
-    }
-
-    return tf.tidy(() => {
-        let accumulatedResult = null;
-
-        for (let i = 0; i < lastDimension; i += chunkSize) {
-            const sliceSize = Math.min(chunkSize, lastDimension - i);
-
-            const tensorSlice = inputTensor.slice([...Array(rank - 1).fill(0), i], [-1, -1, -1, sliceSize]);
-            const vectorSlice = vector.slice(i, sliceSize);
-
-            const multiplied = tf.mul(tensorSlice, vectorSlice);
-            tensorSlice.dispose();
-            vectorSlice.dispose();
-
-            const summed = tf.sum(multiplied, -1);
-            multiplied.dispose(); // Dispose of the multiplied tensor, as we no longer need it.
-
-            if (accumulatedResult === null) {
-                accumulatedResult = summed;
-            } else {
-                // Before updating accumulatedResult, dispose of the previous tensor
-                const oldAccumulatedResult = accumulatedResult;
-                accumulatedResult = oldAccumulatedResult.add(summed);
-                oldAccumulatedResult.dispose(); // Dispose of the old accumulated result
-                summed.dispose(); // Dispose of the summed tensor, as it is now part of the accumulated result
-            }
-        }
-
-        return accumulatedResult;
-    });
-}
 
 
 /**
@@ -4218,7 +4176,6 @@ class SequentialConvLayer {
                       // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
                       const filterBiases = biases.slice([chIdx], [1]);
                       //-- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
-                      //const outA = processTensorInChunks(tf.squeeze(inputTensor), tf.squeeze(filterWeights), self.chunkSize).add(filterBiases);
                       const outA = tf.squeeze(processTensorInChunks(inputTensor, filterWeights, filterBiases, self.chunkSize));
                       const greater = tf.greater(outA, outB);
                       const newoutB = tf.where(greater, outA, outB);
@@ -4269,53 +4226,6 @@ class SequentialConvLayer {
 * @return {}
 *
 */
-
-function convByInputSlicing_oneconv(input, filter, biases, stride, pad, dilationRate, sliceSize) {
-    const batchSize = input.shape[0];
-    const depth = input.shape[1];
-    const height = input.shape[2];
-    const width = input.shape[3];
-    const inChannels = input.shape[4];
-    const outChannels = filter.shape[4];
-
-    // Create an empty array to hold the output channels
-    let outputChannels = null;
-
-    const numSlices = Math.ceil(inChannels /  sliceSize);
-    const biasesSlice = biases;
-    let outputChannel = null;
-
-    for (let i = 0; i < numSlices; i++) {
-        const startChannel = i * sliceSize;
-        const endChannel = Math.min((i + 1) * sliceSize, inChannels);
-
-        // Only proceed if there are channels to process
-        if (startChannel < inChannels) {
-            const resultSlice = tf.tidy(() => {
-                const inputSlice = input.slice([0, 0, 0, 0, startChannel], [-1, -1, -1, -1, endChannel - startChannel]);
-                const filterSlice = filter.slice([0, 0, 0, startChannel, 0], [-1, -1, -1, endChannel - startChannel, 1]);
-                // Perform the convolution for the current slice and output channel
-                return tf.conv3d(inputSlice, filterSlice, stride, pad, 'NDHWC', dilationRate);
-            });
-
-            if (outputChannel === null) {
-                outputChannel = resultSlice;
-            } else {
-                const updatedOutputChannel = outputChannel.add(resultSlice);
-                outputChannel.dispose();
-                resultSlice.dispose();
-                outputChannel = updatedOutputChannel;
-            }
-        }
-    }
-
-    // Add the biases to the accumulated convolutions for this channel
-    const biasedOutputChannel = outputChannel.add(biasesSlice);
-    outputChannel.dispose();
-    biasesSlice.dispose();
-
-    return biasedOutputChannel;
-}
 
 function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, dilationRate, sliceSize) {
     const batchSize = input.shape[0];
