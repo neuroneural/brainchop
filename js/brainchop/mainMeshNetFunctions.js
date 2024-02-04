@@ -4034,6 +4034,7 @@ function processTensorInChunks(input, filter, biases, sliceSize) {
                 const updatedOutputTensor = outputTensor.add(resultSlice);
                 outputTensor.dispose();
                 outputTensor = updatedOutputTensor;
+                resultSlice.dispose();
             }
 
             // Dispose of the intermediate tensors
@@ -4190,7 +4191,7 @@ class SequentialConvLayer {
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
         const startTime = performance.now();
-        
+
         const convLayer = self.model.layers[self.model.layers.length - 1];
         const weights = convLayer.getWeights()[0]; //
         const biases = convLayer.getWeights()[1];
