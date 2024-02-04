@@ -4204,7 +4204,7 @@ class SequentialConvLayer {
                   }
 
 
-              }, 10);
+              }, 50);
         });
 
     }
@@ -4354,7 +4354,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                                                                       res.layers[i].dilationRate,
                                                                                       3); // important for memory use
                                 }
-                                
+
                                 // Log memory usage
                                 const memoryInfo = tf.memory();
                                 console.log(`Iteration ${i}:`);
@@ -4429,7 +4429,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   // The second parameter is important for memory, 
                                   // the larger it is, the more memory it uses
                                   // it was 8, but I set it to 3, got a different error                                        
-                                  seqConvLayer = new SequentialConvLayer(res, 4, isChannelLast);
+                                  seqConvLayer = new SequentialConvLayer(res, 3, isChannelLast);
 
                                   // Apply the last output tensor to the seq. instance
                                   let outputTensor = null;
@@ -4853,7 +4853,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     //The second parameter is important for memory, 
                                     // the larger it is, the more memory it uses
                                     // it was 8, but I set it to 3, got a different error                                        
-                                    seqConvLayer = new SequentialConvLayer(res, 4, isChannelLast);
+                                    seqConvLayer = new SequentialConvLayer(res, 3, isChannelLast);
 
 
                                     // Apply the last output tensor to the seq. instance
