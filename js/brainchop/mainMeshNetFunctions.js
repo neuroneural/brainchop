@@ -4094,7 +4094,6 @@ showMemStatus = async(chIdx, totalChannels) => {
 
 }
 
-
 class SequentialConvLayer {
     constructor(model, chunkSize, isChannelLast) {
         this.model = model;
@@ -4150,37 +4149,30 @@ class SequentialConvLayer {
         const self = this;
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
+        const startTime = performance.now();
+        
+        const convLayer = self.model.layers[self.model.layers.length - 1];
+        const weights = convLayer.getWeights()[0]; //
+        const biases = convLayer.getWeights()[1];
+        const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
 
-        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
-        //document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
+        //-- e.g.  outputShape : [256,256,256] or cropped Dim
+        //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
+        //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
 
-        return new Promise((resolve, reject) => {
+        let outB = tf.mul(tf.ones(outputShape), -10000);
+        //-- e.g. outB.shape  [256,256,256]
+        let outC = tf.zeros(outputShape);
+        //-- e.g. outC.shape  [256,256,256]
+        let chIdx = 0;
 
-              const startTime = performance.now();
+        // console.log("---------------------------------------------------------");
+        console.log(" channel loop");
 
-              const convLayer = self.model.layers[self.model.layers.length - 1];
-              const weights = convLayer.getWeights()[0]; //
-              const biases = convLayer.getWeights()[1];
-              const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
-
-              //-- e.g.  outputShape : [256,256,256] or cropped Dim
-              //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
-              //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
-
-              let outB = tf.mul(tf.ones(outputShape), -10000);
-              //-- e.g. outB.shape  [256,256,256]
-              let outC = tf.zeros(outputShape);
-              //-- e.g. outC.shape  [256,256,256]
-              let chIdx = 0;
-
-              // console.log("---------------------------------------------------------");
-              console.log(" channel loop");
-
-              let seqTimer = window.setInterval(function() {
-
+            for (let chIdx = 0; chIdx < this.outChannels; chIdx++) {
                   console.log(chIdx);
 
-                  const result = tf.tidy(() => {
+                  const result = tf.tidy( () => {
                       const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
                       // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
                       const filterBiases = biases.slice([chIdx], [1]);
@@ -4202,32 +4194,23 @@ class SequentialConvLayer {
                      console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
                      console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
                      console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
-                  console.log(`Unreliable: ${memoryInfo.unreliable}`);
+                     console.log(`Unreliable: ${memoryInfo.unreliable}`);
 
                   // Assign the new values to outC and outB
                   outC = result[0];
-                  outB = result[1];
+                outB = result[1];
 
-                  if(chIdx == (self.outChannels -1)) {
+                // Artificially introduce a pause to allow for garbage collection to catch up
+                await new Promise(resolve => setTimeout(resolve, 0));
 
-                      window.clearInterval( seqTimer );
-        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
-                      // document.getElementById("progressBarChild").style.width = 0 + "%";
-                      tf.dispose(outB);
-                      const endTime = performance.now();
-                      const executionTime = endTime - startTime;
-                      console.log(`Execution time for output layer: ${executionTime} milliseconds`);
-                      resolve(outC);
-                  }
-		  chIdx++;
-        // *** WARNING!!! if you uncomment this line the memory leak will break webGL and may reboot your machine
-                  //document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
-              }, 100);
-        });
-
+            }
+            tf.dispose(outB);
+            const endTime = performance.now();
+            const executionTime = endTime - startTime;
+            console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+            return outC;
+        }
     }
-}
-
 
 
 /**
