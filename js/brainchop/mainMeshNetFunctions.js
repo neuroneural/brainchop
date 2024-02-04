@@ -4260,9 +4260,13 @@ class SequentialConvLayer {
               // console.log("---------------------------------------------------------");
               console.log(" channel loop");
 
-              let seqTimer = window.setInterval(function() {
+              let seqTimer = window.setInterval(async function() {
 
-                  console.log(chIdx);
+                  console.log('=======================');
+                  const memoryInfo0 = tf.memory();
+                  console.log(`| Number of Tensors: ${memoryInfo0.numTensors}`);
+                  console.log(`| Number of Data Buffers: ${memoryInfo0.numDataBuffers}`);
+                  console.log("Channel : ", chIdx);
 
                   const result = tf.tidy(() => {
                       const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
@@ -4274,11 +4278,26 @@ class SequentialConvLayer {
                       const newoutB = tf.where(greater, outA, outB);
                       const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC);
                       // Dispose the old tensors before reassigning
-                      tf.dispose([outB, outC]);
+                      tf.dispose([outB, outC, filterWeights, filterBiases, outA, greater]);
                       return [newoutC, newoutB];
                   });
 
                   // -- await showMemStatus(chIdx, self.outChannels);
+
+                  const memoryInfo1 = tf.memory();
+                  console.log(`| Number of Tensors: ${memoryInfo1.numTensors}`);
+                  console.log(`| Number of Data Buffers: ${memoryInfo1.numDataBuffers}`);
+                  console.log('=======================');      
+
+                  // Log memory usage
+
+                  const memoryInfo = tf.memory();
+                  console.log(`Iteration ${chIdx}:`);
+                  console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                  console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                  console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                  console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                  console.log(`Unreliable: ${memoryInfo.unreliable}`);                              
 
                   // Assign the new values to outC and outB
                   outC = result[0];
@@ -4296,11 +4315,14 @@ class SequentialConvLayer {
                   } else {
 
                     chIdx++;
+
+                    // Artificially introduce a pause to allow for garbage collection to catch up
+                    await new Promise(resolve => setTimeout(resolve, 0));                    
                     document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
                   }
 
 
-              }, 50);
+              }, 0);
         });
 
     }
