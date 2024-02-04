@@ -4762,18 +4762,18 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let timer = window.setInterval(async function() {
 
                          try {
-                                  // if (res.layers[i].activation.getClassName() !== 'linear') {
+                                  if (res.layers[i].activation.getClassName() !== 'linear') {
                                       curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  // } else {
+                                  } else {
 
-                                  //     curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                  //                                                       res.layers[i].getWeights()[0],
-                                  //                                                       res.layers[i].getWeights()[1],
-                                  //                                                       res.layers[i].strides,
-                                  //                                                       res.layers[i].padding,
-                                  //                                                       res.layers[i].dilationRate,
-                                  //                                                       3); // important for memory use
-                                  // }
+                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                                                                        res.layers[i].getWeights()[0],
+                                                                                        res.layers[i].getWeights()[1],
+                                                                                        res.layers[i].strides,
+                                                                                        res.layers[i].padding,
+                                                                                        res.layers[i].dilationRate,
+                                                                                        3); // important for memory use
+                                  }
 
 
                                   // // Log memory usage

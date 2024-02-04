@@ -136,7 +136,7 @@
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
-                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
