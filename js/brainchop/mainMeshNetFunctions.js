@@ -4354,6 +4354,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                                                                       res.layers[i].dilationRate,
                                                                                       3); // important for memory use
                                 }
+                                
                                 // Log memory usage
                                 const memoryInfo = tf.memory();
                                 console.log(`Iteration ${i}:`);
@@ -4362,6 +4363,8 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                 console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
                                 console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
                                 console.log(`Unreliable: ${memoryInfo.unreliable}`);
+
+
                                 tf.dispose(curTensor[i-1]);
 
                             } catch(err) {
@@ -4759,26 +4762,30 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let timer = window.setInterval(async function() {
 
                          try {
-                                  if (res.layers[i].activation.getClassName() !== 'linear') {
+                                  // if (res.layers[i].activation.getClassName() !== 'linear') {
                                       curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  } else {
+                                  // } else {
 
-                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                        res.layers[i].getWeights()[0],
-                                                                                        res.layers[i].getWeights()[1],
-                                                                                        res.layers[i].strides,
-                                                                                        res.layers[i].padding,
-                                                                                        res.layers[i].dilationRate,
-                                                                                        3); // important for memory use
-                                  }
-                                  // Log memory usage
-                                  const memoryInfo = tf.memory();
-                                  console.log(`Iteration ${i}:`);
-                                  console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
-                                  console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
-                                  console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
-                                  console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
-                                  console.log(`Unreliable: ${memoryInfo.unreliable}`);
+                                  //     curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                  //                                                       res.layers[i].getWeights()[0],
+                                  //                                                       res.layers[i].getWeights()[1],
+                                  //                                                       res.layers[i].strides,
+                                  //                                                       res.layers[i].padding,
+                                  //                                                       res.layers[i].dilationRate,
+                                  //                                                       3); // important for memory use
+                                  // }
+
+
+                                  // // Log memory usage
+                                  // const memoryInfo = tf.memory();
+                                  // console.log(`Iteration ${i}:`);
+                                  // console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
+                                  // console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
+                                  // console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
+                                  // console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
+                                  // console.log(`Unreliable: ${memoryInfo.unreliable}`);
+
+
                                   tf.dispose(curTensor[i-1]);
 
                             } catch(err) {
@@ -5952,18 +5959,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
                             try {
                                   //-- curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  // if (res.layers[i].activation.getClassName() !== 'linear') {
-                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  // } else {
-
-                                  //     curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                  //                                                       res.layers[i].getWeights()[0],
-                                  //                                                       res.layers[i].getWeights()[1],
-                                  //                                                       res.layers[i].strides,
-                                  //                                                       res.layers[i].padding,
-                                  //                                                       res.layers[i].dilationRate,
-                                  //                                                       3); // important for memory use
-                                  // }                              
+                                  curTensor[i] = res.layers[i].apply( curTensor[i-1]);
 
                             } catch(err) {
 
