@@ -175,7 +175,7 @@
                                        id: 4, 
                                        type: "Atlas", 
                                        path:"./models/model30chan50cls/model.json", 
-                                       modelName:"Cortical Atlas 50 (High Mem, Fast)", 
+                                       modelName:"50-ROI Atlas (High Mem, Fast)", 
                                        labelsPath: "./models/model30chan50cls/labels.json", 
                                        colorsPath: "./models/model30chan50cls/colorLUT.json",       
                                        preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
@@ -198,7 +198,7 @@
                                        id: 5, 
                                        type: "Atlas", 
                                        path:"./models/model30chan50cls/model.json", 
-                                       modelName:"Cortical Atlas 50 (Low Mem, Slow)", 
+                                       modelName:"50-ROI Atlas (Low Mem, Slow)", 
                                        labelsPath: "./models/model30chan50cls/labels.json", 
                                        colorsPath: "./models/model30chan50cls/colorLUT.json",       
                                        preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
