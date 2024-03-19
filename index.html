@@ -746,7 +746,7 @@
 
      // function to get masking model from inferenceModelsList
      getMaskingModels = () => {
-        return ["", "Full Brain GWM (light)", "Full Brain GWM (large)"];
+        return ["", "Full Brain GWM (light)", "Full Brain GWM (H Acc & H Crop)"];
      }
 
       let modelBrowsingForm = {view: "form", id: "modelBrowsingFormId", elements: [ 
@@ -960,6 +960,38 @@
                 ]    
              }, 
 
+
+              {  cols: [
+                    {   view: "label", label: "Input Quantile Norm",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "quantileNormStatus", 
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Apply Quantile normalization to input MRI, if false then Min-Max normalization will be applied."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+
+
               {  cols: [
                     {   view: "label", label: "Crop Input",  
                         align: "left"
@@ -1034,7 +1066,7 @@
              }, 
 
               {  cols: [
-                    {   view: "label", label: "Pre-Model Masking",  
+                    {   view: "label", label: "Crop by Pre-Model",  
                         align: "left"
                     }, 
 
@@ -1048,10 +1080,13 @@
                         onChange: function(newValue, oldValue, config) {
                           if(newValue !== "") {
                                $$("filterByMaskStatus").enable();
+                               $$("preModelPostprocessStatus").enable();
             
                           } else {
                                $$("filterByMaskStatus").disable();
                                $$("filterByMaskStatus").setValue("false");
+                               $$("preModelPostprocessStatus").disable();
+                               $$("preModelPostprocessStatus").setValue("false");                               
                           }
 
                         }
@@ -1075,7 +1110,39 @@
 
 
                 ]    
-             },                                     
+             },   
+
+
+              {  cols: [
+                    {   view: "label", label: "Pre-Model Postprocess",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "preModelPostprocessStatus", 
+                      value: 1, 
+                      disabled: true,
+                      options:  ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Select if postprocessing is needed after preModel complete brain masking inference";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                        
+
+
+                ]    
+             },                                               
 
               {  cols: [
                     {   view: "label", label: "Filter Output by Mask",  
@@ -1207,16 +1274,18 @@
                                                  labelsPath: labelFileUrl, 
                                                  colorsPath: colorFileUrl, 
                                                  preModelId: preModelIdVal,
+                                                 preModelPostProcess: ($$("preModelPostprocessStatus").getValue() === 'true'),
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
                                                  enableTranspose:($$("transposeStatus").getValue() === 'true'),
                                                  enableCrop: ($$("cropStatus").getValue() === 'true'), 
                                                  cropPadding: parseInt($$("cropPadStatus").getValue()), 
+                                                 enableQuantileNorm: ($$("quantileNormStatus").getValue() === 'true'),
                                                  filterOutWithPreMask: ($$("filterByMaskStatus").getValue() === 'true'), 
                                                  enableSeqConv: ($$("seqConvStatus").getValue() === 'true'), 
                                                  textureSize: 0,
                                                  warning: null, 
-                                                 inferenceDelay: 100,                                                
+                                                 inferenceDelay: 100,             
                                                  description: ""                                            
                                            })
 
@@ -1251,7 +1320,7 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:700,
+                  height:750,
                   width:400,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[

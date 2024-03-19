@@ -1136,7 +1136,7 @@ rgbToHex = (rgbObj) => {
 * @returns {tf.Tensor}  Returns Tensor of all normalized data 
 * @example
 *
-* normSlices = normalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
+* normSlices = minMaxNormalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
 *
 * // => Object { kept: false, isDisposedInternal: false, shape: (3) […], dtype: "float32", 
 *                size: 8, strides: (2) […], dataId: {…}, id: 369, rankType: "3", scopeId: 39 }
@@ -1151,7 +1151,7 @@ rgbToHex = (rgbObj) => {
 *
 */ 
 
-	normalizeVolumeData = (volumeData) => {
+	minMaxNormalizeVolumeData = (volumeData) => {
 	    //Normalize the data to the range 0 - 1 using min-max scaling
 	    const volumeData_Max = volumeData.max();
 	    const volumeData_Min = volumeData.min();
@@ -1220,7 +1220,7 @@ rgbToHex = (rgbObj) => {
 * @returns {tf.Tensor}  
 * @example
 *
-* normTensor = await normalizeTensor (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
+* normTensor = await quantileNormalizeVolumeData (  tf.tensor( Array.from({length: 8}, (x, i) => i) , [2, 2, 2]) )
 *
 * // => Object Object { kept: false, isDisposedInternal: false, shape: (3) […], dtype: "float32", size: 8, 
 *                       strides: (2) […], dataId: {…}, id: 9, rankType: "3", scopeId: 5 }
@@ -1236,7 +1236,7 @@ rgbToHex = (rgbObj) => {
 */ 
 
 
-  normalizeTensor = async (tensor, lowerQuantile = 0.05, upperQuantile = 0.95) => {
+  quantileNormalizeVolumeData = async (tensor, lowerQuantile = 0.05, upperQuantile = 0.95) => {
       // Call calculateQuantiles and wait for the result
       const { qmin, qmax } = await calculateQuantiles(tensor, lowerQuantile, upperQuantile);
 
@@ -3186,7 +3186,7 @@ submitTiming2GoogleSheet = (dataObj) => {
             }) 
 
             //-- Settings of submission
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbyC9L-nc125Ux03TsUoSHQUCP50bwAL9y0sli-51GJOANRJ5N1hgAICnU2J79s-FuRl/exec'
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbwn-Ix6IVGOwUSU1VBU8hFcABT9PqwCwN90UxfK_fXp5CEfxvIoQHZXs2XQRZQo_N8I/exec'
             const form = document.forms['google-sheet']
           
             //-- Add event handler to the form.
@@ -3560,6 +3560,18 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
           let refVoxel = [], boundVolSizeArr = [];
           let enableCrop = inferenceModelsList[$$("selectModel").getValue() - 1]["enableCrop"];
+
+          let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+
+          if(quantileNorm) {
+              // Quantile normalize function needs specific models to be used
+              console.log("preModel Quantile normalization enabled");
+              slices_3d = await quantileNormalizeVolumeData(slices_3d);
+          } else {
+              // Min Max Nomalize MRI data to be from 0 to 1
+              console.log("preModel Min Max normalization enabled");
+              slices_3d = minMaxNormalizeVolumeData(slices_3d);
+          }           
 
           if(enableCrop) {
 
@@ -4430,7 +4442,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
             statData["No_SubVolumes"] = 1;
   
-            model.then(function (res) {
+            model.then(async function (res) {
 
                  try {
                       startTime = performance.now();
@@ -4440,6 +4452,19 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
                       let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
+
+                      let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+
+                      if(quantileNorm) {
+                        // Quantile normalize function needs specific models to be used
+                        console.log("preModel Quantile normalization enabled");
+                        slices_3d = await quantileNormalizeVolumeData(slices_3d);
+                      } else {
+                        // Min Max Nomalize MRI data to be from 0 to 1
+                        console.log("preModel Min Max normalization enabled");
+                        slices_3d = minMaxNormalizeVolumeData(slices_3d);
+                      }                       
+
 
                       let i = 1;
                       let layersLength = res.layers.length;
@@ -4709,6 +4734,20 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
            //--Phase-2, After remove the skull try to allocate brain volume and make inferece
            console.log(" ---- Start FullVolume Inference with Sequential Conv Layer for phase-II ---- ");
+
+           let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+
+           if(quantileNorm) {
+              // Quantile normalize function needs specific models to be used
+              console.log("preModel Quantile normalization enabled");
+              slices_3d = await quantileNormalizeVolumeData(slices_3d);
+           } else {
+              // Min Max Nomalize MRI data to be from 0 to 1
+              console.log("preModel Min Max normalization enabled");
+              slices_3d = minMaxNormalizeVolumeData(slices_3d);
+           }  
+
+
 
            let mask_3d;
 
@@ -5155,7 +5194,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
             //-- let modelLayersOrg =  JSON.parse(JSON.stringify(modelObject));
 
-            model.then(function (res) {
+            model.then(async function (res) {
 
                  try {
                       startTime = performance.now();
@@ -5165,6 +5204,18 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
                       let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
+
+                      let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+
+                      if(quantileNorm) {
+                        // Quantile normalize function needs specific models to be used
+                        console.log("preModel Quantile normalization enabled");
+                        slices_3d = await quantileNormalizeVolumeData(slices_3d);
+                      } else {
+                        // Min Max Nomalize MRI data to be from 0 to 1
+                        console.log("preModel Min Max normalization enabled");
+                        slices_3d = minMaxNormalizeVolumeData(slices_3d);
+                      }                       
 
                       let i = 1;
                       let layersLength = res.layers.length;
@@ -5611,7 +5662,7 @@ Original voxel is the x,y,z used for slicing the brain
  
 generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_width) => {
  
-         console.log("Generate Brain Masking ... "); 
+        console.log("Generate Brain Masking ... "); 
         // Convert all slices into 1 Dim array to download
 
         let allOutputSlices3DCC = [];
@@ -5623,9 +5674,11 @@ generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_
               allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
         }
 
+      
+        let isPreModelPostProcessEnable = inferenceModelsList[$$("selectModel").getValue() - 1]["preModelPostProcess"];
         
-        if(opts.isPostProcessEnable) {
-            console.log("Post processing enabled ... "); 
+        if(isPreModelPostProcessEnable) {
+            console.log("Phase-1 Post processing enabled ... "); 
             allOutputSlices3DCC = tf.tidy(() => {  
                   // Remove noisy regions using 3d CC   
                   let sliceWidth = niftiHeader.dims[1];
@@ -5633,6 +5686,8 @@ generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_
                   return postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth );
             })       
             console.log("Post processing done ");      
+        } else {
+            console.log("Phase-1 Post processing disabled ... "); 
         }   
 
 
@@ -5907,6 +5962,18 @@ get3dObjectBoundingVolume = async(slices_3d) => {
  
            //--Phase-2, After remove the skull try to allocate brain volume and make inferece
            console.log(" ---- Start FullVolume inference phase-II ---- "); 
+
+           let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+
+           if(quantileNorm) {
+              // Quantile normalize function needs specific models to be used
+              console.log("preModel Quantile normalization enabled");
+              slices_3d = await quantileNormalizeVolumeData(slices_3d);
+           } else {
+              // Min Max Nomalize MRI data to be from 0 to 1
+              console.log("preModel Min Max normalization enabled");
+              slices_3d = minMaxNormalizeVolumeData(slices_3d);
+           }            
 
            let mask_3d;
 
@@ -6377,7 +6444,7 @@ checkInferenceModelList = () => {
 */
 
 
-  inferenceFullVolumePhase1 = (model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol) => {
+  inferenceFullVolumePhase1 = async(model, slices_3d, num_of_slices, slice_height, slice_width, isModelFullVol) => {
 
             statData["No_SubVolumes"] = 1;
 
@@ -6390,16 +6457,34 @@ checkInferenceModelList = () => {
             //-- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
             let slices_3d_mask = null;
 
+
             // load pre-model for inference first, can be null if no pre-model such as GWM models
             if(modelEntry["preModelId"]) {  
 
                 preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] );  
                 let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranspose"];
 
+                let quantileNorm = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableQuantileNorm"];
+
+                let preModel_slices_3d = null; 
+
+                if(quantileNorm) {
+                    // Quantile normalize function needs specific models to be used
+                    console.log("preModel Quantile normalization enabled");
+                    preModel_slices_3d = await quantileNormalizeVolumeData(slices_3d);
+                } else {
+                    // Min Max Nomalize MRI data to be from 0 to 1
+                    console.log("preModel Min Max normalization enabled");
+                    preModel_slices_3d = minMaxNormalizeVolumeData(slices_3d);
+                }
+
+
+
+
                 //-- Transpose MRI data to be match pytorch/keras input output
                 //-- Check if pre-model needs transpose..
                 if(transpose) {
-                   slices_3d = slices_3d.transpose()
+                   preModel_slices_3d = preModel_slices_3d.transpose()
                    console.log("Input transposed for pre-model");
                 } else {
                    console.log("Transpose not enabled for pre-model");
@@ -6477,7 +6562,10 @@ checkInferenceModelList = () => {
 
                           let curTensor = [];  
                           //-- reshape MRI to model input shape
-                          curTensor[0] = slices_3d.reshape(preModel_input_shape);
+                          curTensor[0] = preModel_slices_3d.reshape(preModel_input_shape);
+
+                          //Dispose the volume 
+                          tf.dispose(preModel_slices_3d);
     
         
                           let timer = window.setInterval(function() {
@@ -6726,16 +6814,19 @@ checkInferenceModelList = () => {
                                                  // Non-Atlas model (e.g. GWM) needs sequential convolution layer.
                                                  // Sequential convolution layer to be used after cropping - slow but reliable on most machines 
                                                  console.log("------ Mask Cropping & Seq Convoluton ------"); 
-                                                 inferenceFullVolumeSeqCovLayerPhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                                 inferenceFullVolumeSeqCovLayerPhase2(model, slices_3d, num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                                 // inferenceFullVolumeSeqCovLayerPhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
                                             } else {
                                                  // Mask cropping BUT no seq conv
                                                  console.log("------ Mask Cropping  -  NO Seq Convoluton ------"); 
-                                                 inferenceFullVolumePhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                                 inferenceFullVolumePhase2(model, slices_3d, num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                                 // inferenceFullVolumePhase2(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
                                             } 
 
                                        } else {
                                             // -- In version 3.0.0 this function not used
-                                            inferenceSubVolumes(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                            inferenceSubVolumes(model, slices_3d, num_of_slices, slice_height, slice_width, slices_3d_mask);
+                                            //inferenceSubVolumes(model, slices_3d.transpose(), num_of_slices, slice_height, slice_width, slices_3d_mask);
                                        }
 
                                     }
@@ -6969,12 +7060,20 @@ resetMainParameters = () => {
                 let slices_3d = getSlices3D(allSlices_2D);
 
                 // free tensor from mem
-                tf.dispose(allSlices_2D);               
+                tf.dispose(allSlices_2D);    
 
-                // Nomalize MRI data to be from 0 to 1
-                slices_3d = normalizeVolumeData(slices_3d);
-                // Another normalize function needs specific models to be used
-                // -- slices_3d = await normalizeTensor(slices_3d);
+
+                // if(inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"]) {
+                //     // Quantile normalize function needs specific models to be used
+                //     console.log("Quantile normalization enabled");
+                //     slices_3d = await quantileNormalizeVolumeData(slices_3d);
+                // } else {
+                //     // Min Max Nomalize MRI data to be from 0 to 1
+                //     console.log("Min Max normalization enabled");
+                //     slices_3d = minMaxNormalizeVolumeData(slices_3d);
+                // }
+
+
 
                 
                 let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);                    

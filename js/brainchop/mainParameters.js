@@ -109,11 +109,13 @@
                                        labelsPath: "./models/model5_gw_ae/labels.json", 
                                        colorsPath: "./models/model5_gw_ae/colorLUT.json",      
                                        preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                        
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.      
@@ -125,121 +127,65 @@
                                  ,{
                                        id: 2, 
                                        type: "Segmentation", 
-                                       path:"./models/model11_gw_ae/model.json", 
-                                       modelName:"Full Brain GWM (large)", 
-                                       labelsPath: "./models/model11_gw_ae/labels.json",
-                                       colorsPath: "./models/model11_gw_ae/colorLUT.json",  
-                                       preModelId: null, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
+                                       path:"./models/model20chan3cls/model.json", 
+                                       modelName:"Full Brain GWM (High Acc)", 
+                                       labelsPath: "./models/model20chan3cls/labels.json",
+                                       colorsPath: "./models/model20chan3cls/colorLUT.json",  
+                                       preModelId: 1, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference 
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.
+                                       description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy with hard cropping for better speed"
+                                  } 
+
+                                 ,{
+                                       id: 3, 
+                                       type: "Segmentation", 
+                                       path:"./models/model20chan3cls/model.json", 
+                                       modelName:"Full Brain GWM (Hig Acc, Low Mem)", 
+                                       labelsPath: "./models/model20chan3cls/labels.json",
+                                       colorsPath: "./models/model20chan3cls/colorLUT.json",  
+                                       preModelId: 1, // Model run first e.g.  crop the brain   { null, 1, 2, ..  }                                                                          
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                    
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                      
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.  
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
-                                       description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy among the provided models."
+                                       description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides high accuracy and fit low memory available but slower"
                                   } 
 
-                                 ,{
-                                       id: 3, 
-                                       type: "Brain_Extraction", 
-                                       path: "./models/model5_gw_ae/model.json", 
-                                       modelName:"Extract the Brain (FAST)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,              
-                                       preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
-                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
-                                       warning: null, // Warning message to show when select the model.    
-                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
-                                       description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
-                                  } 
 
                                  ,{
                                        id: 4, 
-                                       type: "Brain_Extraction", 
-                                       path: "./models/model11_gw_ae/model.json", 
-                                       modelName:"Extract the Brain (High Acc)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,              
-                                       preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
-                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585,  // Requested Texture size for the model, if unknown can be 0. 
-                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
-                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
-                                       description: "Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version."
-                                  }                                   
-
-                                 ,{
-                                       id: 5, 
-                                       type: "Brain_Masking", 
-                                       path: "./models/model5_gw_ae/model.json", 
-                                       modelName:"Compute Brain Mask (FAST)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,        
-                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
-                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: null, // Warning message to show when select the model.   
-                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
-                                       description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
-                                  } 
-
-                                  ,{
-                                       id: 6, 
-                                       type: "Brain_Masking", 
-                                       path: "./models/model11_gw_ae/model.json",  
-                                       modelName:"Compute Brain Mask (High Acc)", 
-                                       labelsPath: null, 
-                                       colorsPath: null,        
-                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
-                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
-                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
-                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain 
-                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
-                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.     
-                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
-                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
-                                       description: "This masking model operates on full T1 image in a single pass, but uses 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than fast version."
-                                  }       
-
-                                 ,{
-                                       id: 7, 
                                        type: "Atlas", 
-                                       path:"./models/model11_50class/model.json", 
-                                       modelName:"Cortical Atlas 50", 
-                                       labelsPath: "./models/model11_50class/labels.json", 
-                                       colorsPath: "./models/model11_50class/colorLUT.json",       
-                                       preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       path:"./models/model30chan50cls/model.json", 
+                                       modelName:"Cortical Atlas 50 (High Mem, Fast)", 
+                                       labelsPath: "./models/model30chan50cls/labels.json", 
+                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.                                        
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
@@ -249,18 +195,20 @@
                                   }
 
                                  ,{
-                                       id: 8, 
+                                       id: 5, 
                                        type: "Atlas", 
-                                       path:"./models/model11_50class/model.json", 
-                                       modelName:"Cortical Atlas 50 (failsafe)", 
-                                       labelsPath: "./models/model11_50class/labels.json", 
-                                       colorsPath: "./models/model11_50class/colorLUT.json",       
-                                       preModelId: 5,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       path:"./models/model30chan50cls/model.json", 
+                                       modelName:"Cortical Atlas 50 (Low Mem, Slow)", 
+                                       labelsPath: "./models/model30chan50cls/labels.json", 
+                                       colorsPath: "./models/model30chan50cls/colorLUT.json",       
+                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
@@ -269,19 +217,116 @@
                                        description: "Parcellate cortical areas into 50 regions. The model use sequential convolution for inference to overcome browser memory limitations but leads to longer computation time."
                                   }
 
+
                                  ,{
+                                       id: 6, 
+                                       type: "Brain_Extraction", 
+                                       path: "./models/model5_gw_ae/model.json", 
+                                       modelName:"Extract the Brain (FAST)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,              
+                                       preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0. 
+                                       warning: null, // Warning message to show when select the model.    
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
+                                       description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
+                                  } 
+
+                                 ,{
+                                       id: 7, 
+                                       type: "Brain_Extraction", 
+                                       path: "./models/model11_gw_ae/model.json", 
+                                       modelName:"Extract the Brain (High Acc, Low Mem)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,              
+                                       preModelId: 1, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }                                                                            
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference 
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                              
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas                                       
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  13585,  // Requested Texture size for the model, if unknown can be 0. 
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
+                                       description: "Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version."
+                                  }                                   
+
+                                 ,{
+                                       id: 8, 
+                                       type: "Brain_Masking", 
+                                       path: "./models/model5_gw_ae/model.json", 
+                                       modelName:"Compute Brain Mask (FAST)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,        
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: null, // Warning message to show when select the model.   
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
+                                       description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
+                                  } 
+
+                                  ,{
                                        id: 9, 
+                                       type: "Brain_Masking", 
+                                       path: "./models/model11_gw_ae/model.json",  
+                                       modelName:"Compute Brain Mask (High Acc, Low Mem)", 
+                                       labelsPath: null, 
+                                       colorsPath: null,        
+                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 0, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",           
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                  
+                                       description: "This masking model operates on full T1 image in a single pass, but uses 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than fast version."
+                                  }       
+
+
+
+                                 ,{
+                                       id: 10, 
                                        type: "Atlas", 
                                        path:"./models/model21_104class/model.json", 
-                                       modelName:"FS aparc+aseg Atlas 104", 
+                                       modelName:"FS aparc+aseg Atlas 104 (High Mem, Fast)", 
                                        labelsPath: "./models/model21_104class/labels.json", 
                                        colorsPath: "./models/model21_104class/colorLUT.json",     
                                        preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.     
@@ -291,18 +336,20 @@
                                   }
 
                                  ,{
-                                       id: 10, 
+                                       id: 11, 
                                        type: "Atlas", 
                                        path:"./models/model21_104class/model.json", 
-                                       modelName:"FS aparc+aseg Atlas 104 (failsafe)", 
+                                       modelName:"FS aparc+aseg Atlas 104 (Low Mem, Slow)", 
                                        labelsPath: "./models/model21_104class/labels.json", 
                                        colorsPath: "./models/model21_104class/colorLUT.json",     
                                        preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output. 
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference 
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference  
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
                                        textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
