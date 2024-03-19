@@ -78,7 +78,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 ## News!
 
-* Brainchop paper is accepted in the 21st IEEE International Symposium on Biomedical Imaging ([ISBI 2024](https://biomedicalimaging.org/2024/)). Lengthy arXiv version can be found [here](https://arxiv.org/abs/2310.16162).
+* Brainchop [v2.2.0](https://github.com/neuroneural/brainchop/releases/tag/v2.2.0) paper is accepted in the 21st IEEE International Symposium on Biomedical Imaging ([ISBI 2024](https://biomedicalimaging.org/2024/)). Lengthy arXiv version can be found [here](https://arxiv.org/abs/2310.16162).
 
 <div align="center">
    <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/ISBI_2024.jpeg"  width="40%">
