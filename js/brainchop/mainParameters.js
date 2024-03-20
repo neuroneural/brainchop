@@ -171,8 +171,78 @@
                                   } 
 
 
+
                                  ,{
                                        id: 4, 
+                                       type: "Atlas", 
+                                       path:"./models/model18cls/model.json", 
+                                       modelName:"18-ROI robust (High Mem, Fast)", 
+                                       labelsPath: "./models/model18cls/labels.json", 
+                                       colorsPath: "./models/model18cls/colorLUT.json",       
+                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.                                        
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "Parcellation of the brain into 18 regions."
+                                  }
+
+                                 ,{
+                                       id: 5, 
+                                       type: "Atlas", 
+                                       path:"./models/model18cls/model.json", 
+                                       modelName:"18-ROI robust (Low Mem, Slow)", 
+                                       labelsPath: "./models/model18cls/labels.json", 
+                                       colorsPath: "./models/model18cls/colorLUT.json",       
+                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.                                        
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "Parcellation of the brain into 18 regions."
+                                  }
+
+                                 ,{
+                                       id: 6, 
+                                       type: "Atlas", 
+                                       path:"./models/model18cls/model.json", 
+                                       modelName:"18-ROI clinical (High Mem, Slow)", 
+                                       labelsPath: "./models/model18cls/labels.json", 
+                                       colorsPath: "./models/model18cls/colorLUT.json",       
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  } 
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.                                        
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference 
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference  
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched                                                                                                           
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain 
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.     
+                                       warning: "This model may need High memory and dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.  
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.                                   
+                                       description: "Parcellation of the brain in clinical scans into 18 regions. It is highly recommend to use threshold from Enhancement to remove noisy voxels before run the model. "
+                                  }                                  
+
+                                 ,{
+                                       id: 7, 
                                        type: "Atlas", 
                                        path:"./models/model30chan50cls/model.json", 
                                        modelName:"50-ROI Atlas (High Mem, Fast)", 
@@ -195,7 +265,7 @@
                                   }
 
                                  ,{
-                                       id: 5, 
+                                       id: 8, 
                                        type: "Atlas", 
                                        path:"./models/model30chan50cls/model.json", 
                                        modelName:"50-ROI Atlas (Low Mem, Slow)", 
@@ -219,7 +289,7 @@
 
 
                                  ,{
-                                       id: 6, 
+                                       id: 9, 
                                        type: "Brain_Extraction", 
                                        path: "./models/model5_gw_ae/model.json", 
                                        modelName:"Extract the Brain (FAST)", 
@@ -242,7 +312,7 @@
                                   } 
 
                                  ,{
-                                       id: 7, 
+                                       id: 10, 
                                        type: "Brain_Extraction", 
                                        path: "./models/model11_gw_ae/model.json", 
                                        modelName:"Extract the Brain (High Acc, Low Mem)", 
@@ -265,7 +335,7 @@
                                   }                                   
 
                                  ,{
-                                       id: 8, 
+                                       id: 11, 
                                        type: "Brain_Masking", 
                                        path: "./models/model5_gw_ae/model.json", 
                                        modelName:"Compute Brain Mask (FAST)", 
@@ -288,7 +358,7 @@
                                   } 
 
                                   ,{
-                                       id: 9, 
+                                       id: 12, 
                                        type: "Brain_Masking", 
                                        path: "./models/model11_gw_ae/model.json",  
                                        modelName:"Compute Brain Mask (High Acc, Low Mem)", 
@@ -313,7 +383,7 @@
 
 
                                  ,{
-                                       id: 10, 
+                                       id: 13, 
                                        type: "Atlas", 
                                        path:"./models/model21_104class/model.json", 
                                        modelName:"FS aparc+aseg Atlas 104 (High Mem, Fast)", 
@@ -336,7 +406,7 @@
                                   }
 
                                  ,{
-                                       id: 11, 
+                                       id: 14, 
                                        type: "Atlas", 
                                        path:"./models/model21_104class/model.json", 
                                        modelName:"FS aparc+aseg Atlas 104 (Low Mem, Slow)", 
