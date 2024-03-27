@@ -991,6 +991,38 @@
              }, 
 
 
+              {  cols: [
+                    {   view: "label", label: "Auto Threshold Input",  
+                        align: "left"
+                    }, 
+
+                    {
+                      view: "select", 
+                      id: "autoThresholdStatus", 
+                      value: 1, 
+                      options: ["0", "0.1", "0.2"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "For speed-up the inference with limited browser memory, auto thresholding the brain from noisy voxels around it before cropping it and feeding the result to the inference model can lower memory use.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    } 
+
+                ]    
+             },  
+
+
+
+
 
               {  cols: [
                     {   view: "label", label: "Crop Input",  
@@ -1280,6 +1312,7 @@
                                                  enableTranspose:($$("transposeStatus").getValue() === 'true'),
                                                  enableCrop: ($$("cropStatus").getValue() === 'true'), 
                                                  cropPadding: parseInt($$("cropPadStatus").getValue()), 
+                                                 autoThreshold: parseInt($$("autoThresholdStatus").getValue()),
                                                  enableQuantileNorm: ($$("quantileNormStatus").getValue() === 'true'),
                                                  filterOutWithPreMask: ($$("filterByMaskStatus").getValue() === 'true'), 
                                                  enableSeqConv: ($$("seqConvStatus").getValue() === 'true'), 
@@ -1320,7 +1353,7 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:750,
+                  height:770,
                   width:400,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[

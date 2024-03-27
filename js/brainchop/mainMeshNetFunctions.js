@@ -1258,6 +1258,123 @@ rgbToHex = (rgbObj) => {
 
 
 /**
+* Get MRI after threshold noisy voxels around the brain for better cropping later
+* @since 3.0.0
+* @param {tf.Tensor} tensor - Tensor3d,  e.g. Tensor3d of all MRI volume data 
+* @param {number} percentage - Threshold percentage is just a number between 0 and 1 
+* @returns {tf.Tensor}  
+*
+*/ 
+
+
+applyMriThreshold = async(tensor, percentage) => {
+    // Perform asynchronous operations outside of tf.tidy
+    const maxTensor = tensor.max();
+    const thresholdTensor = maxTensor.mul(percentage);
+    const threshold = await thresholdTensor.data(); // Extracts the threshold value
+
+    // Dispose tensors not needed anymore
+    maxTensor.dispose();
+    thresholdTensor.dispose();
+
+    // Use tf.tidy for synchronous operations
+    const denoisedMriData = tf.tidy(() => {
+      const dataForProcessing = tensor.clone();
+
+      // Thresholding (assuming background has very low values compared to the head)
+      const mask = dataForProcessing.greater(threshold[0]);
+      const denoisedMriData = dataForProcessing.mul(mask);
+
+      // No need to  manually dispose dataForProcessing and mask, as tf.tidy() will dispose them auto.
+      return denoisedMriData;
+    });
+
+    return denoisedMriData;
+}
+
+
+
+
+/**
+* Get MRI copping coordinates after threshold
+* @since 3.0.0
+* @param {tf.Tensor} tensor - Tensor3d,  e.g. Tensor3d of all MRI volume data 
+* @param {number} percentage - Threshold percentage is just a number between 0 and 1 
+* @returns {Array}  
+* @example
+*
+* arr = Array.from({length: 27}, (x, i) => i/10)
+* => Array(27) [ 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, … , 2.6]
+*
+* cropped = await cropTensorWithThreshold (  tf.tensor( Array.from({length: 27}, (x, i) => i/10) , [3, 3, 3]),  0.2  )
+*
+* =>  Array [ {…}, {…} ]
+*
+* cropped[0].print()
+*
+*/ 
+
+
+   cropTensorWithThreshold = async(tensor, percentage) => {
+
+      // Find the maximum value of the tensor
+      const maxTensor = tensor.max();
+
+      // Multiply the maximum value by the thresholdRatio to get % of the max
+      const thresholdTensor = maxTensor.mul(percentage);
+
+      // Extract the value from the tensor
+      const threshold = await thresholdTensor.data();
+
+      const dataForProcessing = tensor.clone();
+
+      // Thresholding (assuming background has very low values compared to the head)
+      const mask = dataForProcessing.greater(threshold[0]);
+      const masked_data = dataForProcessing.mul(mask);
+
+      // Find the bounding box around the head (non-zero region) in the filtered data
+      const indices = await tf.whereAsync(masked_data.greater(0));
+      dataForProcessing.dispose();
+      mask.dispose();
+      masked_data.dispose();
+
+      // Extract z, y, x coordinates from the indices
+      const zs = indices.slice([0, 0], [indices.shape[0], 1]); // z coordinates
+      const ys = indices.slice([0, 1], [indices.shape[0], 1]); // y coordinates
+      const xs = indices.slice([0, 2], [indices.shape[0], 1]); // x coordinates
+
+      // Compute min and max indices for each dimension
+      const min_z = zs.min().arraySync();
+      const max_z = zs.max().arraySync();
+      const min_y = ys.min().arraySync();
+      const max_y = ys.max().arraySync();
+      const min_x = xs.min().arraySync();
+      const max_x = xs.max().arraySync();
+
+      // Crop the original tensor using the bounding box from the filtered data
+      const cropped_tensor = tensor.slice([min_z, min_y, min_x], [max_z - min_z + 1, max_y - min_y + 1, max_x - min_x + 1]);
+
+      // Clean up tensors to free memory
+      indices.dispose();
+      zs.dispose();
+      ys.dispose();
+      xs.dispose();
+
+      // Return the cropped tensor along with the min and max indices
+      return  [cropped_tensor, {
+          minZ: min_z,
+          maxZ: max_z,
+          minY: min_y,
+          maxY: max_y,
+          minX: min_x,
+          maxX: max_x
+      }];
+
+  }
+
+
+
+/**
 * load pre-trained model from local drive
 *
 * @since 1.0.0
@@ -4751,16 +4868,28 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
            let mask_3d;
 
-           if(pipeline1_out == null) {
-              // binarize original image
-              mask_3d = slices_3d.greater([0]).asType('bool');
+           if(pipeline1_out == null) { // preModel is null
+
+              // Check if thresholding the MRI to remove noisy voxels for better cropping is needed. 
+              let autoThresholdValue = inferenceModelsList[$$("selectModel").getValue() - 1]["autoThreshold"];
+              
+              if( (autoThresholdValue > 0) && (autoThresholdValue <= 1) ) {
+
+                  // Filtered MRI from noisy voxel below  autoThresholdValue
+                  slices_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
+              } else {
+                 console.log("No valid crop threshold value");
+              }
+
+              // binarize original image 
+              mask_3d = slices_3d.greater([0]).asType('bool');            
 
            } else {
 
-              mask_3d = pipeline1_out.greater([0]).asType('bool');
-              //-- pipeline1_out.dispose();
+              mask_3d = pipeline1_out.greater([0]).asType('bool'); 
+              //-- pipeline1_out.dispose();           
 
-           }
+           }   
 
            console.log(" mask_3d shape :  ", mask_3d.shape);
 
@@ -5975,9 +6104,22 @@ get3dObjectBoundingVolume = async(slices_3d) => {
               slices_3d = minMaxNormalizeVolumeData(slices_3d);
            }            
 
+
            let mask_3d;
 
-           if(pipeline1_out == null) {
+           if(pipeline1_out == null) { // preModel is null
+
+              // Check if thresholding the MRI to remove noisy voxels for better cropping is needed. 
+              let autoThresholdValue = inferenceModelsList[$$("selectModel").getValue() - 1]["autoThreshold"];
+              
+              if( (autoThresholdValue > 0) && (autoThresholdValue <= 1) ) {
+
+                  // Filtered MRI from noisy voxel below  autoThresholdValue
+                  slices_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
+              } else {
+                 console.log("No valid crop threshold value");
+              }
+
               // binarize original image 
               mask_3d = slices_3d.greater([0]).asType('bool');            
 
@@ -6448,25 +6590,20 @@ checkInferenceModelList = () => {
 
             statData["No_SubVolumes"] = 1;
 
-            // check for pre model to load e.g. Brain_Extraction or Brain_Masking
-            let preModel = null; 
             let modelEntry = inferenceModelsList[$$("selectModel").getValue() - 1];
             console.log("modelEntry ", modelEntry)
-
-            //-- If pre-model is not null then slices_3d mask will be generated.. 
-            //-- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
-            let slices_3d_mask = null;
-
 
             // load pre-model for inference first, can be null if no pre-model such as GWM models
             if(modelEntry["preModelId"]) {  
 
-                preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] );  
+                let preModel =  load_model(inferenceModelsList[ modelEntry["preModelId"] - 1]['path'] ); 
                 let transpose = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableTranspose"];
-
                 let quantileNorm = inferenceModelsList[ modelEntry["preModelId"]  - 1]["enableQuantileNorm"];
-
                 let preModel_slices_3d = null; 
+
+                //-- If pre-model is not null then slices_3d mask will be generated.. 
+                //-- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
+                let slices_3d_mask = null;                
 
                 if(quantileNorm) {
                     // Quantile normalize function needs specific models to be used
@@ -6479,19 +6616,18 @@ checkInferenceModelList = () => {
                 }
 
 
-
-
                 //-- Transpose MRI data to be match pytorch/keras input output
                 //-- Check if pre-model needs transpose..
                 if(transpose) {
-                   preModel_slices_3d = preModel_slices_3d.transpose()
+                  
+                   preModel_slices_3d = preModel_slices_3d.transpose();
                    console.log("Input transposed for pre-model");
+                   
                 } else {
                    console.log("Transpose not enabled for pre-model");
                 }   
 
                 statData["Brainchop_Ver"] = "PreModel_FV"  ;  // e.g. "PreModel_FV"
-
 
                 preModel.then(function (res) {
 
@@ -6552,7 +6688,7 @@ checkInferenceModelList = () => {
                           statData["Model"] = inferenceModelsList[ modelEntry["preModelId"] - 1]["modelName"];
                           statData["Extra_Info"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
 
-                  
+                
                           // maxLabelPredicted in whole volume of the brain
                           let maxLabelPredicted = 0;
                           let delay = inferenceModelsList[ modelEntry["preModelId"] - 1]["inferenceDelay"];
@@ -6566,7 +6702,6 @@ checkInferenceModelList = () => {
 
                           //Dispose the volume 
                           tf.dispose(preModel_slices_3d);
-    
         
                           let timer = window.setInterval(function() {
 
