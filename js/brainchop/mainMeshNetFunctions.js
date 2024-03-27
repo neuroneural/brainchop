@@ -1258,7 +1258,7 @@ rgbToHex = (rgbObj) => {
 
 
 /**
-* Get MRI after threshold noisy voxels around the brain for better cropping later
+* Get MRI mask after threshold noisy voxels around the brain for better cropping later
 * @since 3.0.0
 * @param {tf.Tensor} tensor - Tensor3d,  e.g. Tensor3d of all MRI volume data 
 * @param {number} percentage - Threshold percentage is just a number between 0 and 1 
@@ -1278,18 +1278,18 @@ applyMriThreshold = async(tensor, percentage) => {
     thresholdTensor.dispose();
 
     // Use tf.tidy for synchronous operations
-    const denoisedMriData = tf.tidy(() => {
+    return tf.tidy(() => {
       const dataForProcessing = tensor.clone();
 
       // Thresholding (assuming background has very low values compared to the head)
       const mask = dataForProcessing.greater(threshold[0]);
-      const denoisedMriData = dataForProcessing.mul(mask);
+      //-- const denoisedMriData = dataForProcessing.mul(mask);
 
       // No need to  manually dispose dataForProcessing and mask, as tf.tidy() will dispose them auto.
-      return denoisedMriData;
+      return mask;
     });
 
-    return denoisedMriData;
+    //-- return denoisedMriData;
 }
 
 
@@ -4876,13 +4876,12 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
               if( (autoThresholdValue > 0) && (autoThresholdValue <= 1) ) {
 
                   // Filtered MRI from noisy voxel below  autoThresholdValue
-                  slices_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
+                  mask_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
               } else {
                  console.log("No valid crop threshold value");
-              }
-
-              // binarize original image 
-              mask_3d = slices_3d.greater([0]).asType('bool');            
+                 // binarize original image 
+                 mask_3d = slices_3d.greater([0]).asType('bool');                  
+              }           
 
            } else {
 
@@ -6115,13 +6114,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
               if( (autoThresholdValue > 0) && (autoThresholdValue <= 1) ) {
 
                   // Filtered MRI from noisy voxel below  autoThresholdValue
-                  slices_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
+                  mask_3d = await applyMriThreshold(slices_3d, autoThresholdValue);
               } else {
                  console.log("No valid crop threshold value");
-              }
-
-              // binarize original image 
-              mask_3d = slices_3d.greater([0]).asType('bool');            
+                 // binarize original image 
+                 mask_3d = slices_3d.greater([0]).asType('bool');                  
+              }            
 
            } else {
 
@@ -6169,8 +6167,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
           //-- Reference voxel that cropped volume started slice with it
           let refVoxel = [row_min, col_min, depth_min]; 
+          console.log("refVoxel :", refVoxel)
+
           // -- Starting form refVoxel, size of bounding volume 
-          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];          
+          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];  
+
+          console.log("boundVolSizeArr :", boundVolSizeArr)       
 
           coords.dispose();
 
@@ -6622,7 +6624,7 @@ checkInferenceModelList = () => {
                   
                    preModel_slices_3d = preModel_slices_3d.transpose();
                    console.log("Input transposed for pre-model");
-                   
+
                 } else {
                    console.log("Transpose not enabled for pre-model");
                 }   
