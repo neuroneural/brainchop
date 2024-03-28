@@ -48,14 +48,17 @@
 ## MeshNet Example
 This basic example provides an overview of the training pipeline for the MeshNet model. 
 
-* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/MeshNet_Training_Example.ipynb) [MeshNet Basic Training example](./py2tfjs/MeshNet_Training_Example.ipynb)
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/MeshNet_Training_Example.ipynb) [MeshNet basic training example](./py2tfjs/MeshNet_Training_Example.ipynb)
 
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/Convert_Trained_Model_To_TFJS.ipynb) [Convert the trained MeshNet model to tfjs model example ](./py2tfjs/Convert_Trained_Model_To_TFJS.ipynb)
 
+<br>
 
 ## Live Demo
 
 To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
 
+<br>
 
 ## Updates
 
