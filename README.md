@@ -61,13 +61,13 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif)
 
-
-**Brainchop V1.3.0 rendering segmentation output in 3D**
+**Brainchop V2.5.0 with more robust models**
 </div>
 
 <br>
+
 
 <div align="center">
 
@@ -75,6 +75,20 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 **Brainchop V1.4.0 rendering MRI Nifti file in 3D**
 </div>
+
+<br>
+
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
+
+
+**Brainchop V1.3.0 rendering segmentation output in 3D**
+</div>
+
+
+
+
 
 ## News!
 

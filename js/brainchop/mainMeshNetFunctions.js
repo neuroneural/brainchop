@@ -4736,10 +4736,9 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;
 
                                   if( numSegClasses != expected_Num_labels ) {
-                                      webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses, "alert-error");
+                                      webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses + ". For possible solutions please refer to <a href='https://github.com/neuroneural/brainchop/wiki/FAQ#Q3' target='_blank'><b> FAQ </b></a>.", "alert-error");
                                       console.log("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses);
-                                  }
-
+                                  }  
 
                                   // Transpose MRI data to be match pytorch/keras input output
                                   if(transpose) {
@@ -5187,9 +5186,9 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;
 
                                     if( numSegClasses != expected_Num_labels ) {
-                                        webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses, "alert-error");
+                                        webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses + ". For possible solutions please refer to <a href='https://github.com/neuroneural/brainchop/wiki/FAQ#Q3' target='_blank'><b> FAQ </b></a>.", "alert-error");
                                         console.log("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses);
-                                    }                                    
+                                    }                                      
 
                                     //-- Transpose back to fit Papaya display settings
                                     let outLabelVolume = outputTensor.reshape([cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2]]);
@@ -5522,6 +5521,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                 statData["Actual_Labels"] = numSegClasses;
                                 statData["Expect_Labels"] = expected_Num_labels;
                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
+
 
                                 //-- Transpose back to fit Papaya display settings
                                 let outLabelVolume = prediction_argmax.reshape([num_of_slices, slice_height, slice_width]);
@@ -6454,6 +6454,13 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 statData["Actual_Labels"] = numSegClasses;
                                 statData["Expect_Labels"] = expected_Num_labels;
                                 statData["NumLabels_Match"] = numSegClasses == expected_Num_labels? true : false;                                  
+
+
+                                if( numSegClasses != expected_Num_labels ) {
+                                    webix.alert("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses + ". For possible solutions please refer to <a href='https://github.com/neuroneural/brainchop/wiki/FAQ#Q3' target='_blank'><b> FAQ </b></a>.", "alert-error");
+                                    console.log("expected " + expected_Num_labels + " labels, but the predicted are " + numSegClasses);
+                                }    
+
 
                                 //-- Transpose back to fit Papaya display settings
                                 let outLabelVolume = prediction_argmax.reshape([cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2]]);
