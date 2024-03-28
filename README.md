@@ -61,7 +61,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="40%">
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="70%">
 
 **Brainchop v3.0.0 with more robust models**
 </div>
