@@ -4378,11 +4378,10 @@ class SequentialConvLayer {
                   } else {
 
                     chIdx++;
-
+                  }
                     // Artificially introduce a pause to allow for garbage collection to catch up
                     await new Promise(resolve => setTimeout(resolve, 300));
                     document.getElementById("progressBarChild").style.width = (chIdx + 1)*100/self.outChannels + "%";
-                  }
 
 
               }, 0);
