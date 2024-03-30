@@ -94,23 +94,24 @@
     *       ]
     *
     */
-    function addZeroPaddingTo2dArray(arr2d) {
-        let paddedArray = [];
-        let width = arr2d[0].length;
 
-        // Add a row of zeros at the top
-        paddedArray.push(new Array(width + 2).fill(0));
+        function addZeroPaddingTo2dArray(arr2d) {
+            let paddedArray = [];
+            let width = arr2d[0].length;
 
-        // Add a column of zeros at the start and end of each row
-        for (let name = initial; row of arr2d) {
-            paddedArray.push([0, ...row, 0]);
+            // Add a row of zeros at the top
+            paddedArray.push(new Array(width + 2).fill(0));
+
+            // Add a column of zeros at the start and end of each row
+            for (let row of arr2d) {
+                paddedArray.push([0, ...row, 0]);
+            }
+
+            // Add a row of zeros at the bottom
+            paddedArray.push(new Array(width + 2).fill(0));
+
+            return paddedArray;
         }
-
-        // Add a row of zeros at the bottom
-        paddedArray.push(new Array(width + 2).fill(0));
-
-        return paddedArray;
-    }
 
 
     /**
