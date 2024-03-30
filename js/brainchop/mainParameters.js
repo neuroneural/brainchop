@@ -113,9 +113,9 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain
-                                       autoThreshold: 0.1, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       enableCrop: false, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 0, // Padding size add to cropped brain
+                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
