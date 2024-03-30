@@ -113,9 +113,9 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
-                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 2, // Padding size add to cropped brain
-                                       autoThreshold: 0.1, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       enableCrop: false, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 0, // Padding size add to cropped brain
+                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -182,14 +182,14 @@
                                        modelName:"\u{1FA93} Subcortical + GWM (High Mem, Fast)",
                                        labelsPath: "./models/model18cls/labels.json",
                                        colorsPath: "./models/model18cls/colorLUT.json",
-                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 0, // Padding size add to cropped brain
-                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       autoThreshold: 0.2, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -206,14 +206,14 @@
                                        modelName:"\u{1FA93} Subcortical + GWM (Low Mem, Slow)",
                                        labelsPath: "./models/model18cls/labels.json",
                                        colorsPath: "./models/model18cls/colorLUT.json",
-                                       preModelId: 1,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
+                                       preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 0, // Padding size add to cropped brain
-                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       autoThreshold: 0.2, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -230,14 +230,14 @@
                                        modelName:"\u{1FA93} Subcortical + GWM (Low Mem, Faster)",
                                        labelsPath: "./models/model30chan18cls/labels.json",
                                        colorsPath: "./models/model30chan18cls/colorLUT.json",
-                                       preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
+                                       preModelId: null,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 200, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 0, // Padding size add to cropped brain
-                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       autoThreshold: 0.2, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
