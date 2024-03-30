@@ -113,8 +113,8 @@
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
                                        numOverlapBatches: 0, //Number of extra overlap batches for inference
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
-                                       enableCrop: false, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-                                       cropPadding: 0, // Padding size add to cropped brain
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 2, // Padding size add to cropped brain
                                        autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
@@ -180,8 +180,8 @@
                                        type: "Atlas",
                                        path:"./models/model30chan18cls/model.json",
                                        modelName:"\u{1FA93} Subcortical + GWM (High Mem, Fast)",
-                                       labelsPath: "./models/model18cls/labels.json",
-                                       colorsPath: "./models/model18cls/colorLUT.json",
+                                       labelsPath: "./models/model30chan18cls/labels.json",
+                                       colorsPath: "./models/model30chan18cls/colorLUT.json",
                                        preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
@@ -204,8 +204,8 @@
                                        type: "Atlas",
                                        path:"./models/model30chan18cls/model.json",
                                        modelName:"\u{1FA93} Subcortical + GWM (Low Mem, Slow)",
-                                       labelsPath: "./models/model18cls/labels.json",
-                                       colorsPath: "./models/model18cls/colorLUT.json",
+                                       labelsPath: "./models/model30chan18cls/labels.json",
+                                       colorsPath: "./models/model30chan18cls/colorLUT.json",
                                        preModelId: null,// Model run first e.g.  crop the brain  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
@@ -228,8 +228,8 @@
                                        type: "Atlas",
                                        path:"./models/model18cls/model.json",
                                        modelName:"\u{1FA93} Subcortical + GWM (Low Mem, Faster)",
-                                       labelsPath: "./models/model30chan18cls/labels.json",
-                                       colorsPath: "./models/model30chan18cls/colorLUT.json",
+                                       labelsPath: "./models/model18cls/labels.json",
+                                       colorsPath: "./models/model18cls/colorLUT.json",
                                        preModelId: null,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
                                        preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
                                        isBatchOverlapEnable: false, //create extra overlap batches for inference
@@ -249,6 +249,30 @@
 
                                  ,{
                                        id: 7,
+                                       type: "Atlas",
+                                       path:"./models/model30chan18cls/model.json",
+                                       modelName:"\u{1F52A}\u{1FA93} Subcortical + GWM (Failsafe, Less Acc)",
+                                       labelsPath: "./models/model30chan18cls/labels.json",
+                                       colorsPath: "./models/model30chan18cls/colorLUT.json",
+                                       preModelId: 1,  // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
+                                       preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
+                                       isBatchOverlapEnable: false, //create extra overlap batches for inference
+                                       numOverlapBatches: 200, //Number of extra overlap batches for inference
+                                       enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
+                                       enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+                                       cropPadding: 0, // Padding size add to cropped brain
+                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
+                                       filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+                                       enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
+                                       warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.
+                                       inferenceDelay: 100, // Delay in ms time while looping layers applying.
+                                       description: "Parcellation of the brain into 17 regions: gray and white matter plus subcortical areas. This is not a robust model, it may work on low data quality, including varying saturation, and even clinical scans. It may work also on infant brains, but your mileage may vary."
+                                 }
+
+                                 ,{
+                                       id: 8,
                                        type: "Atlas",
                                        path:"./models/model30chan50cls/model.json",
                                        modelName:"\u{1F52A} Aparc+Aseg 50 (High Mem, Fast)",
@@ -272,7 +296,7 @@
                                   }
 
                                  ,{
-                                       id: 8,
+                                       id: 9,
                                        type: "Atlas",
                                        path:"./models/model30chan50cls/model.json",
                                        modelName:"\u{1F52A} Aparc+Aseg 50 (Low Mem, Slow)",
@@ -297,7 +321,7 @@
 
 
                                  ,{
-                                       id: 9,
+                                       id: 10,
                                        type: "Brain_Extraction",
                                        path: "./models/model5_gw_ae/model.json",
                                        modelName:"\u26A1 Extract the Brain (FAST)",
@@ -310,7 +334,7 @@
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain
-                                       autoThreshold: 0.1, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -321,7 +345,7 @@
                                   }
 
                                  ,{
-                                       id: 10,
+                                       id: 11,
                                        type: "Brain_Extraction",
                                        path: "./models/model11_gw_ae/model.json",
                                        modelName:"\u{1F52A} Extract the Brain (High Acc, Slow)",
@@ -345,7 +369,7 @@
                                   }
 
                                  ,{
-                                       id: 11,
+                                       id: 12,
                                        type: "Brain_Masking",
                                        path: "./models/model5_gw_ae/model.json",
                                        modelName:"\u26A1 Brain Mask (FAST)",
@@ -358,7 +382,7 @@
                                        enableTranspose : true, // Keras and tfjs input orientation may need a tranposing step to be matched
                                        enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
                                        cropPadding: 2, // Padding size add to cropped brain
-                                       autoThreshold: 0.1, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+                                       autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -369,7 +393,7 @@
                                   }
 
                                   ,{
-                                       id: 12,
+                                       id: 13,
                                        type: "Brain_Masking",
                                        path: "./models/model11_gw_ae/model.json",
                                        modelName:"\u{1F52A} Brain Mask (High Acc, Low Mem)",
@@ -393,7 +417,7 @@
                                   }
 
                                  ,{
-                                       id: 13,
+                                       id: 14,
                                        type: "Atlas",
                                        path:"./models/model21_104class/model.json",
                                        modelName:"\u{1F52A} Aparc+Aseg 104 (High Mem, Fast)",
@@ -417,7 +441,7 @@
                                   }
 
                                  ,{
-                                       id: 14,
+                                       id: 15,
                                        type: "Atlas",
                                        path:"./models/model21_104class/model.json",
                                        modelName:"\u{1F52A} Aparc+Aseg 104 (Low Mem, Slow)",

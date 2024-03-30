@@ -15,8 +15,6 @@
 =========================================================
            Brainchop for 3D Brain Segmentation
 =========================================================*/
-// Set the WEBGL_FORCE_F16_TEXTURES flag
-tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
 
 (function() {
 
@@ -4280,6 +4278,7 @@ class SequentialConvLayer {
     */
 
     async apply(inputTensor) {
+
     let oldDeleteTextureThreshold = tf.ENV.get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
 
@@ -4374,6 +4373,7 @@ class SequentialConvLayer {
                       const endTime = performance.now();
                       const executionTime = endTime - startTime;
                       console.log(`Execution time for output layer: ${executionTime} milliseconds`);
+                      tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', oldDeleteTextureThreshold);
                       resolve(outC);
                   } else {
 
@@ -4388,7 +4388,7 @@ class SequentialConvLayer {
               }, 0);
         });
 
-        tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', oldDeleteTextureThreshold);
+        
     }
 
 
@@ -6968,7 +6968,7 @@ checkInferenceModelList = () => {
 *
 */
 
- enableProductionMode = async() => {
+ enableProductionMode = async(textureF16Flag = true) => {
 
                         //-- tf.setBackend('cpu');
                         //-- tf.removeBackend('cpu')
@@ -6979,7 +6979,7 @@ checkInferenceModelList = () => {
                         tf.env().set('DEBUG', false);
 
 
-                        tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+                        tf.env().set('WEBGL_FORCE_F16_TEXTURES', textureF16Flag);
                         //-- set this flag so that textures are deleted when tensors are disposed.
                         tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
                         //-- tf.env().set('WEBGL_PACK', false);
@@ -7046,6 +7046,10 @@ resetMainParameters = () => {
                 modelEntry = browserModelList.filter(entry => entry.id == $$("selectModel").getValue().toString())[0];
                 model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile);
           }
+
+          // Enable production model: 
+          // true enable F16 bit, false enable F32 bit processing
+          await enableProductionMode(true);  
 
           let modelObject = {};
           // get model object data e.g. layers etc
@@ -7153,19 +7157,8 @@ resetMainParameters = () => {
                 // }
 
 
-
-
                 let Preprocess_t = ((performance.now() - startTime)/1000).toFixed(4);
 
-                console.log(tf.getBackend());
-                //-- set this flag so that textures are deleted when tensors are disposed.
-                tf.env().set("WEBGL_DELETE_TEXTURE_THRESHOLD", 0);
-
-                console.log("tf env() features :", tf.env().features);
-                console.log("tf env total features: ", Object.keys(tf.env().features).length);
-                // tf.env().set('WEBGL_PACK', false);
-
-                // enableProductionMode();
 
                 //-- Timing data to collect
                 let today = new Date();
