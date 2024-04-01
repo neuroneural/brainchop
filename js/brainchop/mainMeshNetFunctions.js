@@ -4377,11 +4377,28 @@ class SequentialConvLayer {
                       resolve(outC);
                   } else {
 
-                    chIdx++;
+                      chIdx++;
+
+
+                      // the seemingly strange sequence of operations
+                      // below prevents tfjs from uncontrolably
+                      // grabbing buffers, even when all tensors have
+                      // already been disposed
+
+                      const outCShape = outC.shape;
+                      const outCdata = outC.dataSync();
+                      const outBShape = outC.shape;
+                      const outBdata = outB.dataSync();
+                      outC.dispose();
+                      outB.dispose();
+                      //tf.disposeVariables()
+                      outC = tf.tensor(outCdata, outCShape);
+                      outB = tf.tensor(outBdata, outBShape);
+
                     document.getElementById("progressBarChild").style.width = (chIdx + 1) * 100 / self.outChannels + "%";
 
                   }
-                  
+
                   // Artificially introduce a pause to allow for garbage collection to catch up
                   await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -4389,7 +4406,7 @@ class SequentialConvLayer {
               }, 0);
         });
 
-        
+
     }
 
 
@@ -7048,9 +7065,9 @@ resetMainParameters = () => {
                 model =  load_browser_model( modelEntry.modelFile, modelEntry.weightFile);
           }
 
-          // Enable production model: 
+          // Enable production model:
           // true enable F16 bit, false enable F32 bit processing
-          await enableProductionMode(true);  
+          await enableProductionMode(true);
 
           let modelObject = {};
           // get model object data e.g. layers etc
