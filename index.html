@@ -746,7 +746,7 @@
 
      // function to get masking model from inferenceModelsList
      getMaskingModels = () => {
-        return ["", "Full Brain GWM (light)", "Full Brain GWM (large)"];
+        return ["", "Full Brain GWM (light)", "Full Brain GWM (H Acc & H Crop)"];
      }
 
       let modelBrowsingForm = {view: "form", id: "modelBrowsingFormId", elements: [ 
@@ -960,6 +960,70 @@
                 ]    
              }, 
 
+
+              {  cols: [
+                    {   view: "label", label: "Input Quantile Norm",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "quantileNormStatus", 
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Apply Quantile normalization to input MRI, if false then Min-Max normalization will be applied."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+
+              {  cols: [
+                    {   view: "label", label: "Auto Threshold Input",  
+                        align: "left"
+                    }, 
+
+                    {
+                      view: "select", 
+                      id: "autoThresholdStatus", 
+                      value: 1, 
+                      options: ["0", "0.1", "0.2"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "For speed-up the inference with limited browser memory, auto thresholding the brain from noisy voxels around it before cropping it and feeding the result to the inference model can lower memory use.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    } 
+
+                ]    
+             },  
+
+
+
+
+
               {  cols: [
                     {   view: "label", label: "Crop Input",  
                         align: "left"
@@ -1034,7 +1098,7 @@
              }, 
 
               {  cols: [
-                    {   view: "label", label: "Pre-Model Masking",  
+                    {   view: "label", label: "Crop by Pre-Model",  
                         align: "left"
                     }, 
 
@@ -1048,10 +1112,13 @@
                         onChange: function(newValue, oldValue, config) {
                           if(newValue !== "") {
                                $$("filterByMaskStatus").enable();
+                               $$("preModelPostprocessStatus").enable();
             
                           } else {
                                $$("filterByMaskStatus").disable();
                                $$("filterByMaskStatus").setValue("false");
+                               $$("preModelPostprocessStatus").disable();
+                               $$("preModelPostprocessStatus").setValue("false");                               
                           }
 
                         }
@@ -1075,7 +1142,39 @@
 
 
                 ]    
-             },                                     
+             },   
+
+
+              {  cols: [
+                    {   view: "label", label: "Pre-Model Postprocess",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "preModelPostprocessStatus", 
+                      value: 1, 
+                      disabled: true,
+                      options:  ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Select if postprocessing is needed after preModel complete brain masking inference";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                        
+
+
+                ]    
+             },                                               
 
               {  cols: [
                     {   view: "label", label: "Filter Output by Mask",  
@@ -1207,16 +1306,19 @@
                                                  labelsPath: labelFileUrl, 
                                                  colorsPath: colorFileUrl, 
                                                  preModelId: preModelIdVal,
+                                                 preModelPostProcess: ($$("preModelPostprocessStatus").getValue() === 'true'),
                                                  isBatchOverlapEnable: false, 
                                                  numOverlapBatches: 0, 
                                                  enableTranspose:($$("transposeStatus").getValue() === 'true'),
                                                  enableCrop: ($$("cropStatus").getValue() === 'true'), 
                                                  cropPadding: parseInt($$("cropPadStatus").getValue()), 
+                                                 autoThreshold: parseInt($$("autoThresholdStatus").getValue()),
+                                                 enableQuantileNorm: ($$("quantileNormStatus").getValue() === 'true'),
                                                  filterOutWithPreMask: ($$("filterByMaskStatus").getValue() === 'true'), 
                                                  enableSeqConv: ($$("seqConvStatus").getValue() === 'true'), 
                                                  textureSize: 0,
                                                  warning: null, 
-                                                 inferenceDelay: 100,                                                
+                                                 inferenceDelay: 100,             
                                                  description: ""                                            
                                            })
 
@@ -1251,7 +1353,7 @@
       webix.ui({
                   view:"window",
                   id: "modelBrowsingWindow",
-                  height:700,
+                  height:770,
                   width:400,
                   head:{
                       view:"toolbar", css: "toolbarclass", elements:[
@@ -1609,7 +1711,7 @@
                        " <p align='justify'> Welcome to brainchop, a"+ " frontend" +" tool for  volumetric segmentation of neuroimaging that works locally on the user side.</p>" + 
                        " <p align='justify'> You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. </p>" +  
                        "<p align='justify'> To see the tool in action please select a model from the list and run the inference. For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog</b></a>. For questions or sharing ideas please refere to our  <b><a href='https://github.com/neuroneural/brainchop/discussions/'  target='_blank'> Discussions </a></b> board. </p>" + 
-                       " <center> <video id='advVideo' autoplay muted width='400' controls poster='css/images/BrainchopBanner.png'>  <source src='css/media/brainchopV1_3.mp4' type='video/mp4'>Your browser does not support the video tag</video> </center> <br>" +
+                       " <center> <video id='advVideo' muted width='400' controls poster='css/images/BrainchopBanner.png'>  <source src='css/media/brainchopV1_3.mp4' type='video/mp4'>Your browser does not support the video tag</video> </center> <br>" +
                        "<input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'><font color='black'>  Don't show again </font></label>", 
 
                        on: {
@@ -2195,6 +2297,8 @@
        <input type="text"  name="Extra_Err_Info" id= "Extra_Err_Info" /> 
        <input type="text"  name="Extra_Info" id= "Extra_Info" /> 
        <input type="number" step=any name="CPU_Cores" id= "CPU_Cores"   /> 
+       <input type="text"  name="Which_Brainchop" id= "Which_Brainchop" />  
+       <input type="text"  name="Seq_Conv" id= "Seq_Conv" />  
        <input type="submit" id="SubmitStatisticalData"  />
      </form>
     </div>

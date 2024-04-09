@@ -48,37 +48,54 @@
 ## MeshNet Example
 This basic example provides an overview of the training pipeline for the MeshNet model. 
 
-* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/MeshNet_Training_Example.ipynb) [MeshNet Basic Training example](./py2tfjs/MeshNet_Training_Example.ipynb)
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/MeshNet_Training_Example.ipynb) [MeshNet basic training example](./py2tfjs/MeshNet_Training_Example.ipynb)
 
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/neuroneural/brainchop/blob/master/py2tfjs/Convert_Trained_Model_To_TFJS.ipynb) [Convert the trained MeshNet model to tfjs model example ](./py2tfjs/Convert_Trained_Model_To_TFJS.ipynb)
 
+<br>
 
 ## Live Demo
 
 To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
 
+<br>
 
 ## Updates
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="60%">
+
+**Brainchop v3.0.0 with more robust models**
+</div>
+
+<br>
 
 
-**Brainchop V1.3.0 rendering segmentation output in 3D**
+<div align="center">
+
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
+
+**Brainchop v1.4.0 rendering MRI Nifti file in 3D**
 </div>
 
 <br>
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
+![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
 
-**Brainchop V1.4.0 rendering MRI Nifti file in 3D**
+
+**Brainchop v1.3.0 rendering segmentation output in 3D**
 </div>
+
+
+
+
 
 ## News!
 
-* Brainchop paper is accepted in the 21st IEEE International Symposium on Biomedical Imaging ([ISBI 2024](https://biomedicalimaging.org/2024/)). Lengthy arXiv version can be found [here](https://arxiv.org/abs/2310.16162).
+* Brainchop [v2.2.0](https://github.com/neuroneural/brainchop/releases/tag/v2.2.0) paper is accepted in the 21st IEEE International Symposium on Biomedical Imaging ([ISBI 2024](https://biomedicalimaging.org/2024/)). Lengthy arXiv version can be found [here](https://arxiv.org/abs/2310.16162).
 
 <div align="center">
    <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/ISBI_2024.jpeg"  width="40%">
@@ -192,5 +209,5 @@ This work was funded by the NIH grant RF1MH121885. Additional support from NIH R
 
 <img src='https://github.com/neuroneural/brainchop/blob/master/css/logo/TReNDS_logo.jpg' width='300' height='100'></img>
 
-**Mohamed Masoud - Sergey Plis - 2023**
+**Mohamed Masoud - Sergey Plis - 2024**
 </div>

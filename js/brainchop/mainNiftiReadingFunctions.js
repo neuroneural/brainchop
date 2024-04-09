@@ -185,6 +185,11 @@ createNiftiOutArrayBuffer = (rawData, data) => {
     // Convert to normal array
     let headerArray = arrayBuffer2Array(headerArrBuf, header.datatypeCode);
 
+    // The line below zeroes out the vox_offset and scl_slope fields
+    // These fields should be set to such value because we form the converted
+    // file ourselves and do not set a nonstandard offset
+    headerArray.fill(0, 112, 120);    
+
     outImageArray = headerArray.concat(data)
 
     return    array2ArrayBuffer(outImageArray, header.datatypeCode); 
