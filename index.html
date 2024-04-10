@@ -54,6 +54,12 @@
   <script type="text/javascript" src="js/libs/nifti-reader.js"></script>
   <script type="text/javascript" src="js/libs/nifti-reader-min.js"></script>
   <script type="text/javascript" src="js/brainchop/connectedComponents3DAll.js"></script>
+
+  <script type="module">
+  import { Niivue } from './js/brainchop/Niivue.js';
+  window.Niivue = Niivue;
+</script>
+
   <script type="text/javascript" src="js/brainchop/mainParameters.js"></script>  
   <script type="text/javascript" src="js/brainchop/mainMeshNetFunctions.js"></script>
   <script type="text/javascript" src="js/brainchop/mainNiftiReadingFunctions.js"></script> 
