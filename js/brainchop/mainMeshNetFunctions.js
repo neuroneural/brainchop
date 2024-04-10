@@ -2481,47 +2481,40 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
 */
 
 
-generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width) => {
+generateOutputSlicesV2 = (OutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width) => {
 
 
         // Convert all slices into 1 Dim array
         let allOutputSlices3DCC = [];
-        let allOutputSlices3DContours = [];
+    let allOutputSlices3DContours = [];
+
+    const img = new Uint32Array(OutVolumeTensor.dataSync());
 
 
-        // dataSync() using to flatten array. Takes around 1.5 s
-        for(let sliceTensorIdx = 0; sliceTensorIdx < unstackOutVolumeTensor.length; sliceTensorIdx++ ) {
-              // flat each slice to 1D and store in the allOutputSlices3DCC of 2D
-              allOutputSlices3DCC[sliceTensorIdx] = Array.from(unstackOutVolumeTensor[sliceTensorIdx].dataSync());
+    if(opts.isPostProcessEnable) {
+        const niivueInstance = new Niivue();
+        const dim = new Uint32Array(OutVolumeTensor.shape);
+        const conn = 26; // Example connectivity
+        const binarize = true;
+        const onlyLargestClusterPerClass = true;
+
+        const [labelCount, labeledImage] = niivueInstance.bwlabel(img,
+                                                                  dim,
+                                                                  conn,
+                                                                  binarize,
+                                                                  onlyLargestClusterPerClass);
+        for (let i = 0; i < img.length; i++) {
+            img[i] *= labeledImage[i];
         }
+    };
+        const typedArrayConstructor = {
+            'float32': Float32Array,
+            'int32': Int32Array,
+            // Add other cases as needed for different dtypes
+        }[OutVolumeTensor.dtype];
 
-
-        if(opts.isPostProcessEnable) {
-            console.log("Post processing enabled ... ");
-            allOutputSlices3DCC = tf.tidy(() => {
-                  // Remove noisy regions using 3d CC
-                  let sliceWidth = niftiHeader.dims[1];
-                  let sliceHeight = niftiHeader.dims[2];
-                  return  postProcessSlices3D(allOutputSlices3DCC, sliceHeight, sliceWidth );
-            })
-
-            console.log("Post processing done ... ");
-        }
-
-        if(opts.isContoursViewEnable) { // Enable contour for overlay option
-            // Remove noisy regions using 3d CC
-            let sliceWidth = niftiHeader.dims[1];
-            let sliceHeight = niftiHeader.dims[2];
-            allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, numSegClasses );
-        }
-
-
-        allOutputSlices3DCC1DimArray = [];
-        // Use this conversion to download output slices as nii file. Takes around 0.5 s
-        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx]);
-        }
-
+        // Create a new TypedArray from img with the same type as outLabelVolume
+       allOutputSlices3DCC1DimArray = new Uint8Array(img);
 
 
         let maskBrainExtraction = false;
@@ -2532,9 +2525,10 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
         switch ( modelType) {
                  case 'Brain_Masking':
                                      {
-                                        let brainMaskTensor1d =  binarizeVolumeDataTensor(tf.tensor1d(allOutputSlices3DCC1DimArray)).mul(255);
-                                        let brainMask = Array.from(brainMaskTensor1d.dataSync());
-                                        brainMaskTensor1d.dispose();
+                                        const brainMask = new Uint8Array(allOutputSlices3DCC1DimArray.length);
+                                        for (let i = 0; i < allOutputSlices3DCC1DimArray.length; i++) {
+                                            brainMask[i] = allOutputSlices3DCC1DimArray[i] !== 0 ? 1 : 0;
+                                        }
                                         labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainMask);
                                         allOutputSlices3DCC1DimArray = brainMask;
                                         // --labelsHistogramMap = null;
@@ -2542,25 +2536,24 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
                                         break;
                                      }
                case 'Brain_Extraction':
-                                     {
-                                        // Input data or loaded nifti file data
-                                        let allSlices = getAllSlicesData1D(num_of_slices, niftiHeader, niftiImage);
-                                        let brainExtractionData1DimArr = [];
+                                    {
+                                        const maskedData = new Uint8Array(allOutputSlices3DCC1DimArray.length);
+                                        const brainData = nifti2data(rawNiftiData);
 
-                                        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-                                            for(pixelIdx = 0; pixelIdx < (slice_height * slice_width); pixelIdx++) {
-                                                 //Filter smaller regions original MRI data
-                                                 if(allOutputSlices3DCC[sliceIdx][pixelIdx] == 0) {
-                                                    allSlices[sliceIdx][pixelIdx] = 0;
-                                                 }
-                                             }
-                                             brainExtractionData1DimArr.push.apply(brainExtractionData1DimArr, allSlices[sliceIdx])
+                                        for (let i = 0; i < allOutputSlices3DCC1DimArray.length; i++) {
+                                            // Create the mask - 1 where the value is non-zero, 0 where it is zero.
+                                            const maskValue = allOutputSlices3DCC1DimArray[i] !== 0 ? 1 : 0;
+                                            // Apply the mask to the data - multiply by the mask value.
+                                            maskedData[i] = brainData[i] * maskValue;
                                         }
+                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, maskedData);
 
-                                        labelArrayBuffer = createNiftiOutArrayBuffer(rawNiftiData, brainExtractionData1DimArr);
-                                        allOutputSlices3DCC1DimArray = brainExtractionData1DimArr;
-                                        //-- labelsHistogramMap = null;
+                                        // Update `allOutputSlices3DCC1DimArray` if needed.
+                                        allOutputSlices3DCC1DimArray = maskedData;
+
+                                        // Other operations...
                                         maskBrainExtraction = true;
+
                                         break;
                                     }
                              default:
@@ -2580,8 +2573,7 @@ generateOutputSlicesV2 = (unstackOutVolumeTensor, num_of_slices, numSegClasses, 
 
         // to plot 3d shape
         console.log("convert out1DArr to 3DArr")
-        outVolumeStatus['out3DArr'] = tf.tensor(allOutputSlices3DCC1DimArray, [num_of_slices, slice_height, slice_width]).reverse(1).arraySync();
-
+    outVolumeStatus['out3DArr'] = tf.tensor(allOutputSlices3DCC1DimArray, [num_of_slices, slice_height, slice_width]).reverse(1).arraySync();
 
         let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
 
@@ -4020,6 +4012,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  allPredictions = [];
                                  let Merge_t = ((performance.now() - startTime)/1000).toFixed(4);
 
+
                                  if(enableCrop) {
                                      let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];
                                      outLabelVolume = removeZeroPaddingFrom3dTensor(outLabelVolume, pad, pad, pad);
@@ -4028,14 +4021,11 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                      console.log(" outLabelVolume final shape after resizing :  ", outLabelVolume.shape);
                                  }
 
-                                 let unstackOutVolumeTensor =  tf.unstack(outLabelVolume);
-                                 tf.dispose(outLabelVolume);
-
-
                                  startTime = performance.now();
                                  console.log("Generating output...");
                                  try {
-                                    generateOutputSlicesV2(unstackOutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width);
+                                     generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                     tf.dispose(outLabelVolume);
                                     console.log(" SubVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                  } catch(error) {
 
@@ -4699,16 +4689,14 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                      outputTensor = outputTensor.transpose();
                                   }
 
-                                  let unstackOutVolumeTensor = tf.unstack(outputTensor);
-                                  tf.dispose(outputTensor);
-
                                   startTime = performance.now();
 
                                   // Generate output volume or slices
                                   console.log("Generating output");
 
                                   try {
-                                      generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                      generateOutputSlicesV2(outputTensor, num_of_slices, numSegClasses, slice_height, slice_width);
+                                      tf.dispose(outputTensor);
                                       console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                   } catch (error) {
 
@@ -4743,7 +4731,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   tf.engine().endScope();
                                   tf.engine().disposeVariables();
 
-                                  console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
+                                  console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
                                                         ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
 
                                   //-- Timing data to collect
@@ -5166,16 +5154,14 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     }
 
 
-                                    let unstackOutVolumeTensor =  tf.unstack(outLabelVolume);
-                                    tf.dispose(outLabelVolume);
-
                                     startTime = performance.now();
                                     // Generate output volume or slices
-                                    console.log("Generating output");
+                                    console.log("Generating correct output");
 
                                     try {
 
-                                           generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                        generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                        tf.dispose(outLabelVolume);
                                            console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
                                     } catch (error) {
@@ -5486,15 +5472,13 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                    outLabelVolume = outLabelVolume.transpose();
                                 }
 
-                                let unstackOutVolumeTensor = tf.unstack(outLabelVolume);
-                                tf.dispose(outLabelVolume);
-
                                 startTime = performance.now();
                                 // Generate output volume or slices
-                                console.log("Generating output");
+                                console.log("Generating correct output");
 
                                 try {
-                                    generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                    generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    tf.dispose(outLabelVolume);
                                     console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                 } catch (error) {
 
@@ -6436,17 +6420,13 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                     outLabelVolume = outLabelVolume.mul(binarizeVolumeDataTensor(pipeline1_out));
                                 }
 
-
-                                let unstackOutVolumeTensor =  tf.unstack(outLabelVolume);
-                                tf.dispose(outLabelVolume);
-
                                 startTime = performance.now();
                                 // Generate output volume or slices
-                                console.log("Generating output");
+                                console.log("Generating correct output");
 
                                 try {
-
-                                       generateOutputSlicesV2(unstackOutVolumeTensor , num_of_slices, numSegClasses, slice_height, slice_width);
+                                    generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    tf.dispose(outLabelVolume);
                                        console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
                                 } catch (error) {
@@ -6481,7 +6461,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 tf.engine().endScope();
                                 tf.engine().disposeVariables();
 
-                                console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
+                                console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
                                                         ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
 
 
