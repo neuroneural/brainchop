@@ -2481,19 +2481,17 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
 */
 
 
-generateOutputSlicesV2 = (OutVolumeTensor, num_of_slices, numSegClasses, slice_height, slice_width) => {
+    generateOutputSlicesV2 = (img, OutVolumeTensorShape, OutVolumeTensorType, num_of_slices, numSegClasses, slice_height, slice_width) => {
 
 
         // Convert all slices into 1 Dim array
         let allOutputSlices3DCC = [];
     let allOutputSlices3DContours = [];
 
-    const img = new Uint32Array(OutVolumeTensor.dataSync());
-
 
     if(opts.isPostProcessEnable) {
         const niivueInstance = new Niivue();
-        const dim = new Uint32Array(OutVolumeTensor.shape);
+        const dim = new Uint32Array(OutVolumeTensorShape);
         const conn = 26; // Example connectivity
         const binarize = true;
         const onlyLargestClusterPerClass = true;
@@ -2511,7 +2509,7 @@ generateOutputSlicesV2 = (OutVolumeTensor, num_of_slices, numSegClasses, slice_h
             'float32': Float32Array,
             'int32': Int32Array,
             // Add other cases as needed for different dtypes
-        }[OutVolumeTensor.dtype];
+        }[OutVolumeTensorType];
 
         // Create a new TypedArray from img with the same type as outLabelVolume
        allOutputSlices3DCC1DimArray = new Uint8Array(img);
@@ -4023,9 +4021,12 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                  startTime = performance.now();
                                  console.log("Generating output...");
-                                 try {
-                                     generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                try {
+                                    const img = new Uint32Array(outLabelVolume.dataSync());
+                                    const Vshape = outLabelVolume.shape;
+                                    const Vtype = outLabelVolume.dtype;
                                      tf.dispose(outLabelVolume);
+                                    generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                     console.log(" SubVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                  } catch(error) {
 
@@ -4694,9 +4695,12 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   // Generate output volume or slices
                                   console.log("Generating output");
 
-                                  try {
-                                      generateOutputSlicesV2(outputTensor, num_of_slices, numSegClasses, slice_height, slice_width);
-                                      tf.dispose(outputTensor);
+                                try {
+                                    const img = new Uint32Array(outputTensor.dataSync());
+                                    const Vshape = outputTensor.shape;
+                                    const Vtype = outputTensor.dtype;
+                                    tf.dispose(outputTensor);
+                                    generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                       console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                   } catch (error) {
 
@@ -5159,9 +5163,11 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     console.log("Generating correct output");
 
                                     try {
-
-                                        generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                        const img = new Uint32Array(outLabelVolume.dataSync());
+                                        const Vshape = outLabelVolume.shape;
+                                        const Vtype = outLabelVolume.dtype;
                                         tf.dispose(outLabelVolume);
+                                        generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                            console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
                                     } catch (error) {
@@ -5477,8 +5483,11 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                 console.log("Generating correct output");
 
                                 try {
-                                    generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    const img = new Uint32Array(outLabelVolume.dataSync());
+                                    const Vshape = outLabelVolume.shape;
+                                    const Vtype = outLabelVolume.dtype;
                                     tf.dispose(outLabelVolume);
+                                    generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                     console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                 } catch (error) {
 
@@ -6425,8 +6434,11 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 console.log("Generating correct output");
 
                                 try {
-                                    generateOutputSlicesV2(outLabelVolume, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    const img = new Uint32Array(outLabelVolume.dataSync());
+                                    const Vshape = outLabelVolume.shape;
+                                    const Vtype = outLabelVolume.dtype;
                                     tf.dispose(outLabelVolume);
+                                    generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                        console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
                                 } catch (error) {
