@@ -119,7 +119,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: null, // Warning message to show when select the model.
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the subvolume model."
@@ -143,7 +143,7 @@
                                        enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides the best accuracy with hard cropping for better speed"
@@ -167,7 +167,7 @@
                                        enableQuantileNorm:  true, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Gray and white matter segmentation model. Operates on full T1 image in a single pass but needs a dedicated graphics card to operate. Provides high accuracy and fit low memory available but slower"
@@ -338,7 +338,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  9159,  // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0,  // Requested Texture size for the model, if unknown can be 0.
                                        warning: null, // Warning message to show when select the model.
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Extract the brain fast model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than the failsafe version."
@@ -362,7 +362,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585,  // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0,  // Requested Texture size for the model, if unknown can be 0.
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version."
@@ -386,7 +386,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  9159, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: null, // Warning message to show when select the model.
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "This fast masking model operates on full T1 image in a single pass, but uses only 5 filters per layer. Can work on integrated graphics cards but is barely large enough to provide good accuracy. Still more accurate than failsafe version."
@@ -410,7 +410,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  13585, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "This masking model operates on full T1 image in a single pass, but uses 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than fast version."
@@ -434,7 +434,7 @@
                                        enableQuantileNorm:  false, // Some models needs Quantile Normaliztion.
                                        filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
                                        enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
-                                       textureSize:  18121, // Requested Texture size for the model, if unknown can be 0.
+                                       textureSize:  0, // Requested Texture size for the model, if unknown can be 0.
                                        warning: "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",  // Warning message to show when select the model.
                                        inferenceDelay: 100, // Delay in ms time while looping layers applying.
                                        description: "FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions."
