@@ -1619,7 +1619,40 @@
       //---------- Output Rendering ----------------//
       //--------------------------------------------//
 
+      function convertTo3DArrayAndFlip(allOutputSlices3DCC1DimArray, shape) {
+          const [num_of_slices, slice_height, slice_width] = shape;
+          // Create a 3D array (as a flattened 1D typed array for efficiency)
+          const size = num_of_slices * slice_height * slice_width;
+          const threeDArray = new allOutputSlices3DCC1DimArray.constructor(size);
 
+          for (let slice = 0; slice < num_of_slices; slice++) {
+              for (let row = 0; row < slice_height; row++) {
+                  // Calculate the starting index for this row in the source and destination arrays
+                  const srcStartIndex = (slice * slice_height * slice_width) + (row * slice_width);
+                  const destStartIndex = (slice * slice_height * slice_width) + ((slice_height - row - 1) * slice_width);
+                  
+                  // Copy a slice row into the correct position in the 3D array, flipping it in the process
+                  threeDArray.set(
+                      allOutputSlices3DCC1DimArray.subarray(srcStartIndex, srcStartIndex + slice_width), 
+                      destStartIndex
+                  );
+              }
+          }
+
+          // Convert the flattened typed array back to a nested regular array structure
+          const nestedArray = [];
+          for (let slice = 0; slice < num_of_slices; slice++) {
+              const twoDArray = [];
+              for (let row = 0; row < slice_height; row++) {
+                  const start = (slice * slice_height * slice_width) + (row * slice_width);
+                  const end = start + slice_width;
+                  twoDArray.push(Array.from(threeDArray.subarray(start, end)));
+              }
+              nestedArray.push(twoDArray);
+          }
+
+          return nestedArray;
+      }
 
       showThreejsWindow = () => {
         var defer = $.Deferred();
@@ -1687,7 +1720,7 @@
                                  showThreejsWindow().then(res => {    
                                     if(! outputSceneRendered) { // if false, will render scene and gui
 
-                                       init(outVolumeStatus['out3DArr'], "outputThreejsWinId",'output-threejs-container', "output_gui_container",outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
+                                       init(convertTo3DArrayAndFlip(outVolumeStatus['out3DArr'],outVolumeStatus['out3DArrShape']), "outputThreejsWinId",'output-threejs-container', "output_gui_container",outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
 
                                        outputSceneRendered = true;
                                        document.getElementById("loadingIconDiv").style.display = "none";
