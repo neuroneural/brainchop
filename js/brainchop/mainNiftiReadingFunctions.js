@@ -218,7 +218,8 @@ function createNiftiOutArrayBuffer(rawData, data) {
     combinedArray.fill(0, 112, 120); // Assuming these offsets for vox_offset and scl_slope
 
     // Copy the image data into the combined buffer at the appropriate offset
-    let imageDataArray = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+    localData = new Uint8Array(data);
+    let imageDataArray = new Uint8Array(localData.buffer, localData.byteOffset, localData.byteLength);
     combinedArray.set(imageDataArray, imageOffset);
 
     return combinedBuffer;
