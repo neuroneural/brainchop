@@ -2480,7 +2480,40 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
 *
 */
 
+    function convertTo3DArrayAndFlip(allOutputSlices3DCC1DimArray, shape) {
+        const [num_of_slices, slice_height, slice_width] = shape;
+  // Create a 3D array (as a flattened 1D typed array for efficiency)
+  const size = num_of_slices * slice_height * slice_width;
+  const threeDArray = new allOutputSlices3DCC1DimArray.constructor(size);
 
+  for (let slice = 0; slice < num_of_slices; slice++) {
+    for (let row = 0; row < slice_height; row++) {
+      // Calculate the starting index for this row in the source and destination arrays
+      const srcStartIndex = (slice * slice_height * slice_width) + (row * slice_width);
+      const destStartIndex = (slice * slice_height * slice_width) + ((slice_height - row - 1) * slice_width);
+      
+      // Copy a slice row into the correct position in the 3D array, flipping it in the process
+      threeDArray.set(
+        allOutputSlices3DCC1DimArray.subarray(srcStartIndex, srcStartIndex + slice_width), 
+        destStartIndex
+      );
+    }
+  }
+
+  // Convert the flattened typed array back to a nested regular array structure
+  const nestedArray = [];
+  for (let slice = 0; slice < num_of_slices; slice++) {
+    const twoDArray = [];
+    for (let row = 0; row < slice_height; row++) {
+      const start = (slice * slice_height * slice_width) + (row * slice_width);
+      const end = start + slice_width;
+      twoDArray.push(Array.from(threeDArray.subarray(start, end)));
+    }
+    nestedArray.push(twoDArray);
+  }
+
+  return nestedArray;
+}
     generateOutputSlicesV2 = (img, OutVolumeTensorShape, OutVolumeTensorType, num_of_slices, numSegClasses, slice_height, slice_width) => {
 
 
@@ -2570,9 +2603,12 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
         let labelsHistoObj = map2Object(labelsHistogramMap);
 
         // to plot 3d shape
-        console.log("convert out1DArr to 3DArr")
-    outVolumeStatus['out3DArr'] = tf.tensor(allOutputSlices3DCC1DimArray, [num_of_slices, slice_height, slice_width]).reverse(1).arraySync();
-
+        console.log("convert out1DArr to 3DArr: let keep it 1D though")
+        // outVolumeStatus['out3DArr'] = tf.tensor(allOutputSlices3DCC1DimArray, [num_of_slices, slice_height, slice_width]).reverse(1).arraySync();
+        // outVolumeStatus['out3DArr'] = convertTo3DArrayAndFlip(allOutputSlices3DCC1DimArray, num_of_slices, slice_height, slice_width);
+        // Let us leave the processing to the last moment, when the user choses to view this in 3D. Let's not waste time on conversion now
+        outVolumeStatus['out3DArr'] = allOutputSlices3DCC1DimArray;
+        outVolumeStatus['out3DArrShape'] = [num_of_slices, slice_height, slice_width];
         let colorURL = inferenceModelsList[$$("selectModel").getValue() - 1]["colorsPath"];
 
         if(opts.isColorEnable) {
@@ -4027,6 +4063,9 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                     const Vtype = outLabelVolume.dtype;
                                      tf.dispose(outLabelVolume);
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
+                                    tf.engine().endScope();
+                                    tf.engine().disposeVariables();
+
                                     console.log(" SubVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                  } catch(error) {
 
@@ -4064,7 +4103,7 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  $$("downloadBtn").enable();
                                  $$("segmentBtn").enable();
                               //    $$("imageUploader").enable();
-                                 tf.engine().endScope();
+                                 // tf.engine().endScope();
                                  tf.engine().disposeVariables();
 
 
@@ -4700,6 +4739,9 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     const Vshape = outputTensor.shape;
                                     const Vtype = outputTensor.dtype;
                                     tf.dispose(outputTensor);
+                                    tf.engine().endScope();
+                                    tf.engine().disposeVariables();
+                                    
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                       console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                   } catch (error) {
@@ -4732,7 +4774,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   $$("downloadBtn").enable();
                                   $$("segmentBtn").enable();
 
-                                  tf.engine().endScope();
+                                  // tf.engine().endScope();
                                   tf.engine().disposeVariables();
 
                                   console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
@@ -5167,6 +5209,9 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                         const Vshape = outLabelVolume.shape;
                                         const Vtype = outLabelVolume.dtype;
                                         tf.dispose(outLabelVolume);
+                                        tf.engine().endScope();
+                                        tf.engine().disposeVariables();
+                                        
                                         generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                            console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
@@ -5200,10 +5245,10 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     $$("downloadBtn").enable();
                                     $$("segmentBtn").enable();
                                     //    $$("imageUploader").enable();
-                                    tf.engine().endScope();
+                                    // tf.engine().endScope();
                                     tf.engine().disposeVariables();
 
-                                    console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
+                                    console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
                                                             ((performance.now()-inferenceStartTime)/1000).toFixed(4) + "  Seconds");
 
 
@@ -5487,6 +5532,9 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     const Vshape = outLabelVolume.shape;
                                     const Vtype = outLabelVolume.dtype;
                                     tf.dispose(outLabelVolume);
+                                    tf.engine().endScope();
+                                    tf.engine().disposeVariables();
+                                    
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                     console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                 } catch (error) {
@@ -5518,7 +5566,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                 $$("downloadBtn").enable();
                                 $$("segmentBtn").enable();
                                 //    $$("imageUploader").enable();
-                                tf.engine().endScope();
+                                // tf.engine().endScope();
                                 tf.engine().disposeVariables();
 
                                 console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
@@ -6438,6 +6486,9 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                     const Vshape = outLabelVolume.shape;
                                     const Vtype = outLabelVolume.dtype;
                                     tf.dispose(outLabelVolume);
+                                    tf.engine().endScope();
+                                    tf.engine().disposeVariables();
+                                    
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                        console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
@@ -6470,7 +6521,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 $$("downloadBtn").enable();
                                 $$("segmentBtn").enable();
                                 //    $$("imageUploader").enable();
-                                tf.engine().endScope();
+                                //tf.engine().endScope();
                                 tf.engine().disposeVariables();
 
                                 console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
