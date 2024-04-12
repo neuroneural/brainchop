@@ -158,44 +158,6 @@ readNiftiImageData = (niftiHeader, rawNiftiData) => {
 *
 */
 
-createNiftiOutArrayBuffer1 = (rawData, data) => {
-    // read rawNiftiData header
-    let header = readNiftiHeader(rawData);
-    let imageData = [];
-    let outNifti = []
-    let headerArrBuf = [];
-    let outImageArray = [];
-
-    let imageOffset = header.vox_offset,
-        timeDim = 1,
-        statDim = 1;
-
-    if (header.dims[4]) {
-        timeDim = header.dims[4];
-    }
-
-    if (header.dims[5]) {
-        statDim = header.dims[5];
-    }
-
-    let imageSize = header.dims[1] * header.dims[2] * header.dims[3] * timeDim * statDim * (header.numBitsPerVoxel / 8);
-
-    headerArrBuf = rawData.slice(0, imageOffset);
-
-    // Convert to normal array
-    let headerArray = arrayBuffer2Array(headerArrBuf, header.datatypeCode);
-
-    // The line below zeroes out the vox_offset and scl_slope fields
-    // These fields should be set to such value because we form the converted
-    // file ourselves and do not set a nonstandard offset
-    headerArray.fill(0, 112, 120);    
-
-    console.log("data type code: ", header.datatypeCode, nifti.NIFTI1.TYPE_UINT8);
-    outImageArray = headerArray.concat(data);
-
-    return    array2ArrayBuffer(outImageArray, header.datatypeCode); 
-};
-
 function createNiftiOutArrayBuffer(rawData, data) {
     // Read raw NIfTI data header
     let header = readNiftiHeader(rawData);
