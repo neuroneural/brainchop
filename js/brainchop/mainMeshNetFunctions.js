@@ -4103,7 +4103,6 @@ accumulateArrBufSizes = (bufferSizesArr) => {
                                  $$("downloadBtn").enable();
                                  $$("segmentBtn").enable();
                               //    $$("imageUploader").enable();
-                                 // tf.engine().endScope();
                                  tf.engine().disposeVariables();
 
 
@@ -4774,7 +4773,6 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   $$("downloadBtn").enable();
                                   $$("segmentBtn").enable();
 
-                                  // tf.engine().endScope();
                                   tf.engine().disposeVariables();
 
                                   console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
@@ -5245,7 +5243,6 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     $$("downloadBtn").enable();
                                     $$("segmentBtn").enable();
                                     //    $$("imageUploader").enable();
-                                    // tf.engine().endScope();
                                     tf.engine().disposeVariables();
 
                                     console.log("Processing the whole brain volume in tfjs for multi-class output mask took : ",
@@ -5566,7 +5563,6 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                 $$("downloadBtn").enable();
                                 $$("segmentBtn").enable();
                                 //    $$("imageUploader").enable();
-                                // tf.engine().endScope();
                                 tf.engine().disposeVariables();
 
                                 console.log("Processing the whole brain volume in tfjs tooks for multi-class output mask : ",
