@@ -158,43 +158,56 @@ readNiftiImageData = (niftiHeader, rawNiftiData) => {
 *
 */
 
-createNiftiOutArrayBuffer = (rawData, data) => {
-    // read rawNiftiData header
+function createNiftiOutArrayBuffer(rawData, data) {
+    // Read raw NIfTI data header
     let header = readNiftiHeader(rawData);
-    let imageData = [];
-    let outNifti = []
-    let headerArrBuf = [];
-    let outImageArray = [];
+    let imageOffset = header.vox_offset;
+    let timeDim = header.dims[4] || 1;
+    let statDim = header.dims[5] || 1;
+    let voxelSize = header.numBitsPerVoxel / 8;
+    let imageSize = header.dims[1] * header.dims[2] * header.dims[3] * timeDim * statDim * voxelSize;
 
-    let imageOffset = header.vox_offset,
-        timeDim = 1,
-        statDim = 1;
+    // Create a new ArrayBuffer that can contain both the header and the image data
+    let combinedBuffer = new ArrayBuffer(imageOffset + imageSize);
 
-    if (header.dims[4]) {
-        timeDim = header.dims[4];
+    // Copy the header into the combined buffer
+    let headerBuffer = new Uint8Array(rawData.slice(0, imageOffset));
+    let combinedArray = new Uint8Array(combinedBuffer);
+    combinedArray.set(headerBuffer);
+
+    // Zero out the vox_offset and scl_slope fields
+    // Note: Adjust the byte offsets according to the actual structure of your NIfTI header
+    combinedArray.fill(0, 112, 120); // Assuming these offsets for vox_offset and scl_slope
+
+    // Copy the image data into the combined buffer at the appropriate offset
+    localData = new Uint8Array(data);
+    let imageDataArray = new Uint8Array(localData.buffer, localData.byteOffset, localData.byteLength);
+    combinedArray.set(imageDataArray, imageOffset);
+
+    return combinedBuffer;
+}
+
+function nifti2data(rawNiftiData) {
+    // Read raw NIfTI data header
+    let header = readNiftiHeader(rawNiftiData);
+    let imageOffset = header.vox_offset;
+    let timeDim = header.dims[4] || 1;
+    let statDim = header.dims[5] || 1;
+    let voxelSize = header.numBitsPerVoxel / 8;
+    let imageSize = header.dims[1] * header.dims[2] * header.dims[3] * timeDim * statDim * voxelSize;
+
+    // Create a typed array for the image data based on its data type
+    let imageDataTypedArray;
+    switch (header.datatypeCode) {
+        case nifti.NIFTI1.TYPE_UINT8:
+            imageDataTypedArray = new Uint8Array(rawNiftiData, imageOffset, imageSize / voxelSize);
+            break;
+        // Include other cases for different data types as needed
+        default:
+            throw new Error('Unsupported NIfTI data type');
     }
-
-    if (header.dims[5]) {
-        statDim = header.dims[5];
-    }
-
-    let imageSize = header.dims[1] * header.dims[2] * header.dims[3] * timeDim * statDim * (header.numBitsPerVoxel / 8);
-
-    headerArrBuf = rawData.slice(0, imageOffset);
-
-    // Convert to normal array
-    let headerArray = arrayBuffer2Array(headerArrBuf, header.datatypeCode);
-
-    // The line below zeroes out the vox_offset and scl_slope fields
-    // These fields should be set to such value because we form the converted
-    // file ourselves and do not set a nonstandard offset
-    headerArray.fill(0, 112, 120);    
-
-    outImageArray = headerArray.concat(data)
-
-    return    array2ArrayBuffer(outImageArray, header.datatypeCode); 
-};
-
+    return imageDataTypedArray;
+}
 
 /**
 * Convert array to ArrayBuffer

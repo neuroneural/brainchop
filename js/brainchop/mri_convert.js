@@ -893,7 +893,7 @@ async function mri_convert(fileUrl,  rawNiftiFile, fileName) {
       }
 
 
-      rawNiftiFile = createNiftiOutArrayBuffer(rawNiftiFile, dataArr1D); 
+    rawNiftiFile = createNiftiOutArrayBuffer(rawNiftiFile, new Uint8Array(dataArr1D)); 
 
 
       document.getElementById("mriConvertProgBar").style.width=   "0%";    
