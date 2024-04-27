@@ -67,7 +67,8 @@
 
       let sliceOffset = sliceSize * sliceIdx;
 
-      let data1DimArr = [];
+      //let data1DimArr = [];
+      const  data1DimArr = new Array(sliceSize)
 
       // Draw pixels
       for (let row = 0; row < rows; row++) {
@@ -1052,10 +1053,9 @@ rgbToHex = (rgbObj) => {
 
 
 	getAllSlicesData1D = (num_of_slices, niftiHeader, niftiImage) => {
-	      let allSlices = [];
+	    const allSlices = new Array(num_of_slices);
 	      for(let sliceIdx = 0; sliceIdx < num_of_slices; sliceIdx++) {
-	          let slice = getSliceData1D(sliceIdx, niftiHeader, niftiImage);
-	          allSlices.push(slice);
+	          allSlices[sliceIdx] = getSliceData1D(sliceIdx, niftiHeader, niftiImage);
 	      }
 
 	     return   allSlices;
@@ -1085,9 +1085,9 @@ rgbToHex = (rgbObj) => {
 */
 
 	getAllSlices2D = (allSlices, slice_height, slice_width) => {
-	    let allSlices_2D = [];
+	    const allSlices_2D = new Array(allSlices.length);
 	    for(let sliceIdx = 0; sliceIdx < allSlices.length; sliceIdx ++){
-	        allSlices_2D.push(tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]));
+	        allSlices_2D[sliceIdx] = tf.tensor(allSlices[sliceIdx], [slice_height, slice_width]);
 	    }
 
 	    return   allSlices_2D;
@@ -2491,10 +2491,10 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
       // Calculate the starting index for this row in the source and destination arrays
       const srcStartIndex = (slice * slice_height * slice_width) + (row * slice_width);
       const destStartIndex = (slice * slice_height * slice_width) + ((slice_height - row - 1) * slice_width);
-      
+
       // Copy a slice row into the correct position in the 3D array, flipping it in the process
       threeDArray.set(
-        allOutputSlices3DCC1DimArray.subarray(srcStartIndex, srcStartIndex + slice_width), 
+        allOutputSlices3DCC1DimArray.subarray(srcStartIndex, srcStartIndex + slice_width),
         destStartIndex
       );
     }
@@ -3927,14 +3927,13 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                       let j = 0;
                       let timer = window.setInterval(function() {
-                            let curTensor = [];
-                            curTensor[0] = tf.tensor(allBatches[j].data.dataSync(), input_shape);
-
+                            let inputTensor = tf.tensor(allBatches[j].data.dataSync(), input_shape);
+                          console.log("=====================================================");
                             let lastIdx = 0;
 
                             for (let i = 1; i < layersLength; i++) {
                                   try {
-                                        curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                        outputTensor = res.layers[i].apply( inputTensor);
 
                                   } catch(err) {
 
@@ -3982,24 +3981,25 @@ accumulateArrBufSizes = (bufferSizesArr) => {
 
                                   if( j == allBatches.length-1 ) {
                                     console.log("layer ", i);
-                                    console.log("layer output Tensor shape : ", curTensor[i].shape);
+                                    console.log("layer output Tensor shape : ", outputTensor.shape);
                                     console.log("layer count params ", res.layers[i].countParams());
                                   }
 
-                                  curTensor[i-1].dispose();
+                                inputTensor.dispose();
+                                inputTensor = outputTensor;
                                   lastIdx += 1;
                             }
 
 
                             // Get axis
                             let axis =  isChannelLast ? -1 : 1;
-                            let prediction_argmax = tf.argMax(curTensor[lastIdx], axis);
+                            let prediction_argmax = tf.argMax(outputTensor, axis);
 
                             if( j == allBatches.length - 1 ) {
-                                 expected_Num_labels = isChannelLast ? curTensor[lastIdx].shape[4] : curTensor[lastIdx].shape[1];
+                                 expected_Num_labels = isChannelLast ? outputTensor.shape[4] : outputTensor.shape[1];
                             }
 
-                            tf.dispose(curTensor[lastIdx]);
+                            tf.dispose(outputTensor);
 
                             allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) })
                             let curBatchMaxLabel =  findArrayMax(Array.from(prediction_argmax.dataSync()));
@@ -4740,7 +4740,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     tf.dispose(outputTensor);
                                     tf.engine().endScope();
                                     tf.engine().disposeVariables();
-                                    
+
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                       console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                   } catch (error) {
@@ -5209,7 +5209,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                         tf.dispose(outLabelVolume);
                                         tf.engine().endScope();
                                         tf.engine().disposeVariables();
-                                        
+
                                         generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                            console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
@@ -5531,7 +5531,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     tf.dispose(outLabelVolume);
                                     tf.engine().endScope();
                                     tf.engine().disposeVariables();
-                                    
+
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                     console.log(" FullVolume inference num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
                                 } catch (error) {
@@ -5808,13 +5808,13 @@ generateBrainMask = (unstackOutVolumeTensor, num_of_slices, slice_height, slice_
             console.log("Phase-1 Post processing disabled ... ");
         }
 
-
-        let allOutputSlices3DCC1DimArray = [];
-        // Use this conversion to download output slices as nii file. Takes around 0.5 s
-        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx]);
+    const allOutputSlices3DCC1DimArray = new Array(allOutputSlices3DCC[0].length * allOutputSlices3DCC.length)
+    let index = 0;
+    for (let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++) {
+        for (let i = 0; i < allOutputSlices3DCC[sliceIdx].length; i++) {
+            allOutputSlices3DCC1DimArray[index++] = allOutputSlices3DCC[sliceIdx][i];
         }
-
+    }
 
         let  brainOut = [];
 
@@ -5924,11 +5924,13 @@ draw3dObjBoundingVolume= (unstackOutVolumeTensor) => {
         //     allOutputSlices3DCC = findVolumeContours(allOutputSlices3DCC, sliceHeight, sliceWidth, 2 );
         // }
 
-        let allOutputSlices3DCC1DimArray = [];
-        // Use this conversion to download output slices as nii file. Takes around 0.5 s
-        for(let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++ ) {
-              allOutputSlices3DCC1DimArray.push.apply(allOutputSlices3DCC1DimArray, allOutputSlices3DCC[sliceIdx]);
+    const allOutputSlices3DCC1DimArray = new Array(allOutputSlices3DCC[0].length * allOutputSlices3DCC.length)
+    let index = 0;
+    for (let sliceIdx = 0; sliceIdx < allOutputSlices3DCC.length; sliceIdx++) {
+        for (let i = 0; i < allOutputSlices3DCC[sliceIdx].length; i++) {
+            allOutputSlices3DCC1DimArray[index++] = allOutputSlices3DCC[sliceIdx][i];
         }
+    }
 
         console.log("Done with allOutputSlices3DCC1DimArray ")
 
@@ -6124,32 +6126,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
            //-- Get each voxel coords (x, y, z)
 
            mask_3d.dispose();
-
-           const coordsArr =    coords.arraySync();
-
-           let row_min = slice_height,  row_max = 0,  col_min = slice_width,  col_max = 0,  depth_min = num_of_slices,  depth_max = 0;
-
-           for(let i = 0; i < coordsArr.length; i++) {
-
-                 if ( row_min > coordsArr[i][0] ) {
-                      row_min = coordsArr[i][0];
-                 } else if(row_max < coordsArr[i][0]) {
-                      row_max = coordsArr[i][0];
-                 }
-
-                 if ( col_min > coordsArr[i][1] ) {
-                      col_min = coordsArr[i][1];
-                 } else if(col_max < coordsArr[i][1]) {
-                      col_max = coordsArr[i][1];
-                 }
-
-                 if ( depth_min > coordsArr[i][2] ) {
-                      depth_min = coordsArr[i][2];
-                 } else if(depth_max < coordsArr[i][2]) {
-                      depth_max = coordsArr[i][2];
-                 }
-           }
-
+           const row_min = coords.min(0).arraySync()[0];
+           const row_max = coords.max(0).arraySync()[0];
+           const col_min = coords.min(0).arraySync()[1];
+           const col_max = coords.max(0).arraySync()[1];
+           const depth_min = coords.min(0).arraySync()[2];
+           const depth_max = coords.max(0).arraySync()[2];
 
           console.log( "row min and max  :", row_min, row_max);
           console.log( "col min and max  :", col_min, col_max);
@@ -6270,18 +6252,16 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                       statData["Model"] = inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"];
                       statData["Extra_Info"] = null;
 
-
-                      let curTensor = [];
-                      curTensor[0] = cropped_slices_3d_w_pad.reshape(adjusted_input_shape);
+                      inputTensor = cropped_slices_3d_w_pad.reshape(adjusted_input_shape);
                       // console.log("curTensor[0] :", curTensor[0].dataSync());
 
                       let curProgBar = parseInt(document.getElementById("progressBar").style.width);
 
-                      let timer = window.setInterval(function() {
-
+                     let timer = window.setInterval(function() {
+                         console.log("-----------------");
                             try {
                                   //-- curTensor[i] = res.layers[i].apply( curTensor[i-1]);
-                                  curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                  outputTensor = res.layers[i].apply( inputTensor);
 
                             } catch(err) {
 
@@ -6326,12 +6306,12 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                             }
 
                             console.log("layer ", i);
-                            console.log("layer output Tensor shape : ", curTensor[i].shape);
+                            console.log("layer output Tensor shape : ", outputTensor.shape);
                             console.log("layer count params ", res.layers[i].countParams());
 
                             res.layers[i].dispose();
-                            curTensor[i-1].dispose();
-
+                            inputTensor.dispose();
+                            inputTensor = outputTensor;
 
                             document.getElementById("progressBar").style.width = (curProgBar + (i + 1)*(100 - curProgBar)/layersLength) + "%";
                             let memStatus = tf.memory().unreliable ? "Red" : "Green";
@@ -6348,9 +6328,9 @@ get3dObjectBoundingVolume = async(slices_3d) => {
 
                                 let axis = isChannelLast ? -1 : 1;
                                 console.log(" find argmax ")
-                                console.log("last Tensor shape : ", curTensor[i].shape);
+                                console.log("last Tensor shape : ", outputTensor.shape);
                                 //-- curTensor[i].shape  e.g. [ 1, 256, 256, 256, 3 ]
-                                let expected_Num_labels = isChannelLast ? curTensor[i].shape[4] : curTensor[i].shape[1];
+                                let expected_Num_labels = isChannelLast ? outputTensor.shape[4] : outputTensor.shape[1];
                                 let prediction_argmax;
 
                                 // Try for argMax with model output tensor.
@@ -6358,7 +6338,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 try {
                                     let argMaxTime = performance.now();
                                     console.log(" Try tf.argMax for fullVolume ..");
-                                    prediction_argmax = tf.argMax(curTensor[i], axis);
+                                    prediction_argmax = tf.argMax(outputTensor , axis);
                                     console.log("tf.argMax for fullVolume takes : ",  ((performance.now() - argMaxTime)/1000).toFixed(4) );
 
                                 } catch(err1) {
@@ -6368,7 +6348,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                          try {
                                              let argMaxLargeTime = performance.now();
                                              console.log(" tf.argMax failed .. try argMaxLarge ..");
-                                             let modelOutBuffer = tensor2LightBuffer(curTensor[i].reshape([cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2], expected_Num_labels]), 'float16');
+                                             let modelOutBuffer = tensor2LightBuffer(outputTensor.reshape([cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2], expected_Num_labels]), 'float16');
                                              prediction_argmax = argMaxLarge(modelOutBuffer, cropped_slices_3d_w_pad.shape[0], cropped_slices_3d_w_pad.shape[1], cropped_slices_3d_w_pad.shape[2], expected_Num_labels, 'float16');
                                              console.log("argMaxLarge for fullVolume takes : ", ((performance.now() - argMaxLargeTime)/1000).toFixed(4)  );
 
@@ -6430,7 +6410,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                 let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                 //outputDataBeforArgmx = Array.from(prediction_argmax.dataSync())
-                                tf.dispose(curTensor[i]);
+                                tf.dispose(outputTensor);
                                 // allPredictions.push({"id": allBatches[j].id, "coordinates": allBatches[j].coordinates, "data": Array.from(prediction_argmax.dataSync()) })
                                 console.log(" find array max ");
                                 let curBatchMaxLabel =  findArrayMax(Array.from(prediction_argmax.dataSync()));
@@ -6484,7 +6464,7 @@ get3dObjectBoundingVolume = async(slices_3d) => {
                                     tf.dispose(outLabelVolume);
                                     tf.engine().endScope();
                                     tf.engine().disposeVariables();
-                                    
+
                                     generateOutputSlicesV2(img, Vshape, Vtype, num_of_slices, numSegClasses, slice_height, slice_width);
                                        console.log(" Phase-2 num of tensors after generateOutputSlicesV2: " , tf.memory().numTensors );
 
