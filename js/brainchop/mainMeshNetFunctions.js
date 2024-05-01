@@ -2712,7 +2712,7 @@ mergeSubVolumes_old = (allPredictions, num_of_slices, slice_height, slice_width,
         let roiLabels = [];
         let chartXaxisStep = 1;
 
-        console.log("labelsHistoObj Keys: ", Object.keys(labelsHistoObj));
+        // console.log("labelsHistoObj Keys: ", Object.keys(labelsHistoObj));
 
 
         let colorLutObj = getExternalJSON(colorURL);
@@ -4308,46 +4308,46 @@ class SequentialConvLayer {
 
     async apply(inputTensor) {
 
-    let oldDeleteTextureThreshold = tf.ENV.get('WEBGL_DELETE_TEXTURE_THRESHOLD');
-    tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0);
+        const oldDeleteTextureThreshold = tf.ENV.get('WEBGL_DELETE_TEXTURE_THRESHOLD')
+        tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0)
 
-        const self = this;
+        const self = this
         // Important to avoid "undefined" class var members inside the timer.
         // "this" has another meaning inside the timer.
 
         document.getElementById("progressBarChild").parentElement.style.visibility = "visible";
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
 
-              const startTime = performance.now();
+              const startTime = performance.now()
 
-              const convLayer = self.model.layers[self.model.layers.length - 1];
-              const weights = convLayer.getWeights()[0]; //
-              const biases = convLayer.getWeights()[1];
-              const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2);
+              const convLayer = self.model.layers[self.model.layers.length - 1]
+              const weights = convLayer.getWeights()[0]
+              const biases = convLayer.getWeights()[1]
+              const outputShape = self.isChannelLast ? inputTensor.shape.slice(1,-1) : inputTensor.shape.slice(2)
               //-- e.g.  outputShape : [256,256,256] or cropped Dim
               //-- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
               //-- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
 
-              let outB = tf.mul(tf.ones(outputShape), -10000);
+              let outB = tf.mul(tf.ones(outputShape), -10000)
               //-- e.g. outB.shape  [256,256,256]
-              let outC = tf.zeros(outputShape);
+              let outC = tf.zeros(outputShape)
               //-- e.g. outC.shape  [256,256,256]
-              let chIdx = 0;
+              let chIdx = 0
 
               // console.log("---------------------------------------------------------");
-              console.log(" channel loop");
+              console.log(" channel loop")
 
-              let seqTimer = window.setInterval(async function() {
+              const seqTimer = window.setInterval(async function() {
 
                   tf.engine().startScope(); // Start TensorFlow.js scope
                   console.log('=======================');
-                  const memoryInfo0 = tf.memory();
+                  const memoryInfo0 = await tf.memory();
                   console.log(`| Number of Tensors: ${memoryInfo0.numTensors}`);
                   console.log(`| Number of Data Buffers: ${memoryInfo0.numDataBuffers}`);
                   console.log("Channel : ", chIdx);
 
-                  const result = tf.tidy(() => {
+                  const result = await tf.tidy(() => {
                       const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
                       // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
                       const filterBiases = biases.slice([chIdx], [1]);
@@ -4362,30 +4362,27 @@ class SequentialConvLayer {
                       // Dispose the old tensors before reassigning
                       tf.dispose([outB, outC, filterWeights, filterBiases, outA, greater]);
                       // Dummy operation to trigger cleanup
-                      tf.tidy(() => tf.matMul(tf.ones([1, 1]), tf.ones([1, 1])));
+                      // tf.tidy(() => tf.matMul(tf.ones([1, 1]), tf.ones([1, 1])));
                       return [newoutC, newoutB];
                   });
 
-                  // -- await showMemStatus(chIdx, self.outChannels);
-
-                  const memoryInfo1 = tf.memory();
-                  console.log(`| Number of Tensors: ${memoryInfo1.numTensors}`);
-                  console.log(`| Number of Data Buffers: ${memoryInfo1.numDataBuffers}`);
-                  console.log('=======================');
-
                   // Log memory usage
-
-                  const memoryInfo = tf.memory();
-                  console.log(`Iteration ${chIdx}:`);
-                  console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
-                  console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
-                  console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
-                  console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
-                  console.log(`Unreliable: ${memoryInfo.unreliable}`);
+                  const memoryInfo = await tf.memory();                 
+                  console.log('=======================');
+                  console.log(`Number of Tensors: ${memoryInfo.numTensors}`)
+                  console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`)        
+                  console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`)
+                  if (memoryInfo.unreliable) {
+                      console.log(`Unreliable: ${memoryInfo.unreliable}`)
+                  }
 
                   // Dispose of previous values before assigning new tensors to outC and outB
-                  if (typeof outC !== 'undefined') outC.dispose();
-                  if (typeof outB !== 'undefined') outB.dispose();
+                  if (typeof outC !== 'undefined') {
+                      outC.dispose()
+                  }
+                  if (typeof outB !== 'undefined') {
+                      outB.dispose()
+                  }
                   // Assign the new values to outC and outB
                   outC = tf.keep(result[0]);
                   outB = tf.keep(result[1]);
@@ -4395,7 +4392,6 @@ class SequentialConvLayer {
                   tf.engine().endScope();
 
                   if(chIdx == (self.outChannels -1)) {
-
                       window.clearInterval( seqTimer );
                       document.getElementById("progressBarChild").style.width = 0 + "%";
                       tf.dispose(outB);
@@ -4403,34 +4399,17 @@ class SequentialConvLayer {
                       const executionTime = endTime - startTime;
                       console.log(`Execution time for output layer: ${executionTime} milliseconds`);
                       tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', oldDeleteTextureThreshold);
-                      resolve(outC);
+                      resolve(outC)
                   } else {
 
                       chIdx++;
-
-
-                      // the seemingly strange sequence of operations
-                      // below prevents tfjs from uncontrolably
-                      // grabbing buffers, even when all tensors have
-                      // already been disposed
-
-                      const outCShape = outC.shape;
-                      const outCdata = outC.dataSync();
-                      const outBShape = outC.shape;
-                      const outBdata = outB.dataSync();
-                      outC.dispose();
-                      outB.dispose();
-                      //tf.disposeVariables()
-                      outC = tf.tensor(outCdata, outCShape);
-                      outB = tf.tensor(outBdata, outBShape);
 
                     document.getElementById("progressBarChild").style.width = (chIdx + 1) * 100 / self.outChannels + "%";
 
                   }
 
                   // Artificially introduce a pause to allow for garbage collection to catch up
-                  await new Promise(resolve => setTimeout(resolve, 300));
-
+                  await new Promise((resolve) => setTimeout(resolve, 300));
 
               }, 0);
         });
@@ -4536,7 +4515,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 *
 */
 
-  inferenceFullVolumeSeqCovLayer = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width) => {
+  async function inferenceFullVolumeSeqCovLayer(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width) {
             console.log(" ---- Start FullVolume Inference with Sequential Convoluton Layer ---- ");
 
             statData["No_SubVolumes"] = 1;
@@ -4584,20 +4563,21 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       curTensor[0] = slices_3d.reshape(input_shape);
                       // console.log("curTensor[0] :", curTensor[0].dataSync());
 
-                      let timer = window.setInterval(async function() {
+                      const timer = window.setInterval(async function() {
 
                           try {
                                 if (res.layers[i].activation.getClassName() !== 'linear') {
-                                    curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                    curTensor[i] = await res.layers[i].apply( curTensor[i-1]);
                                 } else {
 
-                                    curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
-                                                                                      res.layers[i].getWeights()[0],
-                                                                                      res.layers[i].getWeights()[1],
-                                                                                      res.layers[i].strides,
-                                                                                      res.layers[i].padding,
-                                                                                      res.layers[i].dilationRate,
-                                                                                      3); // important for memory use
+                                    curTensor[i] = await convByOutputChannelAndInputSlicing(
+                                        curTensor[i-1],
+                                        res.layers[i].getWeights()[0],
+                                        res.layers[i].getWeights()[1],
+                                        res.layers[i].strides,
+                                        res.layers[i].padding,
+                                        res.layers[i].dilationRate,
+                                        3); // important for memory use
                                 }
 
                                 // Log memory usage
@@ -4674,24 +4654,17 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                   // The second parameter is important for memory,
                                   // the larger it is, the more memory it uses
                                   // it was 8, but I set it to 3, got a different error
-                                  seqConvLayer = new SequentialConvLayer(res, 10, isChannelLast);
+                                  const seqConvLayer = await new SequentialConvLayer(res, 10, isChannelLast);
 
-                                  // Apply the last output tensor to the seq. instance
-                                  let outputTensor = null;
+                                  let outputTensor = await seqConvLayer.apply(curTensor[i]);
 
-                                  const profileInfo = await tf.profile(async() => {
-                                    // Your tensor operations here
-                                       outputTensor = await seqConvLayer.apply(curTensor[i]);
-                                  });
-
-                                  console.log("profileInfo : ",profileInfo);
 
                                   //-- document.getElementById("progressBarChild").style.width = 0 + "%";;
 
                                   // Dispose the previous layer input tensor
                                   tf.dispose(curTensor[i]);
                                   // delete the used class
-                                  delete seqConvLayer;
+                                  // delete seqConvLayer;
 
                                   // You can now use 'outputTensor' as needed
                                   console.log(outputTensor);
@@ -4831,12 +4804,12 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 *
 */
 
- inferenceFullVolumeSeqCovLayerPhase2 = async(model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out) => {
+async function inferenceFullVolumeSeqCovLayerPhase2 (model, slices_3d, num_of_slices, slice_height, slice_width, pipeline1_out) {
 
            //--Phase-2, After remove the skull try to allocate brain volume and make inferece
            console.log(" ---- Start FullVolume Inference with Sequential Conv Layer for phase-II ---- ");
 
-           let quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
+           const quantileNorm = inferenceModelsList[$$("selectModel").getValue() - 1]["enableQuantileNorm"];
 
            if(quantileNorm) {
               // Quantile normalize function needs specific models to be used
@@ -4845,7 +4818,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
            } else {
               // Min Max Nomalize MRI data to be from 0 to 1
               console.log("preModel Min Max normalization enabled");
-              slices_3d = minMaxNormalizeVolumeData(slices_3d);
+              slices_3d = await minMaxNormalizeVolumeData(slices_3d);
            }
 
 
@@ -4864,12 +4837,12 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
               } else {
                  console.log("No valid crop threshold value");
                  // binarize original image
-                 mask_3d = slices_3d.greater([0]).asType('bool');
+                 mask_3d = await slices_3d.greater([0]).asType('bool');
               }
 
            } else {
 
-              mask_3d = pipeline1_out.greater([0]).asType('bool');
+              mask_3d = await pipeline1_out.greater([0]).asType('bool');
               //-- pipeline1_out.dispose();
 
            }
@@ -4912,22 +4885,22 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
           console.log( "depth min and max  :", depth_min, depth_max);
 
           //-- Reference voxel that cropped volume started slice with it
-          let refVoxel = [row_min, col_min, depth_min];
+          const refVoxel = [row_min, col_min, depth_min];
           // -- Starting form refVoxel, size of bounding volume
-          let boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];
+          const boundVolSizeArr = [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1];
 
           coords.dispose();
 
            //-- Extract 3d object (e.g. brain)
-          let cropped_slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
+          const cropped_slices_3d =  slices_3d.slice([row_min, col_min, depth_min], [row_max - row_min + 1, col_max - col_min + 1, depth_max - depth_min + 1] )
 
           slices_3d.dispose();
 
           //-- Padding size add to cropped brain
-          let pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];
+          const pad =  inferenceModelsList[$$("selectModel").getValue() - 1]["cropPadding"];
 
           // Create margin around the bounding volume
-          cropped_slices_3d_w_pad = addZeroPaddingTo3dTensor(cropped_slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
+          let cropped_slices_3d_w_pad = addZeroPaddingTo3dTensor(cropped_slices_3d, [pad, pad] , [pad, pad], [pad, pad]);
           console.log(" cropped slices_3d with padding shape:  ", cropped_slices_3d_w_pad.shape);
 
           cropped_slices_3d.dispose();
@@ -4935,10 +4908,10 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
           if(opts.drawBoundingVolume) {
 
-                let testVol = removeZeroPaddingFrom3dTensor(cropped_slices_3d_w_pad, pad, pad, pad);
+                let testVol = await removeZeroPaddingFrom3dTensor(cropped_slices_3d_w_pad, pad, pad, pad);
                 console.log(" outLabelVolume without padding shape :  ", testVol.shape);
 
-                testVol =  resizeWithZeroPadding(testVol, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
+                testVol =  await resizeWithZeroPadding(testVol, num_of_slices, slice_height, slice_width, refVoxel,  boundVolSizeArr );
                 console.log(" outLabelVolume final shape after resizing :  ", testVol.shape);
 
                 draw3dObjBoundingVolume(tf.unstack(testVol));
@@ -4948,21 +4921,21 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
           }
 
 
-          statData["Brainchop_Ver"] = "FullVolume";
+          statData["Brainchop_Ver"] = "FullVolume"
 
-          model.then(function (res) {
-
+          // model.then(function (res) {
+          const res = await model
                  try {
-                      startTime = performance.now();
-                      let inferenceStartTime = performance.now();
+                      let startTime = performance.now();
+                      const inferenceStartTime = performance.now();
                       // maxLabelPredicted in whole volume of the brain
                       let maxLabelPredicted = 0;
-                      let transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
-                      let delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
+                      const transpose = inferenceModelsList[$$("selectModel").getValue() - 1]["enableTranspose"];
+                      const delay = inferenceModelsList[$$("selectModel").getValue() - 1]["inferenceDelay"];
                       console.log("Inference delay :", delay);
 
                       if(transpose) {
-                         cropped_slices_3d_w_pad = cropped_slices_3d_w_pad.transpose()
+                         cropped_slices_3d_w_pad = await cropped_slices_3d_w_pad.transpose()
                          console.log("Input transposed for pre-model");
                       } else {
                          console.log("Transpose not enabled for pre-model");
@@ -4975,7 +4948,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                       let isChannelLast = isModelChnlLast(res);
                       const batchSize = opts.batchSize;
                       const numOfChan = opts.numOfChan;
-
+                      let adjusted_input_shape
                       //-- Adjust model input shape
                       if(isChannelLast) {
 
@@ -5025,20 +4998,20 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
 
 
-                      let curTensor = [];
-                      curTensor[0] = cropped_slices_3d_w_pad.reshape(adjusted_input_shape);
+                      const curTensor = [];
+                      curTensor[0] = await cropped_slices_3d_w_pad.reshape(adjusted_input_shape);
                       // console.log("curTensor[0] :", curTensor[0].dataSync());
 
                       let curProgBar = parseInt(document.getElementById("progressBar").style.width);
 
-                      let timer = window.setInterval(async function() {
+                      const timer = window.setInterval(async function() {
 
                          try {
                                   if (res.layers[i].activation.getClassName() !== 'linear') {
-                                      curTensor[i] = res.layers[i].apply( curTensor[i-1]);
+                                      curTensor[i] = await res.layers[i].apply( curTensor[i-1]);
                                   } else {
 
-                                      curTensor[i] = convByOutputChannelAndInputSlicing(curTensor[i-1],
+                                      curTensor[i] = await convByOutputChannelAndInputSlicing(curTensor[i-1],
                                                                                         res.layers[i].getWeights()[0],
                                                                                         res.layers[i].getWeights()[1],
                                                                                         res.layers[i].strides,
@@ -5046,17 +5019,6 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                                                                         res.layers[i].dilationRate,
                                                                                         3); // important for memory use
                                   }
-
-
-                                  // // Log memory usage
-                                  // const memoryInfo = tf.memory();
-                                  // console.log(`Iteration ${i}:`);
-                                  // console.log(`Number of Tensors: ${memoryInfo.numTensors}`);
-                                  // console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`);
-                                  // console.log(`Bytes In Use: ${memoryInfo.numBytes}`);
-                                  // console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`);
-                                  // console.log(`Unreliable: ${memoryInfo.unreliable}`);
-
 
                                   tf.dispose(curTensor[i-1]);
 
@@ -5125,18 +5087,11 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     //The second parameter is important for memory,
                                     // the larger it is, the more memory it uses
                                     // it was 8, but I set it to 3, got a different error
-                                    seqConvLayer = new SequentialConvLayer(res, 10, isChannelLast);
+                                    const seqConvLayer = await new SequentialConvLayer(res, 10, isChannelLast);
 
 
                                     // Apply the last output tensor to the seq. instance
-                                    let outputTensor = null;
-
-                                    const profileInfo = await tf.profile(async() => {
-                                      // Your tensor operations here
-                                         outputTensor = await seqConvLayer.apply(curTensor[i]);
-                                    });
-
-                                    console.log("profileInfo : ",profileInfo);
+                                    let outputTensor = await seqConvLayer.apply(curTensor[i])
 
                                     //-- document.getElementById("progressBarChild").style.width = 0 + "%";;
 
@@ -5146,7 +5101,6 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     delete seqConvLayer;
 
                                     // You can now use 'outputTensor' as needed
-                                    console.log(outputTensor);
                                     console.log(" Output tensor shape : ", outputTensor.shape);
                                     // Array(3) [ 256, 256, 256 ]
 
@@ -5155,7 +5109,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                     }
 
 
-                                    let Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
+                                    const Inference_t = ((performance.now() - startTime)/1000).toFixed(4);
 
                                     console.log(" find array max ");
                                     let curBatchMaxLabel =  findArrayMax(Array.from(outputTensor.dataSync()));
@@ -5164,7 +5118,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
                                           maxLabelPredicted = curBatchMaxLabel;
                                     }
 
-                                    let numSegClasses = maxLabelPredicted + 1;
+                                    const numSegClasses = maxLabelPredicted + 1;
                                     console.log("Predicted num of segmentation classes", numSegClasses);
                                     statData["Actual_Labels"] = numSegClasses;
                                     statData["Expect_Labels"] = expected_Num_labels;
@@ -5279,9 +5233,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 
                         document.getElementById("memoryStatus").style.backgroundColor =  tf.memory().unreliable ? "Red" : "Green";
                   }
-            });
-
- }
+            }
 
 
 
@@ -5302,7 +5254,7 @@ function convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, 
 *
 */
 
-  inferenceFullVolume = (model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width) => {
+async function  inferenceFullVolume(model, slices_3d, input_shape, isChannelLast, num_of_slices, slice_height, slice_width) {
 
             statData["No_SubVolumes"] = 1;
 
