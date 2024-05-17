@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   root: '.',
-  base: './',
+  base: '/brainchop/',
   server: {
     open: 'index.html',
   },

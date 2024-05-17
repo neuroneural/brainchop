@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@niivue/niivue":"^0.43.3",
+    "@niivue/niivue": "^0.43.3",
     "@tensorflow/tfjs": "^4.19.0",
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "vite": "^2.7.13"
   },
-  "devDependencies": {
-    "vite": "^5.2.0"
-  }
+  "devDependencies": {},
+  "homepage": "https://neuroneural.github.io/brainchop/"
 }
