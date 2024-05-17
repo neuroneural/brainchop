@@ -23,7 +23,7 @@
  </p>
 
  <p align="justify">
- We make the implementation of Brainchop freely available, releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based end-to-end solution for 3D MRI segmentation. <b><a href="https://rii-mango.github.io/Papaya/"  style="text-decoration: none">Papaya</a></b> viewer is integrated with the tool for MRI visualization. In version 1.3.0, <b><a href="https://threejs.org/"  style="text-decoration: none">Three.js</a></b> is used for MRI 3D rendering.  For more information about Brainchop, please refer to this detailed <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b>.
+ We make the implementation of Brainchop freely available, releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based end-to-end solution for 3D MRI segmentation. <b><a href="v"  style="text-decoration: none">NiiVue</a></b> viewer is integrated with the tool for MRI visualization.  For more information about Brainchop, please refer to this detailed <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b>.
 
   For questions or to share ideas, please refer to our  <b><a href="https://github.com/neuroneural/brainchop/discussions/"  style="text-decoration: none"> Discussions </a></b> board.
 
@@ -59,6 +59,24 @@ This basic example provides an overview of the training pipeline for the MeshNet
 To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
 
 <br>
+
+## Hot Reloadable Development
+
+Develop brainchop interactively: when you save modified source files the web page is reloaded.
+
+```
+git clone git clone git@github.com:neuroneural/brainchop.git 
+cd niivue-brainchop
+npm install
+npm run dev
+
+```
+
+## To build
+
+```
+npm run build
+```
 
 ## Updates
 
