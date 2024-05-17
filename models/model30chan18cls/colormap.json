@@ -1,0 +1,6 @@
+{
+    "R": [ 0, 245, 205, 120, 196, 220, 230, 0, 122, 236, 12, 204, 42, 119, 220, 103, 255, 165],
+    "G": [ 0, 245, 62, 18, 58, 248, 148, 118, 186, 13, 48, 182, 204, 159, 216, 255, 165, 42],
+    "B": [ 0, 245, 78, 134, 250, 164, 34, 14, 220, 176, 255, 142, 164, 176, 20, 255, 0, 42],
+    "labels": [ "Unknown", "Cerebral-White-Matter", "Cerebral-Cortex", "Lateral-Ventricle", "Inferior-Lateral-Ventricle", "Cerebellum-White-Matter", "Cerebellum-Cortex", "Thalamus", "Caudate", "Putamen", "Pallidum", "3rd-Ventricle", "4th-Ventricle", "Brain-Stem", "Hippocampus", "Amygdala", "Accumbens-area", "VentralDC"]
+}

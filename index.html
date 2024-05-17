@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/brainchop/niivue.css" />
+  <title>Niivue brain chop</title>
+  <script type="module" crossorigin src="/brainchop/assets/index.7ba62c04.js"></script>
+  <link rel="modulepreload" href="/brainchop/assets/vendor.5623a205.js">
+</head>
+
+<body>
+  <header>
+    <label for="clipCheck">Clip Plane</label>
+    <input type="checkbox" id="clipCheck" unchecked />
+    <label for="opacitySlider0">Background Opacity</label>
+    <input type="range" min="0" max="255" value="255" class="slider" id="opacitySlider0" />
+    &nbsp;
+    <label for="opacitySlider1">Overlay Opacity</label>
+    <input type="range" min="0" max="255" value="128" class="slider" id="opacitySlider1" />
+    &nbsp;
+    <label for="modelSelect">Segmentation Model</label>
+    <select id="modelSelect">
+    </select>
+    &nbsp;
+    <button id="saveImgBtn">Save Overlay</button>
+    &nbsp;
+    <button id="saveSceneBtn">Save Scene</button>
+    &nbsp;
+    <label for="workerCheck">Use Webworker</label>
+    <input type="checkbox" title="webworkers are faster but not supported by all browsers" id="workerCheck" checked />
+    &nbsp;
+    <label for="penDrop">Draw</label>
+    <select id="penDrop">
+      <option value="-1">Off</option>
+      <option value="2">On</option>
+      <option value="10">Filled</option>
+      <option value="0">Erase</option>
+    </select>
+    <select id="drawDrop">
+      <option value="0">Undo</option>
+      <option value="1">Append</option>
+      <option value="2">Remove</option>
+    </select>
+    &nbsp;
+    <label for="dragMode">Drag Mode</label>
+    <select id="dragMode">
+      <option>none</option>
+      <option>contrast</option>
+      <option>measurement</option>
+      <option selected>pan/zoom</option>
+      <option>slicer3D</option>
+    </select>
+    &nbsp;
+    <button id="diagnosticsBtn">Diagnostics</button>
+    &nbsp;
+    <button id="aboutBtn">About</button>
+  </header>
+  <main id="canvas-container">
+    <canvas id="gl1"></canvas>
+  </main>
+  <footer>
+    <div class="footer">
+      <table class="footer">
+        <tr>
+          <th id="location">Drag and Drop any NIfTI image</th>
+          <th><progress id="modelProgress" value="0" max="100"> 32% </progress></th>
+          <th>
+            <!-- important to use class footer here -->
+            <div class="footer" id="memstatus" style="color: green">Memory OK</div>
+          </th>
+        </tr>
+      </table>
+    </div>
+  </footer>
+  
+</body>
+
+</html>
