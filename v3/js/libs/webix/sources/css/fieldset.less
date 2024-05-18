@@ -1,0 +1,31 @@
+.webix_fieldset > fieldset{
+	border:1px solid @borderColor;
+	margin:0px;
+	padding:5px 8px;
+}
+.webix_fieldset_label{
+	color:@fontColor;
+	font-size:@smallFontSize;
+	padding:0px 8px;
+	text-transform:uppercase;
+}
+
+.webix_forminput > fieldset{
+	border:none;
+	margin:0px;
+	padding:0px;
+}
+.webix_forminput_label{
+	color:@fontColor;
+	font-family:@fontFamily;
+	float:left;
+	line-height:@inputHeight - 2*@skin_input_y_padding;
+	padding:@skin_input_y_padding @skin_input_x_padding;
+	padding-right:@skin_content_padding * 0.75;
+	#box > .sizing;
+}
+
+legend.webix_forminput_label_top{
+	width: 100%;
+	padding:@skin_input_y_padding @skin_input_x_padding 0;
+}
