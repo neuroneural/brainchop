@@ -17,5 +17,6 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: demo # The branch the action should deploy to.
           folder: dist # The folder the action should deploy.
