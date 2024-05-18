@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation)**
+**[Demo v4](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation) &emsp; [v3](https://neuroneural.github.io/brainchop/v3)**
 
 </div>
 
@@ -58,6 +58,9 @@ This basic example provides an overview of the training pipeline for the MeshNet
 
 To see Brainchop **v4** in action please click  [here](https://neuroneural.github.io/brainchop).
 
+<br>
+
+For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 <br>
 
