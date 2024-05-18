@@ -18,5 +18,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./v3
-          publish_branch: gh-pages
+          publish_branch: demo
           destination_dir: v3
