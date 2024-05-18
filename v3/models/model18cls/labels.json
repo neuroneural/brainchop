@@ -1,0 +1,20 @@
+{
+  "0": "Unknown",
+  "1": "Cerebral-White-Matter",
+  "2": "Cerebral-Cortex",
+  "3": "Lateral-Ventricle",
+  "4": "Inferior-Lateral-Ventricle",
+  "5": "Cerebellum-White-Matter",
+  "6": "Cerebellum-Cortex",
+  "7": "Thalamus",
+  "8": "Caudate",
+  "9": "Putamen",
+  "10": "Pallidum",
+  "11": "3rd-Ventricle",
+  "12": "4th-Ventricle",
+  "13": "Brain-Stem",
+  "14": "Hippocampus",
+  "15": "Amygdala",
+  "16": "Accumbens-area",
+  "17": "VentralDC"
+}

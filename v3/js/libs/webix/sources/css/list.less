@@ -1,0 +1,117 @@
+.webix_list_item{
+	#box > .sizing;
+	.dataFont;
+
+	padding: @listPaddingY @listPaddingX;
+	line-height: @listItemHeight - @listPaddingY*2 - 1;
+
+	cursor:pointer;
+	border-bottom:1px solid @lightBorderColor;
+	text-align:left;
+	.dataItemStyle;
+}
+.webix_list_icon{
+	vertical-align: @listIconVAlign;
+	margin-right: 4px;
+}
+.webix_list_item.webix_invalid{
+	background-color: #ffeeee;
+}
+.webix_list_item.webix_selected{
+	.selectLine;
+}
+.webix_list .webix_list_item.webix_selected{
+	.selectXLine;
+	padding: @listPaddingY @listPaddingX;
+}
+.webix_group{
+	position:relative;
+}
+.webix_group_back, .webix_group_back.webix_selected{
+    position: relative;
+    .dataHeaderBg;
+	.dataHeaderFont;
+}
+.webix_arrow_icon {
+	position: absolute;
+	top: 50%;
+	bottom: 50%;
+	margin-top: -10px;
+
+	right: 8px;
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+	color: @fontColor;
+	font-size: 20px;
+	font-family: @iconFamily;
+}
+.webix_arrow_icon:before{
+	content: '\F003'; //right
+}
+.webix_group_back{
+	padding-left: @listPaddingX*2 + 9px;
+	.webix_arrow_icon{
+		left: 8px;
+	}
+	.webix_arrow_icon:before{
+		content: '\F002'; //left
+	}
+}
+
+.dhx_pagelist {
+	position: relative;
+}
+
+.webix_list_count{
+	float:right;
+	width: 25px;
+	font-size:14px;
+	text-align:center;
+	margin-right:45px;
+	box-shadow: 0 1px 0 #000000;
+	text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.6); 
+}
+
+.webix_unit_header{
+	padding: 0 @listPaddingX;
+	line-height: @unitHeaderHeight - 1;
+	text-align:left;
+    background-color: @alterColor;
+}
+
+.webix_list-x .webix_list_item{
+	display:inline-block;
+	vertical-align: top;
+	border-right:1px solid @lightBorderColor;
+	border-bottom:none;
+	.dataItemStyle;
+}
+.webix_list-x .webix_list_item.webix_selected{
+	.selectYLine;
+	padding-left:(@listPaddingX - 1);
+}
+.webix_list-x .webix_scroll_cont{
+	display: inline-block;
+}
+.webix_view.webix_list-x{
+	white-space:nowrap;
+}
+
+/* Style for disabled items */
+.webix_list_item.webix_disabled{
+	color: #8b949e;
+	background-color: @backColor;
+	cursor: not-allowed;
+	#box > .noselect;
+	&:focus{
+		background-color: @backColor;
+	}
+
+	.webix_badge{
+		background-color: #eab993;
+	}
+}
+.webix_list_item.webix_disabled .webix_submenu_icon{
+	visibility: hidden;
+}
