@@ -20,3 +20,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: demo # The branch the action should deploy to.
           folder: dist # The folder the action should deploy.
+
+      - name: Trigger Deploy v3
+        run: |
+          curl -X POST -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/neuroneural/brainchop/actions/workflows/deploy-v3.yml/dispatches \
+          -d '{"ref":"master"}'          
