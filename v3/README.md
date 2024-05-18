@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop/v3) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/)**
+**[Demo v3](https://neuroneural.github.io/brainchop/v3) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/)**
 
 </div>
 
@@ -27,6 +27,8 @@
 
   
  </p>
+
+ <br />
 
 > **Note:** The remaining content of this README file has been moved to the main [README.md](../README.md) file in the root of the repository. Please refer to the main README for general information, last updates, news,  citations, usage guidelines, and contribution details.
 
