@@ -58,27 +58,21 @@ This basic example provides an overview of the training pipeline for the MeshNet
 
 To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
 
+
 <br>
 
-## Hot Reloadable Development
 
-Develop brainchop interactively: when you save modified source files the web page is reloaded.
-
-```
-git clone git clone git@github.com:neuroneural/brainchop.git 
-cd niivue-brainchop
-npm install
-npm run dev
-
-```
-
-## To build
-
-```
-npm run build
-```
 
 ## Updates
+
+<div align="center">
+
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop_Niivue.png"  width="60%">
+
+**Brainchop v4.0.0 with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
+</div>
+
+<br>
 
 <div align="center">
 
@@ -94,7 +88,7 @@ npm run build
 
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
 
-**Brainchop v1.4.0 rendering MRI Nifti file in 3D**
+**Brainchop v1.4.0 - v3.4.0 rendering MRI Nifti file in 3D**
 </div>
 
 <br>
@@ -104,7 +98,7 @@ npm run build
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
 
 
-**Brainchop v1.3.0 rendering segmentation output in 3D**
+**Brainchop v1.3.0 - v3.4.0 rendering segmentation output in 3D**
 </div>
 
 
