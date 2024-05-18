@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo v4](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation) &emsp; [v3](https://neuroneural.github.io/brainchop/v3)**
+**[brainchop.org](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation) &emsp; [v3](https://neuroneural.github.io/brainchop/v3)**
 
 </div>
 
