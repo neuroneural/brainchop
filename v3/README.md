@@ -10,7 +10,7 @@
 
 **Frontend For Neuroimaging.  Open Source**
 
-**[Demo](https://neuroneural.github.io/brainchop) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation)**
+**[Demo](https://neuroneural.github.io/brainchop/v3) &emsp;  [Updates](#Updates) &emsp; [Doc](https://github.com/neuroneural/brainchop/wiki/) &emsp; [News!](#News) &emsp; [Cite](#Citation)**
 
 </div>
 
@@ -19,7 +19,7 @@
  <img src="./css/logo/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
- <b><a href="https://neuroneural.github.io/brainchop/"  style="text-decoration: none"> Brainchop</a></b> brings automatic 3D MRI  volumetric segmentation  capability to neuroimaging  by running a lightweight deep learning model (e.g., <a href="https://medium.com/pytorch/catalyst-neuro-a-3d-brain-segmentation-pipeline-for-mri-b1bb1109276a" target="_blank"  style="text-decoration: none"> MeshNet</a>) in the web-browser for inference on the user side. 
+ <b><a href="https://neuroneural.github.io/brainchop/v3"  style="text-decoration: none"> Brainchop v3</a></b> brings automatic 3D MRI  volumetric segmentation  capability to neuroimaging  by running a lightweight deep learning model (e.g., <a href="https://medium.com/pytorch/catalyst-neuro-a-3d-brain-segmentation-pipeline-for-mri-b1bb1109276a" target="_blank"  style="text-decoration: none"> MeshNet</a>) in the web-browser for inference on the user side. 
  </p>
 
  <p align="justify">
@@ -31,7 +31,7 @@
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/brainchop_Arch.png)
+![Interface](./css/images/brainchop_Arch.png)
 
 **Brainchop high-level architecture**
 </div>
@@ -39,7 +39,7 @@
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/DL_Arch.png)
+![Interface](./css/images/DL_Arch.png)
 
 **MeshNet deep learning architecture used for inference with Brainchop** (MeshNet  <a href="https://arxiv.org/pdf/1612.00940.pdf" target="_blank"  style="text-decoration: none"> paper</a>)
 </div>
@@ -56,7 +56,7 @@ This basic example provides an overview of the training pipeline for the MeshNet
 
 ## Live Demo
 
-To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
+To see Brainchop v3.4.0 in action please click  [here](https://neuroneural.github.io/brainchop/v3).
 
 <br>
 
@@ -64,7 +64,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="60%">
+  <img src="./css/images/BrainchopMoreRobustModels.gif"  width="60%">
 
 **Brainchop v3.0.0 with more robust models**
 </div>
@@ -74,7 +74,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
+![Interface](./css/images/Input3DEnhancements.gif)
 
 **Brainchop v1.4.0 rendering MRI Nifti file in 3D**
 </div>
@@ -83,7 +83,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
+![Interface](./css/images/Brainchop3D.gif)
 
 
 **Brainchop v1.3.0 rendering segmentation output in 3D**
@@ -98,7 +98,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop [v2.2.0](https://github.com/neuroneural/brainchop/releases/tag/v2.2.0) paper is accepted in the 21st IEEE International Symposium on Biomedical Imaging ([ISBI 2024](https://biomedicalimaging.org/2024/)). Lengthy arXiv version can be found [here](https://arxiv.org/abs/2310.16162).
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/ISBI_2024.jpeg"  width="40%">
+   <img src="./css/news/ISBI_2024.jpeg"  width="40%">
 </div>
 
 <br>
@@ -107,7 +107,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop [paper](https://doi.org/10.21105/joss.05098) is published in the Journal of Open Source Software (JOSS) on March 28, 2023.
 
 <div align="center">
-   <a href="https://doi.org/10.21105/joss.05098"><img src="https://github.com/neuroneural/brainchop/blob/master/css/news/JOSS_Logo.png"></a>
+   <a href="https://doi.org/10.21105/joss.05098"><img src="./css/news/JOSS_Logo.png"></a>
 </div>
 
 <br>
@@ -116,7 +116,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop abstract is accepted for poster presentation during the 2023 [OHBM](https://www.humanbrainmapping.org/) Annual Meeting.
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/OHBM_2023.jpeg"  width="40%">
+   <img src="./css/news/OHBM_2023.jpeg"  width="40%">
 </div>
 
 <br>
@@ -125,7 +125,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop 1-page abstract and poster is accepted in 20th IEEE International Symposium on Biomedical Imaging ([ISBI 2023](https://2023.biomedicalimaging.org/en/))
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/ISBI_2023.png"  width="40%">
+   <img src="./css/news/ISBI_2023.png"  width="40%">
 </div>
 
 <br>
@@ -134,7 +134,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Google, Tensorflow community spotlight award for brainchop (Sept 2022) on [Linkedin](https://www.linkedin.com/posts/tensorflow-community_github-neuroneuralbrainchop-brainchop-activity-6978796859532181504-cfCW?utm_source=share&utm_medium=member_desktop) and [Twitter](https://twitter.com/TensorFlow/status/1572980019999264774)
 
 <div align="center">
-   <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_CommunityAward.png"  width="60%">
+   <img src="./css/news/TF_CommunityAward.png"  width="60%">
 </div>
 
 <br>
@@ -143,7 +143,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop  invited to [Pytorch](https://pytorch.org/ecosystem/ptc/2022) flag conference, New Orleans, Louisiana (Dec 2022) 
 
 <div align="center">
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/Pytorch_Poster.jpg"  width="50%">
+  <img src="./css/news/Pytorch_Poster.jpg"  width="50%">
 </div>
 
 
@@ -153,7 +153,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 * Brainchop  invited to TensorFlow.js Show & Tell episode #7 (Jul 2022). 
 
 <div align="center">
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/news/TF_show_tell.png"  width="50%">
+  <img src="./css/news/TF_show_tell.png"  width="50%">
 </div>
 
 ## Citation
@@ -207,7 +207,7 @@ This work was funded by the NIH grant RF1MH121885. Additional support from NIH R
 <br />
 <div align="center">
 
-<img src='https://github.com/neuroneural/brainchop/blob/master/css/logo/TReNDS_logo.jpg' width='300' height='100'></img>
+<img src='./css/logo/TReNDS_logo.jpg' width='300' height='100'></img>
 
 **Mohamed Masoud - Sergey Plis - 2024**
 </div>

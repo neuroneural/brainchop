@@ -1,5 +1,5 @@
 
-# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
+# Brainchop  [![Version](https://img.shields.io/badge/Version-4.0.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
 
 
 <div align="center">
@@ -56,7 +56,7 @@ This basic example provides an overview of the training pipeline for the MeshNet
 
 ## Live Demo
 
-To see Brainchop in action please click  [here](https://neuroneural.github.io/brainchop).
+To see Brainchop **v4** in action please click  [here](https://neuroneural.github.io/brainchop).
 
 
 <br>
@@ -69,7 +69,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
   <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop_Niivue.png"  width="100%">
 
-**Brainchop v4.0.0 with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
+**Brainchop <a href= "https://neuroneural.github.io/brainchop/" target="_blank"  style="text-decoration: none"> v4 </a> with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
 </div>
 
 <br>
@@ -78,7 +78,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
   <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="60%">
 
-**Brainchop v3.0.0 with more robust models**
+**Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v3 </a> with more robust models**
 </div>
 
 <br>
@@ -88,7 +88,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
 
-**Brainchop v1.4.0 - v3.4.0 rendering MRI Nifti file in 3D**
+**Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v1.4.0 - v3.4.0 </a> rendering MRI Nifti file in 3D**
 </div>
 
 <br>
@@ -98,7 +98,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 ![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
 
 
-**Brainchop v1.3.0 - v3.4.0 rendering segmentation output in 3D**
+**Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v1.3.0 - v3.4.0 </a>  rendering segmentation output in 3D**
 </div>
 
 
