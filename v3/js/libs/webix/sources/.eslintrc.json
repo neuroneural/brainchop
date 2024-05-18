@@ -1,0 +1,29 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "globals": {
+        "DEBUG":true
+    },
+    "rules": {
+        "no-constant-condition":0,
+        "indent": [
+            "error",
+            "tab",
+            {"SwitchCase":1}
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ]
+    }
+}
