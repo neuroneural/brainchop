@@ -67,7 +67,7 @@ To see Brainchop in action please click  [here](https://neuroneural.github.io/br
 
 <div align="center">
 
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop_Niivue.png"  width="80%">
+  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop_Niivue.png"  width="100%">
 
 **Brainchop v4.0.0 with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
 </div>
