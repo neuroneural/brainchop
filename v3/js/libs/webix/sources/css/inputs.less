@@ -1,0 +1,587 @@
+@skin_input_x_padding: 2px;
+@skin_content_padding: 10px;
+
+
+@import "button.less";
+@import "richtext.less";
+
+.webix_control{
+	background: transparent;
+}
+.webix_control input, .webix_control button, .webix_control textarea, .webix_el_label, .webix_inp_label, .webix_inp_top_label, .webix_inp_bottom_label{
+	#box > .sizing;
+	font-family: @fontFamily;
+}
+
+
+.webix_el_box{
+	#box > .sizing;
+	padding:@skin_input_y_padding @skin_input_x_padding;
+	height:100%; width: 100%;
+	font-size: @formFontSize;
+	overflow: hidden;
+}
+
+.webixtoolbarlabel{
+	font-size: @barFontSize;
+}
+
+//text
+.webix_el_text input, .webix_el_search input, .webix_el_combo input,
+.webix_el_datepicker input, .webix_el_colorpicker input{
+	font-size: @formFontSize;
+	height:100%;
+	padding:0px @skin_content_padding;
+	border:1px solid @borderColor;
+	color: @fontColor;
+	font-family: @fontFamily;
+	.inputStyle;
+	-webkit-appearance: none;
+	border-radius: 0;
+}
+
+.webix_multitext_icon:hover, .webix_multitext_icon:active{
+	color: @baseColor;
+	background: inherit;
+	cursor: pointer;
+}
+
+.webix_inp_label, .webix_inp_top_label, .webix_label_right{
+	color: @fontColor;
+	text-transform: none;
+	font-size: @formFontSize;
+
+	text-overflow:ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/*.webix_toolbar .webix_inp_label{
+	padding-top:(@inputHeight - 11 )/2;
+}*/
+
+.webix_inp_label{
+	float:left;
+	padding-top: 1px;
+	padding-left: 0;
+	padding-right:@skin_content_padding * 0.75;
+}
+.webix_inp_top_label{
+	float:none;
+	padding:@skin_input_y_padding @skin_input_x_padding;
+
+	padding-bottom:0px;
+}
+.webix_inp_bottom_label{
+	font-size: @formFontSize - 2;
+	color: lighten(@fontColor,5%);
+}
+.webix_label_right{
+	padding-left:@skin_content_padding * 0.75;
+}
+.webix_el_checkbox .webix_label_right{
+	display: inline-block;
+	padding-top: 1px;
+}
+
+//label
+.webix_el_label{
+	color:@fontColor;
+	//text-transform: uppercase;
+	//font-size:10px;
+	//line-height: @inputHeight - 2*@skin_input_y_padding;
+	//padding:@skin_input_y_padding @skin_input_x_padding;
+}
+
+.webix_toolbar .webix_el_label{
+	//padding-top:(@inputHeight - 11)/2;
+	//padding-left: @skin_content_padding;
+	text-transform: none;
+}
+
+//select
+.webix_el_select select{
+	height: 100%;
+	font-size: @formFontSize;
+	font-family: @fontFamily;
+	border: 1px solid @borderColor;
+	//padding: .2em;
+}
+
+//firefox specific - padding for selects
+body:not(:-moz-handler-blocked) .webix_el_select select{
+	padding: .2em;
+}
+
+
+
+
+//counter
+.webix_el_group, .webix_all_segments{
+	height:100%;
+	white-space: nowrap;
+
+}
+.webix_inp_counter_next, .webix_inp_counter_prev, .webix_inp_counter_value{
+	border:1px solid @borderColor;
+	cursor: pointer;
+	-webkit-appearance: none;
+	width:20px;	
+	height:100%;
+	vertical-align:top; // оно!
+}
+
+
+
+.webix_inp_counter_value{
+	font-size: @formFontSize;
+	width:50px;
+	color: @fontColor;
+	text-align:center;
+	border-left-width: 0px;
+	border-right-width: 0px;
+	-webkit-appearance: none;
+	border-radius: 0;
+
+}
+//firefox specific
+/*body:not(:-moz-handler-blocked) .webix_inp_counter_value{
+	 position:relative; top:-1px;
+}*/
+
+	
+.webix_inp_counter_prev{
+	padding: 0;
+	.buttonBackground;
+	#border > .corners(@skin_input_radius,0,0,@skin_input_radius);
+}
+.webix_inp_counter_next{
+	padding: 0;
+	.buttonBackground;
+	#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
+}
+
+
+//textarea
+.webix_el_textarea textarea{
+	border:1px solid @borderColor;
+	height:100%;
+	margin:0; //FF
+	padding:5px;
+	color: @fontColor;
+	resize: none;
+	font-size: @formFontSize;
+	font-family: @fontFamily;
+	padding-left: @skin_content_padding;
+	padding-right: @skin_content_padding;
+}
+.webix_el_textarea .webix_inp_label{
+	padding-top: ( @inputHeight - @formFontSize - 4 )/2;
+}
+
+//segmented
+.webix_segment_0, .webix_segment_1{
+	border:1px solid @borderColor;
+	border-right-width: 0px;
+	height: 100%;
+
+}
+.webix_segment_0{
+	#border > .corners(@skin_input_radius,0,0,@skin_input_radius);
+}
+.webix_segment_N{
+	border:1px solid @borderColor;
+	height: 100%;
+	#border > .corners(0,@skin_input_radius,@skin_input_radius,0);
+}
+.webix_segment_N:first-child{
+	#border > .corners(@skin_input_radius,@skin_input_radius,@skin_input_radius,@skin_input_radius);
+}
+.webix_segment_0, .webix_segment_1, .webix_segment_N{
+	-webkit-appearance: none;
+	.buttonStyle;
+	.buttonBackground;
+	cursor:pointer;
+	padding: 0;
+}
+.webix_segment_0.webix_selected, .webix_segment_1.webix_selected, .webix_segment_N.webix_selected {
+	.selectLine;
+	.segmentActive;
+}
+.webix_segment_0.webix_disabled, .webix_segment_1.webix_disabled, .webix_segment_N.webix_disabled {
+	color: @disabledFontColor;
+	background-color: @disabledColor;
+	border-color: transparent;
+	cursor: not-allowed;
+	&:hover, &:focus, &:active{
+		box-shadow: none;
+		background-color: @disabledColor;
+	}
+	&.webix_selected, &.webix_selected:hover, &.webix_selected:focus{
+		background-color: darken(@disabledColor, 9);
+	}
+}
+
+
+
+//richselect
+
+
+.webix_inp_static{
+	border: 1px solid @borderColor;
+	background: white;
+	overflow: hidden;
+	padding:0px @skin_content_padding;
+	height:100%;
+	//padding-top:(@inputHeight - 20)/2 ;
+	#box > .sizing;
+	float:left;
+}
+
+@placeholderColor: lighten(@fontColor, 30%);
+.webix_placeholder{
+	color: @placeholderColor;
+}
+::-webkit-input-placeholder { color: @placeholderColor; }
+::-moz-placeholder { color: @placeholderColor; }  /* Firefox 19+ */
+:-moz-placeholder { color: @placeholderColor; }   /* Firefox 18- */
+:-ms-input-placeholder { color: @placeholderColor; }
+
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker, .webix_el_colorpicker, .webix_el_search{
+	font-size: @formFontSize;
+	input,  .webix_inp_static{
+		color: @fontColor;
+		font-family: @fontFamily;
+		.inputStyle;
+		-webkit-appearance: none;
+	}
+}
+.webix_el_combo, .webix_el_richselect, .webix_el_datepicker,
+.webix_el_colorpicker, .webix_el_search, .webix_el_text, .webix_el_texthighlight{
+	.webix_el_box{
+		color: @fontColor;
+		position: relative;
+	}
+	.webix_input_icon{
+		background-color: transparent;
+		position: absolute;
+		z-index: 1;
+		padding-left: 4px;
+		width: 24px;
+	}
+}
+
+.webix_clear_icon:hover{
+	color: @dangerColor;
+	cursor: pointer;
+
+	&::before{
+		content: "\F011";
+		font-family: @iconFamily;
+	}
+}
+
+// Remove clear button in IE/Edge
+.webix_view input::-ms-clear{
+	display: none;
+}
+
+/*Remove button padding in FF*/
+.webix_view button::-moz-focus-inner{
+	padding:0;
+	border: 0;
+}
+// checkbox
+//radio
+.webix_el_radio .webix_inp_label{
+	line-height: normal !important;
+	padding-top: ( @inputHeight - @formFontSize - 4 )/2 - @skin_input_y_padding;
+}
+
+
+.webix_inp_radio_border input, .webix_el_checkbox input{
+	//margin-top:(@inputHeight - 16 )/2;
+	margin:0px; padding:0px;
+	float:left;
+}
+.webix_line_break{
+	clear:both;
+}
+
+.webix_custom_checkbox, .webix_custom_radio{
+	#box > .noselect;
+}
+
+
+.webix_radio_option.webix_disabled{
+	.webix_label_right, .webix_inp_radio_border{
+		color: @disabledFontColor;
+		cursor: not-allowed;
+		#box > .noselect;
+	}
+}
+.webix_el_radio .webix_radio_option.webix_disabled .webix_custom_radio{
+	color: @disabledFontColor;
+	cursor: not-allowed;
+}
+
+.webix_radio_option{
+	display: table;
+	float:left;
+	height: @optionHeight;
+	margin-right:20px;
+}
+.webix_inp_radio_border, .webix_el_radio .webix_label_right{
+	display: table-cell;
+	vertical-align: middle;
+}
+
+
+//validation
+@invalidColor: #fea5a8;
+.webix_invalid .webix_el_box input, .webix_invalid .webix_custom_radio, .webix_invalid .webix_el_box .webix_inp_static, .webix_invalid .webix_el_box select, .webix_invalid .webix_el_box textarea, input.webix_invalid,  select.webix_invalid,  textarea.webix_invalid{
+ 	background-color: lighten(@invalidColor,16%);
+	border-color: @invalidColor;
+}
+.webix_invalid .webix_inp_bottom_label{
+	font-size: @formFontSize - 2;
+	color: darken(@invalidColor,15%);
+}
+//color box in colorpicker
+@cPickerSize: @inputHeight - @skin_input_y_padding*2 - 8;
+
+.webix_el_colorpicker .webix_input_icon{
+	padding-left:0;
+	width: @cPickerSize;
+	height: @cPickerSize;
+	border-radius: @skin_input_radius;
+}
+
+//search
+.webix_el_search{
+	.webix_el_box{
+		position: relative;
+	}
+	input{
+		padding-right: 30px;
+	}
+	span{
+		position: absolute; right:@inputHeight/2;
+		cursor: pointer;
+		padding-left:7px;
+	}
+}
+
+.webix_view.webix_control > .webix_disabled{
+     filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+     opacity:0;
+}
+
+.webix_disabled_view.webix_control {
+	.webix_image {
+		-webkit-filter: grayscale(100%);
+		filter: grayscale(100%);
+	}
+}
+.webix_el_label.webix_disabled_view{
+	color: @disabledFontColor;
+}
+
+.webix_view.webix_control .webix_disabled_box{
+	label, .webix_input_icon, button, .webix_slider_title{
+		color: @disabledFontColor;
+	}
+	input, select, textarea, .webix_inp_static, .webix_slider_right, .webix_slider_handle{
+		.inputDisabled();
+	}
+	.webix_inp_counter_prev, .webix_inp_counter_next, .webix_segment_0, .webix_segment_1, .webix_segment_N{
+		.buttonDisabled;
+	}
+	.webix_segment_0.webix_selected, .webix_segment_1.webix_selected, .webix_segment_N.webix_selected{
+		background-color: darken(@disabledColor, 9);
+	}
+	.webix_slider_left {
+		background-color: @disabledFontColor;
+	}
+}
+.webix_disabled_top_label{
+	color: @disabledFontColor;
+}
+
+label.webix_required:after, legend.webix_required:after,
+.webix_richtext_inp_label.webix_required .webix_template:after {
+	padding-left:4px; content:"*";
+	color:red;
+}
+
+// multicombo
+@mcomboPadding: 3px;
+.webix_multicombo .webix_inp_static{
+	padding: 0 @mcomboPadding 0 0;
+}
+
+.webix_el_text .webix_multicombo_input{
+	background-color: transparent;
+	border: 0;
+	float: left;
+	vertical-align: middle;
+	font-size: @formFontSize;
+	padding:0px;
+	color: @fontColor;
+	font-family: @fontFamily;
+	margin-left: @skin_content_padding - @mcomboPadding;
+}
+.webix_el_text .webix_multicombo_input:focus{
+	border: 0;
+	box-shadow: none;
+}
+
+.webix_multicombo_listbox{
+	width: auto;
+	line-height: 1;
+	margin:0;
+	padding:0;
+	list-style: none;
+}
+.webix_multicombo_value, .webix_multicombo_tag{
+	float: left;
+	position: relative;
+	background-color: darken(@backColor,5%);
+	display: inline-block;
+	margin: @mcomboPadding 0 0 @mcomboPadding;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	#border > .radius(@skin_input_radius);
+	#box > .sizing;
+}
+.webix_multicombo_value{
+	padding: 0 20px 0 5px;
+}
+.webix_multicombo_tag{
+	min-width: 15px;
+	text-align: center;
+}
+.webix_multicombo_tag, .webix_multicombo_value.webix_readonly{
+	padding: 0 5px 0 5px;
+}
+
+.webix_multicombo_delete{
+	position: absolute;
+	top: 50%;
+	right: 4px;
+	margin-top: -8px;
+	font-size: 16px;
+	height: 16px;
+	line-height: 1;
+	color: @fontColor;
+	cursor: pointer;
+	#box > .noselect;
+	&::after{
+		content: "\F011";
+		font-family: @iconFamily;
+	}
+}
+
+.webix_multilist{
+	.webix_list_item{
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+	.webix_selected{
+		background: darken(@backColor,5%);
+		color: @fontColor;
+	}
+	.wxi-checkbox-marked, .wxi-checkbox-blank{
+		vertical-align:middle;
+		font-size: 24px;
+		width: 24px;
+		margin-right: 4px;
+	}
+}
+
+.webix_checksuggest_select_all{
+	border: none;
+	border-bottom: 1px solid #ebebeb;
+	border-color: #ebebeb;
+	margin-bottom: 1px;
+	.webix_label_right {
+		text-transform: capitalize;
+		display: block;
+		padding-top: 2px;
+		padding-bottom: 4px;
+	}
+	input {
+		display: none;
+	}
+	&:hover {
+		.webix_label_right {
+			cursor: pointer;
+			color: @buttonColor;
+		}
+	}
+}
+
+//texthighlight
+
+.webix_el_texthighlight{
+	position: relative;
+	&.webix_el_text{
+		.webix_text_highlight_value{
+			position:relative;
+			top: 50%;
+			transform: translate(0, -50%);
+			overflow:hidden;
+			white-space:pre;
+		}
+		input, .webix_text_highlight{
+			-ms-overflow-style:-ms-autohiding-scrollbar;
+			padding: 0 @skin_content_padding;
+		}
+		.webix_input_icon{
+			top: @skin_input_y_padding;
+		}
+	}
+	&.webix_el_textarea{
+		textarea{
+			padding: 5px @skin_content_padding;
+		}
+		.webix_text_highlight_value{
+			word-wrap: break-word;
+			margin: 5px @skin_content_padding;
+			white-space: pre-wrap;
+		}
+	}
+
+	.webix_text_highlight, input, textarea{
+		line-height: normal;
+		letter-spacing: normal;
+		#box > .sizing;
+	}
+	.webix_text_highlight{
+		-webkit-text-size-adjust: none;
+		height:100%;
+		position: absolute;
+		border: 1px solid transparent;
+		border-radius:@skin_input_radius;
+		background-color: #fff;
+		overflow: auto;
+		.webix_text_highlight_value{
+			text-align: left;
+		}
+	}
+	&.webix_control  .webix_el_box{
+		input, textarea {
+			display: block;
+			position: relative;
+			z-index: 1;
+			color: transparent;
+			caret-color: @fontColor;
+			background: transparent;
+			overflow: auto;
+			resize: none;
+		}
+	}
+}
