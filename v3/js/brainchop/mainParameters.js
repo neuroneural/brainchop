@@ -1,13 +1,13 @@
 /*
 =========================================================
-* Brainchop - v3.0.0
+* Brainchop - v3.4.0
 =========================================================
 
 * Discription:  A user interface for whole brain segmentation
 *               Input shape : [1, D, H, W, 1] e.g. [1, 38, 38, 38, 1]
 *               Model : Meshnet or similar
 *
-* Authors:  Mohamed Masoud  and Sergey Plis  - 2023
+* Authors:  Mohamed Masoud  and Sergey Plis  - 2024
 =========================================================
 
 
@@ -78,7 +78,7 @@
 
             browserArrayBufferMaxZDim:            30, // This value depends on Memory available
 
-            telemetryFlag:                        true, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
+            telemetryFlag:                        false, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
 
             chartXaxisStepPercent:                10, // percent from total labels on Xaxis
 
