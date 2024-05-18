@@ -1,0 +1,149 @@
+/*comments list*/
+.webix_comments .webix_list{
+	transition: all 0.5s ease;
+	-webkit-transition: all 0.5s ease; /** Chrome & Safari **/
+	-moz-transition: all 0.5s ease; /** Firefox **/
+	-o-transition: all 0.5s ease; /** Opera **/
+	transition-property: height;
+	-webkit-transition-property: height; /* Safari */
+	.webix_list_item{
+		margin-top: 24px;
+		border: none;
+		cursor: default;
+	}
+	.webix_comments_more_item{
+		margin-top: 12px;
+	}
+}
+
+/* comments list templates */
+.webix_comments_name{
+	margin-left: 16px;
+	font-weight: @boldStyle;
+	color: rgba(0,0,0,0.7);
+}
+.webix_comments_menu.webix_icon{
+	line-height: 30px;
+	width:6px;
+	visibility:hidden;
+	float: right;
+	cursor:pointer;
+	color:@inactiveFontColor;
+	margin: 0 4px 0 0;
+}
+.webix_comments_current:hover .webix_comments_menu,
+.webix_comments_current.active_menu .webix_comments_menu{
+	visibility:visible;
+}
+@linkFontColor:@baseColor;
+.webix_comments_message{
+	white-space: pre-wrap;
+	line-height: 20px;
+	margin-left: 70px;
+	margin-right:10px;
+	a{
+		color:@linkFontColor;
+		text-decoration:none;
+		word-break: break-all;
+	}
+	a:hover{
+		text-decoration:underline;
+	}
+	a:visited{
+		color: #7e57c2;
+	}
+}
+
+.webix_comments_message .webix_comments_mention{
+	font-weight: @boldStyle;
+	white-space: nowrap;
+}
+
+.webix_comments_mention{
+	color: @linkFontColor;
+}
+
+.webix_comments_avatar{
+	margin-left:14px;
+	float: left;
+	position: relative;
+	width: 40px;
+	height: 40px;
+}
+.webix_comments_status {
+	border-radius: 50%;
+	border: 2px solid #FFFFFF;
+	position: absolute;
+	height:12px;
+	width:12px;
+	box-sizing:border-box;
+	top: 30px;
+	left: 30px;
+	z-index: 1;
+	&.active{
+		background-color:@accentColor;
+	}
+	&.busy{
+		background-color:@dangerColor;
+	}
+	&.away{
+		background-color:@infoColor;
+	}
+	&.none{
+		background-color:lighten(@inactiveFontColor, 20%);
+	}
+}
+.webix_comments_avatar_image{
+	width:100%;
+	height:100%;
+	overflow: hidden;
+	border-radius: 50%;
+	float: left;
+	position:relative;
+}
+.webix_comments_photo{
+	width: auto;
+	height: 100%;
+	margin: 0 auto;
+}
+.webix_comments_avatar_text{
+	font-size:16px;
+	color: #1CA1C1;
+	line-height:40px;
+	text-align:center;
+	background-color: #DFE2E6;
+	.webix_icon{
+		margin:0
+	}
+}
+.webix_comments_date{
+	float: right;
+	color:@inactiveFontColor;
+	font-size: 12px;
+}
+
+.webix_comments_image{
+	max-width: 100%;
+    max-height: 300px;
+    display: block;
+}
+
+
+/* buttons*/
+.webix_comments_more{
+	font-weight:@boldStyle;
+	text-align:center;
+	cursor:pointer;
+	background:@buttonColor;
+	color:@buttonFontColor;
+	border:none;
+	border-radius:2px;
+	&:hover{
+		.darkHoverRule(@buttonColor);
+	}
+}
+.webix_comments_send{
+	.webix_el_box{
+		float:right !important; //smth with button align
+	}
+}
