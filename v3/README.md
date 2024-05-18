@@ -1,10 +1,10 @@
 
-# Brainchop  [![Version](https://img.shields.io/badge/Version-2.1.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
+# Brainchop  [![Version](https://img.shields.io/badge/Version-3.4.0-brightgreen)]() [![JS ](https://img.shields.io/badge/Types-JavaScript-blue)]() [![MIT-License ](https://img.shields.io/badge/license-MIT-green)](https://github.com/neuroneural/brainchop/blob/master/LICENSE) [![tfjs](https://img.shields.io/badge/tfjs-Pre--trained%20Model-blue)](https://github.com/neuroneural/brainchop/tree/master/models/mnm_tfjs_me_test) [![DOI](https://joss.theoj.org/papers/10.21105/joss.05098/status.svg)](https://doi.org/10.21105/joss.05098)
 
 
 <div align="center">
-  <a href="https://neuroneural.github.io/brainchop">
-    <img width="100%" src="https://github.com/neuroneural/brainchop/blob/master/css/images/Banner.png">
+  <a href="https://neuroneural.github.io/brainchop/v3">
+    <img width="100%" src="./css/images/Banner.png">
   </a>
 
 
@@ -16,7 +16,7 @@
 
 
 <br>
- <img src="https://github.com/neuroneural/brainchop/blob/master/css/logo/brainchop_logo.png"  width="25%" align="right">
+ <img src="./css/logo/brainchop_logo.png"  width="25%" align="right">
 
  <p align="justify">
  <b><a href="https://neuroneural.github.io/brainchop/"  style="text-decoration: none"> Brainchop</a></b> brings automatic 3D MRI  volumetric segmentation  capability to neuroimaging  by running a lightweight deep learning model (e.g., <a href="https://medium.com/pytorch/catalyst-neuro-a-3d-brain-segmentation-pipeline-for-mri-b1bb1109276a" target="_blank"  style="text-decoration: none"> MeshNet</a>) in the web-browser for inference on the user side. 
