@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    needs: build-and-publish-live-demo # Waits for the ghpages.yml workflow to finish
 
     steps:
       - name: Checkout repository content
@@ -16,7 +17,8 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./v3
           publish_branch: demo
           destination_dir: v3
+
