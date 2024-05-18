@@ -1,0 +1,44 @@
+.webix_progress_top, .webix_progress_bottom{
+	width: 100%;
+	position: absolute;
+	top: 0px; left:0px;
+	height: 6px;
+	overflow: hidden;
+	z-index: 95;
+	background: darken(@backColor,5%);
+}
+.webix_progress_bottom{
+	bottom: 0px;
+    top:auto;
+	height: 17px;
+}
+
+.webix_progress_top .webix_progress_state, .webix_progress_bottom .webix_progress_state{
+	width:0px;
+	height:6px;
+	background: @selectColor;
+	-moz-transition: width 3s;
+	transition: width 3s;
+}
+.webix_progress_bottom .webix_progress_state{
+	height:17px;
+}
+
+.webix_progress_icon {
+	width: 100%;
+	height:100%;
+	position: absolute;
+	top: 0px; left:0px;
+	z-index: 95;
+}
+.webix_progress_icon .webix_progress_state{
+	font-family: @iconFamily;
+	font-size: 50px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -25px;
+	margin-top: -25px;
+	display: inline-block;
+	color: lighten(@fontColor,30%);
+}
