@@ -60,7 +60,7 @@ async function inferenceFullVolumeSeqCovLayerPhase2(
 ) {
   // --Phase-2, After remove the skull try to allocate brain volume and make inferece
 
-  console.log(' ---- Start FullVolume Inference with Sequential Conv Layer for phase-II ---- ')
+    console.log(' ---- Start FullVolume Inference with Sequential Conv Layer for phase-II ---- ')
   const quantileNorm = modelEntry.enableQuantileNorm
   if (quantileNorm) {
     // Quantile normalize function needs specific models to be used
@@ -428,7 +428,7 @@ async function inferenceFullVolumePhase2(
   let outimg = []
   // --Phase-2, After remove the skull try to allocate brain volume and make inferece
   console.log(' ---- Start FullVolume inference phase-II ---- ')
-  const quantileNorm = modelEntry.enableQuantileNorm
+    const quantileNorm = modelEntry.enableQuantileNorm
   if (quantileNorm) {
     // Quantile normalize function needs specific models to be used
     console.log('preModel Quantile normalization enabled')
@@ -825,7 +825,6 @@ async function inferenceFullVolumePhase1(
     // -- If pre-model is not null then slices_3d mask will be generated..
     // -- The mask is needed to remove the skull and set noise in background to 0, and get the brain bounding volume properly
     const slices_3d_mask = null
-
     if (quantileNorm) {
       // Quantile normalize function needs specific models to be used
       console.log('preModel Quantile normalization enabled')
@@ -835,7 +834,6 @@ async function inferenceFullVolumePhase1(
       console.log('preModel Min Max normalization enabled')
       preModel_slices_3d = await minMaxNormalizeVolumeData(slices_3d)
     }
-
     // -- Transpose MRI data to be match pytorch/keras input output
     // -- Check if pre-model needs transpose..
     if (transpose) {

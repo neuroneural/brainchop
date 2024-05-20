@@ -376,5 +376,53 @@ const inferenceModelsList = [
     inferenceDelay: 100, // Delay in ms time while looping layers applying.
     description:
       'FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. The model use sequential convolution for inference to overcome browser memory limitations but leads to longer computation time. '
-  }
+  },
+  {
+    id: 16,
+    type: 'Lesion',
+    path: '/models/model_5ch_ACR/model.json',
+    modelName: '\u26A1 Chronic Lesion',
+    colormapPath: './models/model_5ch_ACR/colormap.json',
+    preModelId: 0, // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
+    preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
+    isBatchOverlapEnable: false, // create extra overlap batches for inference
+    numOverlapBatches: 200, // Number of extra overlap batches for inference
+    enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
+    enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+    cropPadding: 20, // Padding size add to cropped brain
+      autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    enableQuantileNorm: true, // Some models needs Quantile Normaliztion.
+    filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+    enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+    textureSize: 0, // Requested Texture size for the model, if unknown can be 0.
+    warning:
+      "", // Warning message to show when select the model.
+    inferenceDelay: 100, // Delay in ms time while looping layers applying.
+    description:
+      'This model is trained on https://openneuro.org/datasets/ds004884/versions/1.0.1'
+  },
+  {
+    id: 17,
+    type: 'Lesion',
+    path: '/models/model_15ch_ACR/model.json',
+    modelName: '\u{1F52A}  Chronic Lesion',
+    colormapPath: './models/model_15ch_ACR/colormap.json',
+    preModelId: 0, // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
+    preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
+    isBatchOverlapEnable: false, // create extra overlap batches for inference
+    numOverlapBatches: 200, // Number of extra overlap batches for inference
+    enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
+    enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+    cropPadding: 20, // Padding size add to cropped brain
+      autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    enableQuantileNorm: true, // Some models needs Quantile Normaliztion.
+    filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+    enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+    textureSize: 0, // Requested Texture size for the model, if unknown can be 0.
+    warning:
+      "", // Warning message to show when select the model.
+    inferenceDelay: 100, // Delay in ms time while looping layers applying.
+    description:
+      'This model is trained on https://openneuro.org/datasets/ds004884/versions/1.0.1'
+  }    
 ] // inferenceModelsList
