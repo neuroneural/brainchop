@@ -6,14 +6,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npx playwright test",
+    "pretest": "vite build"
   },
   "dependencies": {
     "@niivue/niivue": "^0.43.3",
     "@tensorflow/tfjs": "^4.19.0",
-    "gl-matrix": "^3.4.3",
+    "gl-matrix": "^3.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.12",
     "vite": "^2.7.13"
   },
-  "devDependencies": {},
   "homepage": "https://neuroneural.github.io/brainchop/"
 }
