@@ -248,6 +248,16 @@ async function main() {
   // uncomment next two lines to automatically run segmentation when web page is loaded
   // modelSelect.selectedIndex = 11
   // modelSelect.onchange()
+  
+  // get the query string parameter model.
+  // if set, select the model from the dropdown list and call the modelSelect.onchange() function
+  const urlParams = new URLSearchParams(window.location.search)
+  const modelParam = urlParams.get('model')
+  if (modelParam) {
+    // make sure the model index is a number
+    modelSelect.selectedIndex = Number(modelParam)
+    modelSelect.onchange()
+  }
 }
 
 main()

@@ -4,6 +4,9 @@ export default defineConfig({
   root: '.',
   base: '/',
   server: {
-    open: 'index.html',
+    open: 'index.html'
   },
+  preview: {
+    port : 8088
+  }
 })
