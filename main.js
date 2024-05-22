@@ -94,7 +94,10 @@ async function main() {
     await ensureConformed()
     const model = inferenceModelsList[this.selectedIndex]
     const opts = brainChopOpts
-    opts.rootURL = location.href
+    // opts.rootURL should be the url without the query string
+    const urlParams = new URL(window.location.href)
+    // remove the query string
+    opts.rootURL = urlParams.origin + urlParams.pathname
     const isLocalhost = Boolean(
       window.location.hostname === 'localhost' ||
         // [::1] is the IPv6 localhost address.
