@@ -11,6 +11,8 @@ async function waitForLogMessage(page, browserName, modelIndex) {
   const logMessagePromise = new Promise((resolve, reject) => {
     page.on('console', (msg) => {
       const msgText = msg.text();
+      // log all messages to help debug github actions
+      console.log(msgText);
       if (msgText.includes('Processing the whole brain volume in tfjs for multi-class output mask took :')) {
         // Parse the time in milliseconds
         const time = parseFloat(msgText.split('took : ')[1].split(' Seconds')[0]) * 1000;
