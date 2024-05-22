@@ -1,0 +1,63 @@
+.webix_dt_editor{
+	position:absolute;
+	z-index:2;
+	overflow:visible;
+	background:@backColor;
+}
+.webix_dt_editor input, .webix_dt_editor select{
+	width:100%; 
+	#box > .sizing;
+	padding: 0 (@dataPadding - 1);
+	margin: 0;
+	border:1px solid #ffd700;
+	height: 100%;
+
+	.mainFont;
+	.dataFont;
+}
+
+@dtCheckboxMarginTop: (@rowHeight - 14)/2 + 1;
+.webix_dt_editor input[type="checkbox"]{
+	margin:@dtCheckboxMarginTop (@dataPadding + 1) 0px;
+	height:auto;
+	width:auto;
+}
+.webix_dt_editor select{
+	padding: 0 (@dataPadding - 5);
+}
+
+.webix_clipbuffer{
+	width:2000px;
+	height:1px; padding:0; margin:0; border:0;
+	left:0px;
+	top:0px;
+	white-space: pre-wrap;
+	position:fixed;
+	filter:alpha(opacity=0);
+	opacity:0;
+	pointer-events: none;
+	cursor: default;
+}
+
+
+.webix_dt_editor.webix_password_editor{
+	overflow: hidden;	
+}
+
+.webix_password_editor input{
+	padding-right: 26px;
+}
+
+.webix_password_editor .webix_icon{
+	position: absolute;
+	right: 4px;
+	top: 50%;
+	margin-top: -9px;
+	font-size: 18px;
+	cursor: pointer;
+	color: @inactiveFontColor;
+}
+
+.webix_password_editor .webix_icon:hover{
+	color: @baseColor;
+}

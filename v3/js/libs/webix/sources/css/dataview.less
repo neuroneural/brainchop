@@ -1,0 +1,36 @@
+@import "pager.less";
+
+/*helper for allowing selection*/
+.webix_allow_selection{
+	#box > .select;
+}
+
+/*default item in dataview*/
+.webix_dataview_item{
+	.webix_list_item;
+	border-right:1px solid @lightBorderColor;
+}
+
+/*default item in selected state*/
+.webix_dataview_item.webix_selected{
+	.selectLine;
+	border-bottom:1px solid @selectBorderColor;
+	border-right:1px solid @selectBorderColor;
+}
+
+.webix_dataview_item.webix_invalid{
+	background-color: #ffeeee;
+}
+
+.webix_dataview_item.tiles{
+	box-sizing:border-box;
+	border: 1px solid @dataBorderColor;
+}
+
+.webix_drag_zone > .webix_dataview_item.tiles{
+	margin:0 !important;
+}
+
+.webix_dataview .webix_scroll_cont{
+	box-sizing:border-box;
+}
