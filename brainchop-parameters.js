@@ -380,9 +380,9 @@ const inferenceModelsList = [
   {
     id: 16,
     type: 'Lesion',
-    path: '/models/model_11ch_ACR/model.json',
+    path: '/models/model_11ch_ARC/model.json',
       modelName: '\u{26A0}\u{FE0F} Chronic Lesion 11 channels (T2w)',
-    colormapPath: './models/model_11ch_ACR/colormap.json',
+    colormapPath: './models/model_11ch_ARC/colormap.json',
     preModelId: 0, // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
     preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
     isBatchOverlapEnable: false, // create extra overlap batches for inference
