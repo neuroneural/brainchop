@@ -1,0 +1,49 @@
+.ev_console {
+	border: 1px solid #e0e0e0;
+	min-height: 20px;
+	font-size: 11px;
+	font-family: Tahoma, Arial;
+	padding: 0px;
+	overflow-y: auto;
+	height: 200px;
+	width: 600px;
+}
+
+.ev_console_msg {
+	padding: 4px;
+	padding-left: 22px;
+	min-height: 14px;
+	margin: 0px;
+	margin-top: -22px;
+	border-bottom: none;
+	position: relative;
+	background-color: #CFF4A3;
+	-moz-transition: margin-top 0.3s ease,
+		background-color 2s ease;
+	-webkit-transition: margin-top 0.3s ease,
+		background-color 2s ease;
+	-o-transition: margin-top 0.3s ease,
+		background-color 2s ease;
+}
+
+.ev_console_msg.visible {
+	margin-top: 0px;
+	background-color: #ffffff;
+	border-bottom: 1px solid #efefef;
+}
+
+.ev_console_msg .info {
+	width: 14px;
+	height: 14px;
+	background-color: #A6D074;
+	font-size: 11px;
+	font-weight: bold;
+	font-family: Times New Roman;
+	color: #FFFFFF;
+	float: left;
+	text-align: center;
+	margin-right: 4px;
+	border-radius: 2px;
+	position: absolute;
+	left: 4px;
+}

@@ -1,0 +1,204 @@
+//-------------------------------------------///
+//                  Basis                    ///
+//-------------------------------------------///
+
+@skin : "air";
+//basic colors
+@mainColor : #0070fe;
+@alterColor : #888888;
+@selectColor: #ffc341;
+
+@backColor: #FFFFFF;
+@foreColor: #1e2022;
+@fontColor: @foreColor;
+
+@layoutColor: #ebebeb;
+
+//basis font
+.mainFont(){
+	font-family:Helvetica, Verdana;	
+	font-size:13px;
+	color: @fontColor;
+}
+
+
+
+
+//-------------------------------------------///
+//            Sync with skin.js              ///
+//-------------------------------------------///
+
+@barHeight: 34px;
+@inputHeight: 34px;
+@tabRadius: 0px;
+@menuRadius: 0px;
+@listItemHeight: 28px;
+@menuHeight: 34px;
+@menuMargin:0px;
+//-------------------------------------------///
+//                View, layout               ///
+//-------------------------------------------///
+
+//view, layout
+@templatePadding: 10px;
+@borderColor:	#a4bed4;
+@lightBorderColor:	#ebebeb;
+@wideLayoutColor:   #ebebeb;
+
+
+.layoutBarFont(){
+	.mainFont;
+	font-weight:bold;
+}
+/*[L]*/ @darkerBG:darken(@backColor, 9);
+/*[L]*/ @darkestBG:darken(@backColor, 24);
+.layoutBarBG(){
+	#common > .skyblue();
+}
+
+
+
+//resizer
+.resizerXBG(){
+	#gradient > .v3(@backColor, @darkerBG, @darkestBG);
+}
+.resizerYBG(){
+	#gradient > .h3(@backColor, @darkerBG, @darkestBG);
+}
+//-------------------------------------------///
+//                Window                     ///
+//-------------------------------------------///
+
+@windowRadius: 6px;
+
+
+//-------------------------------------------///
+//                Data components            ///
+//-------------------------------------------///
+
+.v2GradientImportant(@startColor, @endColor){
+	background-color: @endColor;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@startColor), color-stop(100%,@endColor)) !important; /* old webkit */
+	background-image: -webkit-linear-gradient(@startColor, @endColor) !important;
+	background-image: -moz-linear-gradient(@startColor, @endColor) !important;
+	background-image: -ms-linear-gradient(top,  @startColor,  @endColor) !important;
+	background-image: -o-linear-gradient(top,  @startColor,  @endColor) !important;
+}
+.selectLine(){
+	background-size: 100% 100% !important;
+	background-position: 0 0 !important;
+
+	.v2GradientImportant(#ffe8b6, #ffdb8f);
+
+
+}
+
+.selectXLine(){
+	border-bottom:1px solid #FFA952;
+	border-top:1px solid #FFC651;
+}
+.selectYLine(){
+
+}
+
+//data
+@dataHeaderBorderColor:@borderColor;
+@dataBorderColor:@lightBorderColor;
+@dataPadding: 10px;
+.dataHeaderBg(){
+	#common > .skyblue();
+}
+.dataHeaderFont(){
+	//use view default
+	color:lighten(@fontColor, 15);
+}
+.dataFont(){
+	//use view default
+}
+
+
+@listPaddingX: 10px;
+@listPaddingY:  4px;
+@treeItemHeight: 18px;
+@treeIconSize:	18px;
+
+@topMenuPadding: 1px;
+
+.borderGradientDark(@lightColor,@darkColor){
+	background-image:  -webkit-gradient(linear, left top, left bottom, @lightColor, #fff,@lightColor), -webkit-gradient(linear, left top, left bottom,transparent, transparent),  -webkit-gradient(linear, left top, left bottom, @lightColor, @darkColor,@lightColor); /* old webkit */
+	background-image: -webkit-linear-gradient(@lightColor, #fff,@lightColor), -webkit-linear-gradient(transparent, transparent), -webkit-linear-gradient(@lightColor, @darkColor,@lightColor);
+	background-image: -moz-linear-gradient(@lightColor, #fff,@lightColor),-moz-linear-gradient(transparent, transparent),  -moz-linear-gradient(@lightColor, @darkColor,@lightColor);
+	background-image: -ms-linear-gradient(top, @lightColor, #fff,@lightColor),  -ms-linear-gradient(transparent, transparent), -ms-linear-gradient(top,  @lightColor, @darkColor,@lightColor);
+	background-image: -o-linear-gradient(top, @lightColor, #fff,@lightColor), -o-linear-gradient(transparent, transparent), -o-linear-gradient(top,  @lightColor, @darkColor,@lightColor);
+}
+.borderGradientLight(@lightColor){
+	background-image:  -webkit-gradient(linear, left top, left bottom, @lightColor, #fff,@lightColor), -webkit-gradient(linear, left top, left bottom,transparent, transparent),  -webkit-gradient(linear, left top, left bottom,transparent, transparent); /* old webkit */
+	background-image: -webkit-linear-gradient(@lightColor, #fff,@lightColor), -webkit-linear-gradient(transparent, transparent), -webkit-linear-gradient(transparent, transparent);
+	background-image: -moz-linear-gradient(@lightColor, #fff,@lightColor),-moz-linear-gradient(transparent, transparent),  -moz-linear-gradient(transparent, transparent);
+	background-image: -ms-linear-gradient(top, @lightColor, #fff,@lightColor),  -ms-linear-gradient(transparent, transparent),  -ms-linear-gradient(transparent, transparent);
+	background-image: -o-linear-gradient(top, @lightColor, #fff,@lightColor), -o-linear-gradient(transparent, transparent), -o-linear-gradient(transparent, transparent);
+}
+.xMenuItems(){
+	#common > .skyblue();
+	.webix_list_item{
+		-moz-background-size: 1px 100%,100% 100%, 1px 100%;
+		background-size: 1px 100%,100% 100%, 1px 100%;
+		background-color: transparent;
+		margin: @topMenuPadding 0;
+		background-position: 0 0,1px 0, 100% 0%;
+		background-repeat: no-repeat;
+		.borderGradientDark(lighten(@mainColor,45%),@borderColor);
+
+	}
+
+	.webix_list_item:last-child{
+		background-size: 1px 100%,100% 100%, 1px 100%;
+		background-repeat: no-repeat;
+		 .borderGradientLight(lighten(@mainColor,45%));
+		 border-right: 0;
+	}
+
+
+
+
+
+}
+.webix_menu, .webix_menu-x{
+
+
+	.webix_list_item:hover, .webix_list_item:active{
+
+		.selectLine;
+		box-shadow: 0px 0px 1px #FFA952 inset;
+
+	}
+
+
+}
+
+//-------------------------------------------///
+//                   Controls                ///
+//-------------------------------------------///
+.activeBarBG(){
+	#gradient > .v2(#dae7f6, #fff);
+}
+.passiveBarBG(){
+	#common > .skyblue();
+}
+.buttonBackground(){
+	#common > .graybutton;
+}
+
+.arrowBackground(){
+	#common > .whitebutton;
+	#box > .rotate(45deg);
+}
+
+
+
+@tabbarBorderColor:	@borderColor;
+@tabbarSelectBorderColor: #fff;
+@skin_input_y_padding:2px;
+@skin_input_radius: 6px;
+@formFontSize: 13px;
+@iconFontColor: #606060;
