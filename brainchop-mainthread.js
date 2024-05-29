@@ -189,7 +189,7 @@ async function inferenceFullVolumeSeqCovLayerPhase2(
     const timer = window.setInterval(async function () {
       try {
         if (res.layers[i].activation.getClassName() !== 'linear') {
-          curTensor[i] = await res.layers[i].apply(curTensor[i - 1])
+          curTensor[i] = await res.layers[i].apply(curTensor[i - 1], opts.deleteTextureThreshold)
         } else {
           curTensor[i] = await convByOutputChannelAndInputSlicing(
             curTensor[i - 1],
@@ -243,7 +243,7 @@ async function inferenceFullVolumeSeqCovLayerPhase2(
         // let seqConvLayer = new SequentialConvLayer(res, 10, isChannelLast);
         const seqConvLayer = await new SequentialConvLayer(res, 10, isChannelLast, callbackUI, false)
         // Apply the last output tensor to the seq. instance
-        const outputTensor = await seqConvLayer.apply(curTensor[i])
+        const outputTensor = await seqConvLayer.apply(curTensor[i], opts.deleteTextureThreshold)
         callbackUI('seqConvLayer Done')
         // -- document.getElementById("progressBarChild").style.width = 0 + "%";;
 
@@ -556,7 +556,7 @@ async function inferenceFullVolumePhase2(
     curTensor[0] = cropped_slices_3d_w_pad.reshape(adjusted_input_shape)
     const timer = window.setInterval(async function () {
       try {
-        curTensor[i] = res.layers[i].apply(curTensor[i - 1])
+        curTensor[i] = res.layers[i].apply(curTensor[i - 1], opts.deleteTextureThreshold)
       } catch (err) {
         callbackUI(err.message, -1, err.message)
         window.clearInterval(timer)
@@ -904,7 +904,7 @@ async function inferenceFullVolumePhase1(
 
       const timer = window.setInterval(async function () {
         try {
-          curTensor[i] = await res.layers[i].apply(curTensor[i - 1])
+          curTensor[i] = await res.layers[i].apply(curTensor[i - 1], opts.deleteTextureThreshold)
         } catch (err) {
           const errTxt = 'Your graphics card (e.g. Intel) may not be compatible with WebGL. ' + err.message
           callbackUI(errTxt, -1, errTxt)
@@ -1210,7 +1210,7 @@ async function inferenceFullVolumePhase1(
   }
 }
 
-async function enableProductionMode(textureF16Flag = true) {
+async function enableProductionMode(textureF16Flag = true, deleteTextureThreshold = 0) {
   // -- tf.setBackend('cpu')
   // -- tf.removeBackend('cpu')
   // -- Calling enableProdMode() method
@@ -1219,7 +1219,7 @@ async function enableProductionMode(textureF16Flag = true) {
   tf.env().set('DEBUG', false)
   tf.env().set('WEBGL_FORCE_F16_TEXTURES', textureF16Flag)
   // -- set this flag so that textures are deleted when tensors are disposed.
-  tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0)
+  tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', deleteTextureThreshold)
   // -- tf.env().set('WEBGL_PACK', false)
   // -- Put ready after sets above
   await tf.ready()
@@ -1251,7 +1251,7 @@ export async function runInference(opts, modelEntry, niftiHeader, niftiImage, ca
   console.log('Batch size: ', batchSize)
   console.log('Num of Channels: ', numOfChan)
   const model = await load_model(opts.rootURL + modelEntry.path)
-  await enableProductionMode(true)
+  await enableProductionMode(true, opts.deleteTextureThreshold)
   statData.TF_Backend = tf.getBackend()
   const modelObject = model
   let batchInputShape = []

@@ -94,6 +94,8 @@ async function main() {
     await ensureConformed()
     const model = inferenceModelsList[this.selectedIndex]
     const opts = brainChopOpts
+    //deleteTextureThreshold 0 for forced texture deletion, -1 for faster and support Intel GPU+Windows
+    opts.deleteTextureThreshold = deleteTextureCheck.checked ? 0 : -1
     // opts.rootURL should be the url without the query string
     const urlParams = new URL(window.location.href)
     // remove the query string
@@ -143,6 +145,9 @@ async function main() {
     nv1.saveDocument("brainchop.nvd");
   }
   workerCheck.onchange = function () {
+    modelSelect.onchange()
+  }
+  deleteTextureCheck.onchange = function () {
     modelSelect.onchange()
   }
   clipCheck.onchange = function () {
