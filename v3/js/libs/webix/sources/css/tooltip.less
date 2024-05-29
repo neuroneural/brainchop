@@ -1,0 +1,23 @@
+/*style used by tooltip's container*/
+.webix_tooltip{
+	display:none;
+	position:absolute;
+	z-index:10000;
+
+	background-color:@backColor;
+	padding: 5px 10px;
+	border:1px solid @borderColor;
+
+	.mainFont;
+	.dataFont;
+
+	border-radius: @windowRadius;
+	box-shadow: @smallShadow;
+
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.webix_global_tooltip{
+	pointer-events: none;
+}
