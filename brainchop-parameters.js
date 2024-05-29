@@ -17,7 +17,8 @@ const brainChopOpts = {
   telemetryFlag: false, // Ethical and transparent collection of browser usage while adhering to security and privacy standards
   chartXaxisStepPercent: 10, // percent from total labels on Xaxis
   uiSampleName: 'BC_UI_Sample', // Sample name used by interface
-  atlasSelectedColorTable: 'Fire' // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]
+  atlasSelectedColorTable: 'Fire', // Select from ["Hot-and-Cold", "Fire", "Grayscale", "Gold", "Spectrum"]
+  deleteTextureThreshold: -1 //0 for reduced memory (delete textures when tensors disposed), -1 for faster and support Intel GPU+Windows
 }
 
 // Inference Models, the ids must start from 1 in sequence

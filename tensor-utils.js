@@ -499,9 +499,9 @@ export class SequentialConvLayer {
    * @return {outC}
    */
 
-  async apply(inputTensor) {
+  async apply(inputTensor, deleteTextureThreshold = 0) {
     const oldDeleteTextureThreshold = tf.ENV.get('WEBGL_DELETE_TEXTURE_THRESHOLD')
-    tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0)
+    tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', deleteTextureThreshold)
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this
