@@ -1,0 +1,2355 @@
+<!--
+  =========================================================
+* Brainchop - v3.0.0
+=========================================================
+
+* Discription:  A user interface for whole brain segmentation
+*               Input shape : [1, D, H, W, 1] e.g. [1, 256, 256, 256, 1]                
+*               Model : Meshnet or similar lightweigth models    
+*
+* Authors:  Mohamed Masoud  and Sergey Plis  - 2023
+=========================================================
+
+
+
+=========================================================
+           Brainchop for 3D Brain Segmentation
+=========================================================
+--> 
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Brainchop </title>
+  <link rel="apple-touch-icon" sizes="180x180" href="css/favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="css/favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="css/favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="css/favicon_io/site.webmanifest">
+
+  <link rel="stylesheet" href="css/w3.css">
+  <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css">   
+  <link rel="stylesheet" type="text/css" href="js/libs/webix/codebase/webix.css"> 
+  <link rel="stylesheet" type="text/css" href="js/libs/papaya_lib/papaya.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css"> 
+  <link rel="stylesheet" type="text/css" href="css/brainchop.css">
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
+
+  <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+  <script src="https://docs.opencv.org/3.4.0/opencv.js"></script> 
+  <script src="https://www.lactame.com/lib/image-js/0.21.2/image.min.js"></script>  
+
+  <script src="js/libs/webix/codebase/webix.js"></script>  
+  <script src="js/libs/tf.min.js"></script> 
+  <!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"> </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>   -->
+  <script src="js/libs/float16.js"></script>  
+
+  <script type="text/javascript" src="js/libs/papaya_lib/papaya.js"></script>
+  
+  <script type="text/javascript" src="js/libs/nifti-reader.js"></script>
+  <script type="text/javascript" src="js/libs/nifti-reader-min.js"></script>
+  <script type="text/javascript" src="js/brainchop/connectedComponents3DAll.js"></script>
+
+  <script type="module">
+  import { Niivue } from './js/brainchop/Niivue.js';
+  window.Niivue = Niivue;
+</script>
+
+  <script type="text/javascript" src="js/brainchop/mainParameters.js"></script>  
+  <script type="text/javascript" src="js/brainchop/mainMeshNetFunctions.js"></script>
+  <script type="text/javascript" src="js/brainchop/mainNiftiReadingFunctions.js"></script> 
+  <script type="text/javascript" src="js/brainchop/mainTypes.js"></script> 
+
+  
+  <script type="text/javascript" src="js/brainchop/checkCompatibility.js"></script> 
+
+  <script type="text/javascript" src="js/libs/utilities.js"></script>  
+  <script type="text/javascript"  src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
+  <script type="text/javascript" src="js/brainchop/mri_convert.js"></script>  
+
+  <script type="text/javascript" src="//cdn.webix.com/components/edge/highcharts/hcharts.js"></script>
+
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/three.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/controls/TrackballControls.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="js/libs/three/controls/OrbitControls.js"></script>
+  <script type="text/javascript" src="js/libs/util/Stats.js"></script>
+  <script type="text/javascript" src="js/libs/util/dat.gui.min.js"></script>
+
+  <script type="text/javascript" src="js/libs/util.js"></script>
+  <script type="text/javascript" src="js/brainchop/BCBrain3D.js"></script>
+  <link rel="stylesheet" href="css/default.css">
+
+  <style> 
+    /*For Testing*/
+  </style>
+
+      
+</head>
+   
+<body>
+ 
+ <script type="text/javascript">
+
+
+  webix.ready(function () {
+
+
+      // About Window
+      let aboutWindowForm = {view: "form", id: "aboutWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: "Brainchop is an in-browser  automatic segmentation setup for T1 MRI volumes. The tool is an open source and designed to enable users to segment T1 images into regions of interest with a simple interactive interface. The input must be a T1 brain volume in the Nifti format. The output can also be saved as a Nifti file. <br><br> <br><b>Authors:</b> Mohamed Masoud, Farfalla Hu and Sergey Plis (2024).<br> <b>Version:</b> 3.4.0 <br> <b>Funded by:</b>  NIH RF1MH121885. <br><br> <b>Special thanks</b> to Kevin Wang and Alex Fedorov for discussions and pre-trained Meshnet models.<br><br> <b>Affiliation: </b> Center for Translational Research in Neuroimaging and Data Science (<a href='https://trendscenter.org/'>TReNDS</a>) <br><center><img src='css/logo/TReNDS_logo.jpg' width='180' height='60'></img></center>" 
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("aboutWindow").hide();
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+
+
+
+      // About Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "aboutWindow",
+                  height:550,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"About", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("aboutWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: aboutWindowForm
+
+      })
+
+      
+      //-- let about = "Demo of 3D MRI Segmentation. <br>By<br> Mohamed Masoud, Sergey Plis (2023) <br> Grant:  NIH RF1MH121885 ";
+       
+      aboutClick = () => {
+            $$("aboutWindow").show()
+      }
+
+
+
+
+      let  gl2Temp = document.createElement('canvas').getContext('webgl2') ? 
+                  document.createElement('canvas').getContext('webgl2') : null;
+      let maxTextureSize =   gl2Temp ?  gl2Temp.getParameter(gl2Temp.MAX_TEXTURE_SIZE) :  "N/A";         
+
+      // Browser Resources Window
+      let browserResourcesWindowForm = {view: "form", id: "browserResourcesWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", 
+                        template: " <table>" +
+                                      // "<tr>" +
+                                      //   "<th>Model : </th>" +
+                                      //   "<td>" + inferenceModelsList[$$("selectModel").getValue() - 1]["modelName"] + "</td>" +
+                                      // "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Browser : </th>" +
+                                        "<td>" + detectBrowser() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Browser Ver : </th>" +
+                                        "<td>" + detectBrowserVersion() + "</td>" +
+                                      "</tr>" +  
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Operating Sys. : </th>" +
+                                        "<td>" + detectOperatingSys() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>Texture Size. : </th>" +
+                                        "<td>" + maxTextureSize + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>GPU : </th>" +
+                                        "<td>" + detectGPUCardType() + "</td>" +
+                                      "</tr>" +
+
+                                      "<tr>" +
+                                        "<th style='text-align:left'>CPU Cores : </th>" +
+                                        "<td>" + getCPUNumCores()+ "</td>" +
+                                      "</tr>" +
+
+                                    "</table>" +
+                                    "<br><br> - To see a List of tested S/W and H/W with each model please open this <a href='https://docs.google.com/spreadsheets/d/1PU4p6oN4aBfTbXZ8pO6n8fc890Y5Ck0agsIZbm_FO3I/edit#gid=0' target=”_blank”> link. </a> " + 
+
+                                    "<br><br> - If the browser above can detect only the internal graphics chip (e.g. HD, UHD), please check the external GPU driver or the system settings to fix the problem and try again." 
+
+
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("browserResourcesWindow").hide();
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+       }
+
+
+      // Browser Resources Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "browserResourcesWindow",
+                  height:550,
+                  width:600,
+
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Browser Resources", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("browserResourcesWindow").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: browserResourcesWindowForm
+
+      })
+
+      
+      browserResourcesClick = () => {
+            $$("browserResourcesWindow").show()
+      }
+
+
+
+      feedbackClick = () => {
+                   window.open("https://forms.gle/WzUyVEzgCCY2bHo79");
+      }
+
+      githubClick = () => {
+                   window.open("https://github.com/neuroneural/brainchop");
+      }
+
+
+
+      toolbar = {
+          view: "toolbar",
+          css: "toolbarclass",
+          id: "myToolbar",
+          rows:[{ cols: 
+                  [
+                   { view: "label", label: '<img src="css/svg/Artboard2.svg"/>', css: {"color":"black !important", "font-weight": "bold"}, width: 30 },                   
+                   { view: "label", label: '<p>Brain<span>chop</span></p>', css: {"margin":"0!important"},  inputWidth: 100, align: "left" },
+                   { view: "label", label: '<i id="resourcesHwSwId" class="fa fa-cogs"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: browserResourcesClick, tooltip:"Browser Resources" },                   
+                   { view: "label", label: '<i id="feedbackId" class="fa fa-pencil-square-o"/>',
+                   css: {"color":"black !important", "font-weight": "bold"},  width: 60, align:"right", click: feedbackClick, tooltip:"Feedback" },
+                   { view: "button", id: "About", value: "About", css:"bt_1",  width: 100, align: "right", click: aboutClick },
+                   { view: "label", label: '',   css: {"color":"black !important", "font-weight": "bold"},  width: 80, align:"right", click: githubClick, tooltip:"GitHub" },                   
+                  ]
+                }
+          ]
+      }
+
+     closeMriConvPrgBarWin = () => {
+           $$("mriConvPrgBarWin").hide(); 
+     } 
+
+ 
+      // Progress bar for mri_convert.js
+     webix.ui({
+        view:"window",
+        id: "mriConvPrgBarWin",
+        height:50,
+        width:500,
+        position:"center",
+        head:false,
+        body:{
+          template:"  <div class='w3-container' style='margin-top: 1vh;' id='mriConvertProgBarDiv' > <div class='w3-border' > <div class='w3-green' style='height:2vh;width:0%;' id='mriConvertProgBar'></div> </div> </div> "
+        }
+      });
+
+
+
+      //--------------Preprocessing Options -------------//
+
+
+      clearInputThreejsWin = () => {
+          if(inputSceneRendered) {
+              clearScene(inputScene);
+              input_gui.domElement.style.display = "none"; 
+              inputSceneRendered = false;
+          }
+
+          $$("inputThreejsWinId").hide();
+      }  
+
+
+      showInputPreprocessWindow = () => {
+        var defer = $.Deferred();
+        $$("inputThreejsWinId").show();  
+
+        if(! inputSceneRendered) { // if false,  render 
+            document.getElementById("inputLoadingIconDiv").style.display = "";
+        } else {
+            document.getElementById("inputLoadingIconDiv").style.display = "none";
+        } 
+
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;         
+      }
+
+
+      let inputOptions = {view: "form", css: {"border-radius": "20px"}, id: "inputOptionsId", elements: [ 
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Input 3D (Enhancement)",  
+                            id: "preprocessId", 
+                            align: "left"
+                          },                 
+
+                          { 
+                            view: "label", 
+                            id: "inputPrepIcon", 
+                            label: '<i class="fa fa-cube fa-lg" aria-hidden="true" id="preprocessIcon" style="opacity:0.9;filter:alpha(opacity=90);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: false,
+                            click: function() {
+                                     
+                                showInputPreprocessWindow().then(res => {    
+                                    if(! inputSceneRendered) { // if false, will render scene and gui
+
+                                        // Convert niftiImage arrayBuffer to array
+                                        //-- let imageDataFlat1D = new Uint8Array(niftiImage);
+                                        //-- imageDataFlat1D = [...imageDataFlat1D];
+
+                                        let imageDataFlat1D = arrayBuffer2Array(niftiImage, niftiHeader.datatypeCode );
+
+                                        // -- tf.tensor(imageDataFlat1D).max().print()
+                                        
+                                        if( ! isNiftiFileVerified(niftiHeader)) { // To render also non-sampled MRI
+                                            imageDataFlat1D = tf.tidy(() => {  
+                                               //Round image data
+                                               let imageDataTensor = tf.round(tf.tensor1d(imageDataFlat1D));
+                                               //Normalize image data
+                                               return tensor2Array( tf.round(tf.mul(normalizeVolumeData(imageDataTensor), tf.scalar(255)) ) );
+                                            });
+                                        }
+
+                                        // convert to 3D                 // <<<<<<<<<<<<<<<<<<<<<<<<<<<  256 256 256
+                                        let numSlices = niftiHeader.dims[3];
+                                        let sliceHeight =  niftiHeader.dims[2];
+                                        let sliceWidth = niftiHeader.dims[1]; 
+
+                                        let input = tf.tensor(imageDataFlat1D, [numSlices, sliceHeight , sliceWidth]).reverse(1).arraySync(); 
+
+                                        let colorLutObj = {};
+
+                                        // Find voxel values frequency
+                                        let labelsHistogramMap = arrValuesFreq(imageDataFlat1D);
+
+                                        // Convert map to object 
+                                        let labelsHistoObj = map2Object(labelsHistogramMap);
+                                        delete labelsHistoObj['0'];
+
+                                        Object.keys(labelsHistoObj).forEach((labelKey, idx) => {
+                                            colorLutObj[labelKey] =  "rgb(" + labelKey + "," + labelKey + "," + labelKey + ")";
+                                        }) 
+
+                                        // clearScene(scene)
+
+                                        initInput(input, "inputThreejsWinId", 'input-threejs-container', "input_gui_container", "inputLoadingIconDiv", rawNiftiData, niftiImage, colorLutObj );
+
+                                        inputSceneRendered = true;
+                                        
+
+                                    } else { // if already rendered
+                                         input_gui.domElement.style.display = "";
+                                    }
+                                })    
+
+                            }                        
+                          }                           
+
+                      ]    
+              },  
+
+                          
+          ]
+       }
+
+
+
+      // Welcome Window
+      let inputThreejsWinForm = {view: "form", id: "inputThreejsWinFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: "  <div id='input-threejs-container'> <div id='input_gui_container'></div> <div id='inputLoadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' >  <i id='inputLoadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div> </div> <div id='progressLine' class='progress-line'></div>",  
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", id: "inputApplyId", value:"Apply", css:"bt_1", width:100,  
+                                align:"center",
+                                disabled: true
+                        },
+
+                        { view:"button", value:"Cancel", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("inputThreejsWinId").hide();
+                               }
+                        },  
+
+                        { view:"button", id: "inputSaveId", value:"Save Copy", css:"bt_1", width:100,  
+                                align:"center",
+                                disabled: true
+                        },                                                                     
+
+                        {}
+                       ]
+              }             
+
+          ]
+       }
+
+
+
+      webix.ui({
+                  view:"window",
+                  id: "inputThreejsWinId",
+                  height: Math.round(window.innerHeight * 0.7),
+                  width: Math.round(window.innerWidth * 0.7),
+                  move: true,
+                  resize: true,
+                  //width:400,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template: "Input Enhancement", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("inputThreejsWinId").hide();
+                              input_gui.domElement.style.display="none"; 
+                          } }
+                      ]
+                  },                  
+                  position:"center",
+                  body: inputThreejsWinForm
+                  // body:{
+                  //      // create custom list with checkboxes for different ROI.
+                  //      template:"  <div id='input-threejs-container'> <div id='input_gui_container'></div> <div id='inputLoadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' >  <i id='inputLoadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div> </div> "
+                  // }
+              }
+      ) 
+
+      //-----------------Output 3D Options------------------// 
+
+      clearOutputThreejsWin = () => {
+          if(outputSceneRendered) {
+              clearScene(outputScene);
+              output_gui.domElement.style.display = "none"; 
+              document.getElementById('roiList').style.display = "none"; 
+              document.getElementById('roiItems').innerHTML = '';
+              outputSceneRendered = false;
+          }
+
+          $$("outputThreejsWinId").hide();
+      }        
+
+      webix.ui({
+                  view:"window",
+                  id: "outputThreejsWinId",
+                  height: Math.round(window.innerHeight * 0.7),
+                  width: Math.round(window.innerWidth * 0.7),
+                  move: true,
+                  resize: true,
+                  //width:400,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template: "3D Segmentation Regions", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("outputThreejsWinId").hide();
+                              output_gui.domElement.style.display="none"; 
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+  
+
+                  body:{
+                       //-- create custom list with checkboxes for different ROI.
+                       template:"  <div id='output-threejs-container'> <div id='output_gui_container'></div>    <div id='roiList' class='dropdown-check-list'> <span class='anchor'><p style='color:white; font-size:0.6vw; margin-top: 0em; margin-bottom: 0em;'>Select_ROI</p></span>  <ul id='roiItems' class='items'></ul> </div>  <div id='loadingIconDiv' class ='panel' style='top: 50%; left: 50%; ' > <i id='loadingIcon' style='font-size:1.4vw; color: gray; background-color: rgba(0,0,0,0);'  class='w3-xxxlarge w3-spin fa fa-refresh' ></i> </div>    </div> "
+                  }
+      })  
+
+
+      //-----------------Open Brain T1 MRI ----------------------------------//  
+
+      let referenceImage = { view: "form", css: {"border-radius": "20px"},  id: "referenceImage", elements: [ 
+              { type:"header", template:"Open Brain T1 MRI", 
+                css: "headerclass"
+              },
+
+              { cols:[ 
+                      {  view: "label", label: "Select NIfTI file",  
+                          align: "left"
+                      }, 
+
+                      { 
+                       view: "uploader" , value: "Browse", width: 100, id:"imageUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "image/nii, image/nii.gz",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                     let file = upload.file;
+                                     //--file{name: "test.nii", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(file["name"].search(".nii") > 0) {
+
+                                          refFileName = file["name"];
+
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //--evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+
+                                                  // params_mri["files"] = [file]; 
+                                                  // Or
+                                                  params_mri["binaryImages"] = [event.target.result];
+
+
+
+                                                  // Set 0 for MRI viewer 
+                                                  papaya.Container.resetViewer(0, params_mri);
+                                                  papaya.Container.atlas = null;
+                                                  // Set 1 for label viewer, need this step to remove startup image
+                                                  // papaya.Container.resetViewer(1);
+                                                  papayaContainers[1].viewer.resetViewer();
+                                                  papayaContainers[1].viewer.canvas.removeEventListener('mousemove', mouseMoveHandler);
+                                                  papayaContainers[1].viewer.canvas.removeEventListener('mouseout', mouseOutHandler);
+
+                                                  let startTime = performance.now(); 
+                                                  // decompress/check uploaded Nifti data
+                                                  rawNiftiData = getNiftiRawData(event.target.result);
+
+                                                  if(rawNiftiData == null) {
+                                                      let loadingErrorTxt = "This file not Nifti or corrupted. Please try again";
+
+                                                      webix.alert({
+                                                        type:"alert-error",
+                                                         width:"35%",
+                                                        text: loadingErrorTxt
+                                                      });
+                                                     
+                                                     $$("segmentBtn").disable();
+                                                     // Disable input 3d preprocess button
+                                                     $$("inputPrepIcon").disable();
+                                                     document.getElementById("preprocessIcon").style.opacity = 0.3;  
+                                                     document.getElementById("preprocessIcon").style.filter = "alpha(opacity=30)";                                                     
+                                                     return 0;
+                                                  }
+
+                                                  // If new MRI loaded, clear last 3D window if rendered before.
+                                                  clearInputThreejsWin();
+                                                  $$("inputPrepIcon").enable();
+                                                  document.getElementById("preprocessIcon").style.opacity = 0.9;  
+                                                  document.getElementById("preprocessIcon").style.filter = "alpha(opacity=90)";                                                   
+
+                                                  niftiHeader = readNiftiHeader(rawNiftiData);
+                                                  niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
+
+                                                  statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);
+                                                  statData["Resampled"] = null;
+
+                                                  statData["File_Type"] =  nifti.isNIFTI1(rawNiftiData) ? "NIFTI-1" : nifti.isNIFTI2(rawNiftiData) ? "NIFTI-2" : "NOT-NIFTI"; 
+                                                  statData["Img_Size"] = JSON.stringify([niftiHeader.dims[1], niftiHeader.dims[2], niftiHeader.dims[3]]);  
+                                                  statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
+                                                  statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
+                                                  statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                                                  statData["Vox_1mm"] = isVoxelSize1mm(niftiHeader);
+                                                  statData["File_Verified"] = isNiftiFileVerified(niftiHeader);                                                  
+                                                  //-- Check if Nifti file is already converted and no need to mri_convert.js
+                                                  if( ! isNiftiFileVerified(niftiHeader)) {
+
+                                                      let reasonTxt = "", actionTxt = "", actionCounter = 0;
+                                                      //-- Check  Nifti file shape
+                                                      if( (niftiHeader.dims[1]!= 256) || (niftiHeader.dims[2]!= 256) || (niftiHeader.dims[3]!= 256) ) {
+                                                           reasonTxt = " <br> Image shape should be 256x256x256.<br>";
+                                                           actionTxt = "reshaped";
+                                                           actionCounter += 1;
+                                                           $$("segmentBtn").disable();
+                                                      } 
+                                                      //-- Check  Nifti file data type 
+                                                      if ( (niftiHeader['numBitsPerVoxel'] != 8) || (niftiHeader['datatypeCode'] != 2) ) {
+                                                           reasonTxt = reasonTxt + " <br> Data type should be integer in range 0-255.<br>";
+                                                           if(actionCounter) { actionTxt += "/"  }
+                                                           actionTxt += "scaled ";
+                                                           actionCounter += 1;                                                           
+                                                           $$("segmentBtn").disable();
+                                                      }  
+
+                                                      //-- Check  Nifti file data type 
+                                                      if ( ! isVoxelSize1mm(niftiHeader)) {
+                                                           reasonTxt = reasonTxt + " <br> Voxels should be 1x1x1 mm thickness.<br>";
+                                                           if(actionCounter) { actionTxt += "/"  }
+                                                           actionTxt += "resampled ";
+                                                           actionCounter += 1;                                                           
+                                                           $$("segmentBtn").disable();
+                                                      } 
+
+                                                      let alertTxt = "MRI needs to be " + actionTxt.bold() + " for proper results. <br>" + reasonTxt.fontcolor("red").bold()  +  " <br> For more information please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.";
+
+
+                                                      webix.confirm({
+                                                        title:"",
+                                                        ok:"Apply", 
+                                                        cancel:"Cancel",
+                                                        type: "confirm-error",
+                                                        width: 500,
+                                                        text: alertTxt
+                                                      })
+                                                        .then(() => {
+                                                               //---
+                                                            console.log("Starting mri_convert") 
+                                                            let blob = new Blob( params_mri["binaryImages"] , {type: "application/octet-binary;charset=utf-8"});
+                                                            let rawImgurl = window.URL.createObjectURL(blob);
+                                                             
+                                                            mri_convert(rawImgurl, rawNiftiData, file["name"]).then(function(res) {
+                                                                rawNiftiData = res;
+                                                                niftiHeader = readNiftiHeader(rawNiftiData);
+                                                                niftiImage = readNiftiImageData(niftiHeader, rawNiftiData); 
+
+                                                                params_mri["binaryImages"] = [rawNiftiData];
+                                                                papaya.Container.resetViewer(0, params_mri);
+                                                                
+                                                                // If still not correctly converted
+                                                                if(! isNiftiFileVerified(niftiHeader)) { 
+                                                                      webix.alert(" File can not be resampled. <br> For more options please refer to  <a href='https://github.com/neuroneural/brainchop/wiki/Input-Data' target='_blank'><b>Input Data</b></a> section.");
+
+                                                                      statData["Resampled"] = false;
+                                                                      submitTiming2GoogleSheet(statData);
+
+                                                                } else {
+
+                                                                      statData["Resampled"] = true;  
+                                                                }
+                                                                // enable it for all cases 
+                                                                $$("segmentBtn").enable(); 
+                                                                  
+
+                                                            });
+
+                                                      })
+                                                        .fail(() => {
+                                                               //---
+                                                               $$("segmentBtn").disable();
+                                                               statData["Brainchop_Ver"] = "Cancelled"
+                                                               submitTiming2GoogleSheet(statData);
+                                                      });
+
+                                                  } else { // Not varified file
+
+                                                                                                                                                
+                                                      if(checkGPU()) {
+                                                         $$("segmentBtn").enable();
+                                                      }
+                                                  }
+
+                                                  numOfOverlays = 0;   
+                                                  $$("downloadBtn").disable(); 
+                                                  $$("out3DIcon").disable(); 
+                                                  $$("outChartIcon").disable();       
+                                                  document.getElementById("out3D-1").style.opacity = 0.3;
+                                                  document.getElementById("outChart-1").style.opacity = 0.3;  
+                                                  document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
+                                                  document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";                                                     
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select Nifti file *.nii / *.nii.gz")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+                    ] 
+               }
+         ]
+      }
+
+     // function to get masking model from inferenceModelsList
+     getMaskingModels = () => {
+        return ["", "Full Brain GWM (light)", "Full Brain GWM (H Acc & H Crop)"];
+     }
+
+      let modelBrowsingForm = {view: "form", id: "modelBrowsingFormId", elements: [ 
+              {  cols: [
+                    { view: "label", label: "Model*", align: "left"},                 
+                    { view:"icon", id: "modelIconId", icon:"", align: "left"},
+                      { 
+                       view: "uploader" , value: "Load", width: 100, id:"modelUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                     let file = upload.file;
+                                     modelFile = file;
+                                     console.log("modelFile :", modelFile)
+                                     //--file{name: "model.json", lastModified: 1548792883000, webkitRelativePath: "", size: 5030, type: ""}
+                                     if(modelFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+                                          let blob = makeSlice(file, 0, file.size);
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //--evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+                                                  $$("modelIconId").config.icon = "wxi-check";
+                                                  $$("modelIconId").refresh();                                                  
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select model json file *.json")
+                                    
+                                    }     
+                                    
+                                    return false;
+
+                              }
+                          }
+                      }
+
+
+                ]    
+             },             
+
+              {  cols: [
+                    { view: "label", label: "Weights*", align: "left"},                 
+                    { view:"icon", id: "weightsIconId", icon:"", align: "left"},
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"weightUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/bin",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      weightFile = file;
+                                      console.log("weightFile :", weightFile)
+                                      //--file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(weightFile["name"].search(".bin") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+                                                  $$("weightsIconId").config.icon = "wxi-check";
+                                                  $$("weightsIconId").refresh();
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select weights binary file *.bin")
+                                    
+                                    }     
+                                    
+                                    return false;
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    { view: "label", label: "Labels", align: "left"},                 
+                    { view:"icon", id: "labelsIconId", icon:"", align: "left"},
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"labelUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      labelFile = file;
+                                      console.log("labelFile :", labelFile)
+                                      //--file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(labelFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+                                                  $$("labelsIconId").config.icon = "wxi-check";
+                                                  $$("labelsIconId").refresh();
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select labels json file *.json")
+                                    
+                                    }     
+                                    
+                                    return false;
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    { view: "label", label: "Colors", align: "left"},                 
+                    { view:"icon", id: "colorsIconId", icon:"", align: "left"},
+                     { 
+                       view: "uploader" , value: "Load", width: 100, id:"colorUploader", 
+
+                       css:"bt_1",
+                       align: "left",
+                       accept: "application/json",
+                       autosend: false, 
+                       multiple: false, 
+                       on: {        
+                              onBeforeFileAdd: function(upload) {        
+                                      let file = upload.file;
+                                      colorFile = file;
+                                      console.log("colorFile :", colorFile)
+                                      //--file{name: "weights.bin", lastModified: 1548792883000, webkitRelativePath: "", size: 503010, type: ""}
+                                     if(colorFile["name"].search(".json") > 0) {
+                                          let reader = new FileReader();  
+
+                                          var blob = makeSlice(file, 0, file.size);
+
+                                          reader.onloadend = function(event) {
+
+                                              if (event.target.readyState === FileReader.DONE) {
+                                                  //--evt.target.result is :  ArrayBuffer { byteLength: 763810 }
+                                                  $$("colorsIconId").config.icon = "wxi-check";
+                                                  $$("colorsIconId").refresh();
+
+                                              }
+                                         };
+
+                                         reader.readAsArrayBuffer(blob);
+
+                                    } else {
+                                      webix.message("Select colors json file *.json")
+                                    
+                                    }     
+                                    return false;
+                              }
+                          }
+                      }
+                ]    
+             },
+
+              {  cols: [
+                    {   view: "label", label: "Transpose Input",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "transposeStatus", 
+                      value: 1, 
+                      options: ["true", "false"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Transpose 3D MRI input data axis for best inference input orientation."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+
+              {  cols: [
+                    {   view: "label", label: "Input Quantile Norm",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "quantileNormStatus", 
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Apply Quantile normalization to input MRI, if false then Min-Max normalization will be applied."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+
+              {  cols: [
+                    {   view: "label", label: "Auto Threshold Input",  
+                        align: "left"
+                    }, 
+
+                    {
+                      view: "select", 
+                      id: "autoThresholdStatus", 
+                      value: 1, 
+                      options: ["0", "0.1", "0.2"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "For speed-up the inference with limited browser memory, auto thresholding the brain from noisy voxels around it before cropping it and feeding the result to the inference model can lower memory use.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    } 
+
+                ]    
+             },  
+
+
+
+
+
+              {  cols: [
+                    {   view: "label", label: "Crop Input",  
+                        align: "left"
+                    }, 
+
+                    {
+                      view: "select", 
+                      id: "cropStatus", 
+                      value: 1, 
+                      options: ["false", "true"],
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue == "true") {
+                               $$("cropPadStatus").enable();
+                               $$("preModelStatus").enable();
+
+                          } else {
+                               $$("cropPadStatus").disable();
+                               $$("cropPadStatus").setValue(0);
+                               $$("preModelStatus").setValue("");
+                               $$("filterByMaskStatus").setValue("false");
+                          }
+
+                        }
+                      }                      
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "For speed-up the inference with limited browser memory, cropping brain from background before feeding the result to the inference model can lower memory use.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    } 
+
+                ]    
+             },   
+
+              {  cols: [
+                    {   view: "label", label: "Crop Padding",  
+                        align: "left"
+                    }, 
+
+                    { view: "select", 
+                      id: "cropPadStatus", 
+                      value: 0, 
+                      disabled: true,
+                      options: ["0", "1", "2", "3"]
+                    },
+                    
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Add Padding to cropped brain 3D image. ";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                         
+
+                ]    
+             }, 
+
+              {  cols: [
+                    {   view: "label", label: "Crop by Pre-Model",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "preModelStatus", 
+                      value: 1, 
+                      disabled: true,
+                      options:  getMaskingModels(),
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue !== "") {
+                               $$("filterByMaskStatus").enable();
+                               $$("preModelPostprocessStatus").enable();
+            
+                          } else {
+                               $$("filterByMaskStatus").disable();
+                               $$("filterByMaskStatus").setValue("false");
+                               $$("preModelPostprocessStatus").disable();
+                               $$("preModelPostprocessStatus").setValue("false");                               
+                          }
+
+                        }
+                      }  
+
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Select a masking model for cropping the brain.";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                        
+
+
+                ]    
+             },   
+
+
+              {  cols: [
+                    {   view: "label", label: "Pre-Model Postprocess",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "preModelPostprocessStatus", 
+                      value: 1, 
+                      disabled: true,
+                      options:  ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "Select if postprocessing is needed after preModel complete brain masking inference";
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                        
+
+
+                ]    
+             },                                               
+
+              {  cols: [
+                    {   view: "label", label: "Filter Output by Mask",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "filterByMaskStatus", 
+                      disabled: true,
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "This is a voxel-wise multiplication of resulted output and the mask resulted from the pre-model inference. This option can be used to clean any wrongly segmented regions (e.g. skull areas) but also it can result in removing some properly segmented regions."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                          
+
+                ]    
+             },
+
+              {  cols: [
+                    {   view: "label", label: "Sequential Convolution",  
+                        align: "left"
+                    }, 
+
+                    { 
+                      view: "select", 
+                      id: "seqConvStatus", 
+                      disabled: false,
+                      value: 1, 
+                      options: ["false", "true"]
+                    },
+
+                    { 
+                      view: "label", 
+                      label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                      css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                      width: 25,
+                      height: 25,
+                      click: function() {
+                          let info = "This is enabling sequential convolution layer instead of the model last layer for segmenation. This option can be used to make large and atlas models run on limited resources browser but it takes longer time for inference."
+                          $$("modelTooltip").show();
+                          document.getElementById("tooltipDiv").innerHTML = 
+                          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"
+                      }                        
+                    }                                                          
+
+                ]    
+             },
+
+              {  cols: [
+                    {   view: "label", label: "Model Name*",  
+                        align: "left"
+                    },                 
+                    { view: "text", 
+                      placeholder: "New Model ",  
+                      id: "proposedModelName", 
+                      disabled: false,
+                      align: "left"
+                    }
+                ]    
+             },              
+              {  cols: [
+                        {}, 
+                          { view:"button", value:"Confirm", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+
+                                    if(modelFile && weightFile) {
+
+                                           let newId = parseInt(inferenceModelsList.at(-1)["id"]) + 1;
+                                           newId = newId.toString();
+
+                                           // Model list loaded from browsing
+                                           browserModelList.push({id: newId, modelFile: modelFile, weightFile: weightFile, colorFile: colorFile, labelFile: labelFile });
+
+                                           let labelFileUrl = null;
+
+                                           if(browserModelList.at(-1)["labelFile"]) {
+                                                labelFileUrl = URL.createObjectURL(browserModelList.at(-1)["labelFile"]);
+                                           } 
+
+                                           let colorFileUrl = null;
+
+                                           if(browserModelList.at(-1)["colorFile"]) {
+                                                colorFileUrl = URL.createObjectURL(browserModelList.at(-1)["colorFile"]);
+                                           } 
+
+                                           let newModelName = "New Model " + newId;
+                                           if($$("proposedModelName").getValue().length && isLetter($$("proposedModelName").getValue()[0])){
+                                                newModelName =   $$("proposedModelName").getValue().trim();
+                                                // Check new imported model name possible redundancy
+                                                if ( inferenceModelsList.filter(entry => entry.modelName == newModelName).length ) {
+                                                      webix.message("Please select unique model name");
+                                                      return 0;
+                                                }
+
+                                            } else if($$("proposedModelName").getValue().length) {
+                                                webix.message("Please select valid model name");
+                                                return 0;
+                                            } else if(isLetter($$("proposedModelName").getValue()[0])) {
+                                                webix.message("Please select model name");
+                                                return 0;
+                                            }
+
+                                           let preModelIdVal = null;
+                                           if($$("preModelStatus").getValue().length ){
+                                                preModelIdVal =   inferenceModelsList.filter(entry => entry.modelName === $$("preModelStatus").getValue())[0].id;
+
+                                            } 
+
+
+                                           inferenceModelsList.push({
+                                                 id: newId, 
+                                                 type: "Segmentation", 
+                                                 path: null, 
+                                                 modelName: newModelName, 
+                                                 labelsPath: labelFileUrl, 
+                                                 colorsPath: colorFileUrl, 
+                                                 preModelId: preModelIdVal,
+                                                 preModelPostProcess: ($$("preModelPostprocessStatus").getValue() === 'true'),
+                                                 isBatchOverlapEnable: false, 
+                                                 numOverlapBatches: 0, 
+                                                 enableTranspose:($$("transposeStatus").getValue() === 'true'),
+                                                 enableCrop: ($$("cropStatus").getValue() === 'true'), 
+                                                 cropPadding: parseInt($$("cropPadStatus").getValue()), 
+                                                 autoThreshold: parseInt($$("autoThresholdStatus").getValue()),
+                                                 enableQuantileNorm: ($$("quantileNormStatus").getValue() === 'true'),
+                                                 filterOutWithPreMask: ($$("filterByMaskStatus").getValue() === 'true'), 
+                                                 enableSeqConv: ($$("seqConvStatus").getValue() === 'true'), 
+                                                 textureSize: 0,
+                                                 warning: null, 
+                                                 inferenceDelay: 100,             
+                                                 description: ""                                            
+                                           })
+
+
+                                           selectModelOptions = getSegmentationFormOptions(inferenceModelsList);
+                                           $$("selectModel").config.options = selectModelOptions;
+                                           $$("selectModel").config.value = parseInt(newId);
+                                           $$("selectModel").refresh();
+                                           
+                                           $$("modelBrowsingWindow").hide(); 
+                                           $$("proposedModelName").setValue("");
+
+
+                                    } else if(weightFile) { 
+                                           webix.message("Please select the model json file");
+                                    
+                                    } else {
+                                           webix.message("Please select the model weights file");
+                                    }  
+                               }
+                           },
+                          {}
+                       ]
+              }      
+
+          ]
+       }
+
+
+
+      // Model Browsing Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "modelBrowsingWindow",
+                  height:770,
+                  width:400,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Load tfjs Model", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("modelBrowsingWindow").hide();
+                              $$("proposedModelName").setValue("");
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: modelBrowsingForm
+      })
+
+      // Reset check icon
+      $$("modelBrowsingWindow").attachEvent("onShow", function(){
+          $$("weightsIconId").config.icon = "";
+          $$("modelIconId").config.icon = "";
+          $$("labelsIconId").config.icon = "";
+          $$("colorsIconId").config.icon = "";
+          $$("weightsIconId").refresh();
+          $$("modelIconId").refresh();
+          $$("labelsIconId").refresh();
+          $$("colorsIconId").refresh();  
+          $$("cropStatus").setValue("false"); 
+          $$("seqConvStatus").setValue("false");    
+          modelFile = null;
+          weightFile = null;
+          labelFile = null;
+          colorFile = null;
+      });
+
+
+      getSegmentationFormOptions = (modelsList) => {
+          let selectedOptions = [];
+
+          modelsList.forEach( function(modelEntry) {
+             selectedOptions.push({id: modelEntry["id"], value: modelEntry["modelName"], path: modelEntry["path"] });
+          })
+
+          selectedOptions.push({id: "Browse...", value: "Browse...", path: null });
+
+          return selectedOptions
+      }
+
+      // To load models dynamically from  inferenceModelsList
+      let selectModelOptions = getSegmentationFormOptions(inferenceModelsList);
+      
+      //-- Count total number of models excluding browsing models
+      numOfModelsWithoutBrowse =  inferenceModelsList.length;
+
+
+      onShowWarningCheck = (checkElem) => {
+           webix.storage.local.put("noShowWarning", document.getElementById("noShowWarningId").checked);
+      }
+
+      fetchModelWarningStatus = () => {
+          return webix.storage.local.get("noShowWarning");
+      }       
+
+      onShowTooltipCheck = (checkElem) => {
+          webix.storage.local.put("noShowTooltip", document.getElementById("noShowTooltipId").checked);
+
+      }
+
+      fetchModelTooltipStatus = () => {
+          return webix.storage.local.get("noShowTooltip");
+      } 
+
+      getModelinfo = () => {
+          let modelDescription = inferenceModelsList[$$("selectModel").getValue() - 1]["description"];
+          let info = "No info for this model";
+          
+          if(modelDescription) {
+              info = modelDescription;
+          } 
+
+          $$("modelTooltip").show();
+          document.getElementById("tooltipDiv").innerHTML = 
+          "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ info +" </font>"          
+      }
+
+      resestDependency = () => {
+        //-- For future use
+        document.getElementById("out3D-1").style.opacity = 0.3;
+        document.getElementById("outChart-1").style.opacity = 0.3;  
+        document.getElementById("out3D-1").style.filter = "alpha(opacity=30)";
+        document.getElementById("outChart-1").style.filter = "alpha(opacity=30)";      
+        document.getElementById("progressBarChild").parentElement.style.visibility = "hidden";
+        document.getElementById("progressBarChild").style.width = 0;        
+        //-- Reset papaya MRI viewer overlay if exists
+        resetMriViewerOverlay(1);
+        //-- Reset Label Viewer        
+        resetLabelViewer();  
+        clearOutputThreejsWin();      
+        resetMainParameters();                 
+      }     
+
+      disableControls = () => {
+         $$("out3DIcon").disable(); 
+         $$("outChartIcon").disable();   
+         $$("downloadBtn").disable(); 
+         $$("segmentBtn").disable(); 
+      }     
+
+      newRunInferencePrepare = () => {
+        var defer = $.Deferred();
+        disableControls();
+        resestDependency();
+       
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;
+      }
+
+      let Segmentation = {view: "form", css: {"border-radius": "20px"}, id: "Segmentation", elements: [ 
+              { type:"header", template:"Segmentation Options",
+                css: "headerclass"
+              },
+
+              { cols: [
+
+                      { view:"select", 
+                        label:"Models", 
+                        id: "selectModel",
+                        value:1, 
+                        options: selectModelOptions,
+                        on:{        
+                            onChange: function(newValue, oldValue, config) {   
+                               const selectedModelEntry = selectModelOptions[this.getValue() - 1]; 
+
+                               if(newValue == "Browse...") {
+                                      console.log("Browse selected ..")
+                                      $$("modelBrowsingWindow").show();
+                                    
+                               } else if (selectedModelEntry["path"]) {
+                                             modelObject = {};
+                                             const modelEntry = selectModelOptions[this.getValue() - 1]; 
+
+                                             let curModelEntry = inferenceModelsList.filter(entry => entry.id == this.getValue().toString())[0];
+
+                                             let noShowWarningStatus = fetchModelWarningStatus();
+
+                                             if(! noShowWarningStatus) {
+
+                                                 if (curModelEntry["warning"] != null) {
+                                                        $$("modelTooltip").show();
+                                                        document.getElementById("tooltipDiv").innerHTML = 
+                                                        "<i style='font-size:1.4vw'  class='fa fa-exclamation-triangle' ></i> <font style='font-size:0.9vw' >&nbsp&nbsp"+ curModelEntry["warning"] +" </font><br><br><input type='checkbox' id='noShowWarningId' onclick='onShowWarningCheck(this)' name='noShowWarning'><label for='noShowWarning' style='color: black'> Don't show again</label>"
+                                               
+                                                 }
+                                             }    
+
+
+                                             let noShowTooltipStatus = fetchModelTooltipStatus();
+                                             
+                                             if(! noShowTooltipStatus) {                                     
+
+                                                 if (curModelEntry["textureSize"] != 0) {
+                                                    //--Compare model needed texture size and browser max texture size 
+                                                    if(curModelEntry["textureSize"] > getMaxTextureSize()) {
+                                                        $$("modelTooltip").show();
+
+                                                        let warningMessage = "Current browser may not able to run selected model. " + curModelEntry["warning"];
+                                                        // $$("modelTooltip").config.body.template = 
+                                                        document.getElementById("tooltipDiv").innerHTML = 
+                                                        "<i style='font-size:1.4vw'  class='fa fa-info-circle' ></i> <font style='font-size:0.77vw' >&nbsp&nbsp"+ warningMessage +" </font><br><br><input type='checkbox' id='noShowTooltipId'  name='noShowTooltip' onclick='onShowTooltipCheck(this)'><label for='noShowTooltip'> Don't show </label>"
+                                                    }
+                                                 }
+                                             }    
+
+
+                               } else {
+                                      let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                                      if(! (modelEntry.modelFile && modelEntry.weightFile)) {
+
+                                             $$("segmentBtn").disable();
+                                      } 
+
+                               }
+
+                           }, 
+                            onAfterRender: function() {
+                               const modelEntry = selectModelOptions[this.getValue() - 1]; 
+
+                               if(! modelEntry["path"]) {
+
+                                      let modelEntry  = browserModelList.filter(entry => entry.id == this.getValue().toString())[0];
+                                      if(! (modelEntry.modelFile && modelEntry.weightFile)) {
+
+                                             $$("segmentBtn").disable();
+                                      }         
+                               }
+
+                           }                   
+                        }                
+                      }, 
+
+
+                      { 
+                        view: "label", 
+                        label: '<img src="css/svg/info-circle-solid.svg"/>', 
+                        css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                        width: 25,
+                        height: 25,
+                        click: function() {
+                                   getModelinfo();
+                        }                        
+                      } 
+      
+                  ]
+              },   
+     
+              {  cols: [
+                          {   
+                            view: "label", label: "Inference",  
+                            id: "segmentBtnLabel", 
+                            align: "left"
+                          },                 
+                          { 
+                            view: "button", label: "Run", 
+                            css:"bt_1",
+                            disabled: true,
+                            id: "segmentBtn", 
+                            align: "left",
+                            click: function() {
+
+                                       // test for requirement 
+                                       let maxTextureAvail = getMaxTextureSize();
+                                       let requiredTexture = inferenceModelsList[$$("selectModel").getValue() - 1]["textureSize"];
+
+
+
+                                       if( maxTextureAvail >= requiredTexture ) {
+
+                                           newRunInferencePrepare().then(res => { runInference();})                                     
+                                       } else {
+                                         webix.alert("This model needs texture size of minimum " + requiredTexture + ", while current browser supports only " + maxTextureAvail); 
+                                       }
+                            }
+                          }
+                      ]    
+              }, 
+              { content: "progressBarDiv" , height:50} 
+              // { content: "subProgressBarDiv" , height:50},
+                           
+          ]
+       }
+
+
+
+
+      //--------------------------------------------//
+      //---------- Output Rendering ----------------//
+      //--------------------------------------------//
+
+      function convertTo3DArrayAndFlip(allOutputSlices3DCC1DimArray, shape) {
+          const [num_of_slices, slice_height, slice_width] = shape;
+          // Create a 3D array (as a flattened 1D typed array for efficiency)
+          const size = num_of_slices * slice_height * slice_width;
+          const threeDArray = new allOutputSlices3DCC1DimArray.constructor(size);
+
+          for (let slice = 0; slice < num_of_slices; slice++) {
+              for (let row = 0; row < slice_height; row++) {
+                  // Calculate the starting index for this row in the source and destination arrays
+                  const srcStartIndex = (slice * slice_height * slice_width) + (row * slice_width);
+                  const destStartIndex = (slice * slice_height * slice_width) + ((slice_height - row - 1) * slice_width);
+                  
+                  // Copy a slice row into the correct position in the 3D array, flipping it in the process
+                  threeDArray.set(
+                      allOutputSlices3DCC1DimArray.subarray(srcStartIndex, srcStartIndex + slice_width), 
+                      destStartIndex
+                  );
+              }
+          }
+
+          // Convert the flattened typed array back to a nested regular array structure
+          const nestedArray = [];
+          for (let slice = 0; slice < num_of_slices; slice++) {
+              const twoDArray = [];
+              for (let row = 0; row < slice_height; row++) {
+                  const start = (slice * slice_height * slice_width) + (row * slice_width);
+                  const end = start + slice_width;
+                  twoDArray.push(Array.from(threeDArray.subarray(start, end)));
+              }
+              nestedArray.push(twoDArray);
+          }
+
+          return nestedArray;
+      }
+
+      showThreejsWindow = () => {
+        var defer = $.Deferred();
+        $$("outputThreejsWinId").show(); 
+
+        if(! outputSceneRendered) { // if false,  render 
+            document.getElementById("loadingIconDiv").style.display = "";
+        } else {
+            document.getElementById("loadingIconDiv").style.display = "none";
+        } 
+
+        setTimeout(function() {
+            defer.resolve(); // When this fires, the code in a().then(/..../); is executed.
+        }, 100);  
+
+        return defer;         
+      }
+
+      let outputOptions = {view: "form", css: {"border-radius": "20px"}, id: "OutputOptionsId", elements: [ 
+              // { type:"header", template:"Output Options",
+              //   css: "headerclass"
+              // },
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Output Volumes",  
+                            id: "outChartLabel", 
+                            align: "left"
+                          },                 
+
+                          { 
+                            view: "label", 
+                            id: "outChartIcon", 
+                            label: '<img src="css/svg/outChart-1.svg" id="outChart-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: true,
+                            click: function() {
+
+                                  $$("labelsHistogramWinId").show();                                
+
+                            }                        
+                          }                           
+
+                      ]    
+              },  
+
+              {  cols: [
+                          {   
+                            view: "label", label: "Output 3D",  
+                            id: "out3DLabel", 
+                            align: "left"
+                          },                 
+                          { 
+                            view: "label", 
+                            id: "out3DIcon", 
+                            label: '<img src="css/svg/out3D-1.svg" id="out3D-1" style="opacity:0.3;filter:alpha(opacity=30);"/>', 
+                            css: {"color":"black !important", "font-weight": "bold", "cursor": "pointer"}, 
+                            width: 25,
+                            height: 25,
+                            disabled: true,
+                            click: function() {
+                                  //-- $$("outputThreejsWinId").show(); 
+                                 showThreejsWindow().then(res => {    
+                                    if(! outputSceneRendered) { // if false, will render scene and gui
+
+                                       init(convertTo3DArrayAndFlip(outVolumeStatus['out3DArr'],outVolumeStatus['out3DArrShape']), "outputThreejsWinId",'output-threejs-container', "output_gui_container",outVolumeStatus['colorLutObj'], outVolumeStatus['labelsObj']);
+
+                                       outputSceneRendered = true;
+                                       document.getElementById("loadingIconDiv").style.display = "none";
+
+                                    } else { // if already rendered
+                                         output_gui.domElement.style.display = "";
+                                    }
+                                 })    
+                            }                        
+                          }                         
+
+                      ]    
+              }                            
+          ]
+       }
+
+
+
+
+
+
+      // Welcome Window
+      let welcomeWindowForm = {view: "form", id: "welcomeWindowFormId", elements: [ 
+
+              {  cols: [
+                    {   view: "template", template: " <img src='css/svg/Artboard2.svg'  width='20%' align='right'>" + 
+                       " <p align='justify'> Welcome to brainchop, a"+ " frontend" +" tool for  volumetric segmentation of neuroimaging that works locally on the user side.</p>" + 
+                       " <p align='justify'> You're viewing a sample T1 (Left)  and its tissue segmentation (Right). Brainchop currenlty supports MRI Nifti file format. </p>" +  
+                       "<p align='justify'> To see the tool in action please select a model from the list and run the inference. For more information on brainchop please refer to this <a href='https://github.com/neuroneural/brainchop/wiki/' target='_blank'><b> Wiki </b></a> and this <a href='https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/' target='_blank'><b> Blog</b></a>. For questions or sharing ideas please refere to our  <b><a href='https://github.com/neuroneural/brainchop/discussions/'  target='_blank'> Discussions </a></b> board. </p>" + 
+                       " <center> <video id='advVideo' muted width='400' controls poster='css/images/BrainchopBanner.png'>  <source src='css/media/brainchopV1_3.mp4' type='video/mp4'>Your browser does not support the video tag</video> </center> <br>" +
+                       "<input type='checkbox' id='noShowWelcomeWindow'  name='noShowWelcomeWindow'><label for='noShowWelcomeWindow'><font color='black'>  Don't show again </font></label>", 
+
+                       on: {
+                          onAfterRender: function() {
+                                if(fetchWelcomeScreenStatus() == null || fetchWelcomeScreenStatus()) {
+                                    // document.getElementById('advVideo').muted = false; 
+                                }
+
+                          }
+                        }
+                        
+                    }                 
+
+                ]  
+                
+             },  
+       
+
+              {  cols: [
+                        {}, 
+
+                        { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                align:"center",
+                                click: function() {
+                                     $$("welcomeWindow").hide();
+                                     document.getElementById('advVideo').pause();
+                                     webix.storage.local.put("showWelcomeScreen", ! document.getElementById("noShowWelcomeWindow").checked);
+                               }
+                        },
+
+                        {}
+                       ]
+              } 
+
+          ]
+
+       }
+
+
+    webix.ui({
+      view:"popup",
+      id: "modelTooltip",
+       // head:"<i style='font-size:1.8vw'  class='fa fa-info-circle' ></i>",
+      body:{
+            template:"<div id='tooltipDiv' style = 'text-align:justify'></div>"
+      },
+      position: function(state){
+        state.width=state.maxWidth*24/100;
+        state.height= state.maxHeight*15/100;
+        state.left=(state.maxWidth-state.width)/1.01;
+        state.top=(state.maxHeight-state.height)/1.1;
+      }
+
+    });
+
+
+      // Welcome Window to select local model
+      webix.ui({
+                  view:"window",
+                  id: "welcomeWindow",
+                  height:620,
+                  width:600,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Welcome", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function(){
+                              $$("welcomeWindow").hide();
+                              document.getElementById('advVideo').pause();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: welcomeWindowForm
+      })
+      
+
+      fetchWelcomeScreenStatus = () => {
+          return webix.storage.local.get("showWelcomeScreen");
+      } 
+
+      if(fetchWelcomeScreenStatus() == null || fetchWelcomeScreenStatus()) {
+          $$("welcomeWindow").show();
+      } else  {
+          $$("welcomeWindow").hide();
+      }
+
+
+
+
+      let downloadNiftiFile = {view: "form", css: {"border-radius": "20px"}, id: "downloadNiftiFileId", elements: [ 
+              { type:"header", template:"Save Labels", 
+                css:"headerclass"
+              },
+
+              {  cols: [
+                    {   view: "label", label: "File Name",  
+                        align: "left"
+                    },                 
+                    { view: "text", 
+                      value: "labels.nii",  
+                      id: "fileNameToDL", 
+                      disabled: false,
+                      align: "left",
+                      on: {
+                        onChange: function(newValue, oldValue, config) {
+                          if(newValue.length && allOutputSlices3DCC1DimArray.length && isLetter(newValue[0])) {
+                               $$("downloadBtn").enable();
+                          } else {
+                               $$("downloadBtn").disable();
+                          }
+
+                        }
+                      }
+                    }
+                ]    
+             },             
+
+              {  cols: [
+                    {   view: "label", label: "Labels",  
+                        align: "left"
+                    },                 
+                    { view: "button", label: "Save",  
+                      id: "downloadBtn", 
+                      css: "bt_1",
+                      disabled: true,
+                      align: "left",
+                      click: function() {  
+
+                            if(allOutputSlices3DCC1DimArray.length) {
+                                 let downloadFileName = $$("fileNameToDL").getValue();
+                                 
+                                 if(downloadFileName.search(".nii") < 0) { 
+                                      // if nii extension doesn't exist, then search will return -1
+                                      downloadFileName = downloadFileName + ".nii";
+                                 }
+
+                                 downloadNifti(allOutputSlices3DCC1DimArray, rawNiftiData, downloadFileName);
+
+                            } else {
+                                webix.message("No download Data");
+                            }   
+                      }  
+                    }
+                ]    
+             }
+          ]
+       }
+
+
+
+
+     let memoryView = {
+                      view:"chart",
+                      type:"barH",
+                      id:"memoryMonitor",
+                      width:120,
+                      height:10,
+                      value:"#memoryUse#",
+                      gradient:function(gradient){
+                        gradient.addColorStop(1.0,"#FF0000");
+                        gradient.addColorStop(0.5,"#FFFF00");
+                        gradient.addColorStop(0.0,"#00FF22");
+                      },
+                      alpha:0.8,
+                      radius:2,
+                      border:false,
+                      xAxis:{
+                        start:0,
+                        end:100,
+                        step:10,    
+                        template:""
+                      },
+                      yAxis:{
+                        template:""
+                      }
+                  }
+    
+
+      let hardwareStatus = {view: "form", css: {"border-radius": "20px"}, id: "hardwareStatusId", elements: [ 
+              { type:"header", template:"Status", 
+                css: "headerclass"
+              },
+
+              {  cols: [
+                    {   view: "label", label: "WebGL-2",  width:70,
+                        align: "left"
+                    },                 
+                    { 
+                      view: "label", label: "<span id='webGl2Status' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>",  align: "left" 
+                    },
+
+                    {   view: "label", label: "Memory",  width:80,
+                        align: "right"
+                    },  // memoryView              
+                    { 
+                      view: "label", label: "<span id='memoryStatus' style='background-color:none; padding-left:0.5vw;'>&nbsp&nbsp</span>", align: "right"  
+                    }
+                ]    
+             }             
+          ]
+       }
+
+
+       //-------------------------chart-------------------------//
+       //-------------------------chart-------------------------//
+       //-------------------------chart-------------------------//
+        
+
+         roiHChart = { type: "space", rows:[
+                        
+                        {
+                          id: "hchart", view:"highchart", 
+                          modules:["series-label", "exporting", "export-data", "accessibility"],
+                          settings:{
+                                    chart: {
+                                        type: 'column',
+                                        width: 800,
+                                        // height: 400,
+                                        // marginLeft: 0,
+                                        // marginRight: 0,
+                                        scrollablePlotArea: {
+                                            minWidth: 900,
+                                            scrollPositionX: 1
+                                        }
+                                    },                            
+
+                                    title: {
+                                        text: ''
+                                    },
+                                    subtitle: {
+                                        text: ''
+                                    },
+                                    credits: {
+                                        enabled: false
+                                    }, 
+                                    plotOptions: {
+                                        series: {
+                                            borderWidth: 1,
+                                            borderColor: 'black',
+                                            maxPointWidth: 20
+                                        },                                      
+                                        bar: {
+                                            dataLabels: {
+                                                enabled: true
+                                            }
+                                        }
+                                  },                                                                       
+                                  xAxis: {
+                                      type: 'category',
+
+                                      categories: null,                                      
+                                      labels: {
+                                          rotation: -45,
+                                          step: 1,
+                                          style: {
+                                              fontSize: '10px',
+                                              fontFamily: 'Verdana, sans-serif'
+                                          }
+                                      }
+                                  },
+
+                                  yAxis: {
+                                      min: 0,
+                                     // max: 100,
+                                      title: {
+                                          text: "Histogram Probability"
+                                          // align: 'high'
+                                      }
+                                  },  
+
+                                  legend: {
+                                      enabled: false
+                                  },
+        
+                                  series: [{
+                                          name: 'volumes',
+                                          data: null,
+
+                                  }]                                    
+                          }
+                        }
+                      ]
+       };
+
+
+      // Output labels histogram  form
+      let histogramWindowForm = {view: "form", id: "histogramWindowFormId", 
+           elements: [ 
+                       roiHChart,  
+
+                        {  cols: [
+                                  {}, 
+
+                                  { view:"button", value:"Ok", css:"bt_1", width:100,  
+                                          align:"center",
+                                          click: function() {
+                                               $$("labelsHistogramWinId").hide();
+                                         }
+                                  },
+                                  { view:"button", value:"Save Data", css:"bt_1", width:100,  
+                                          align:"center",
+                                          click: function() {
+                                               
+                                               let labelsHistoObj = outVolumeStatus['labelsHistoObj'];
+                                               let fileName = refFileName == "" ? opts.uiSampleName: refFileName;
+                                               downloadJsonObj(labelsHistoObj, fileName +"_Seg" + Object.keys(labelsHistoObj).length + "_volumes.json");
+
+                                         }
+                                  },                                  
+
+                                  {}
+                                 ]
+                        } 
+
+                    ]
+       }
+
+
+
+      // Output labels histogram Window 
+      webix.ui({
+                  view:"window",
+                  id: "labelsHistogramWinId",
+                  height:600,
+                  width:800,
+                  move: true,
+                  resize: true,
+                  head:{
+                      view:"toolbar", css: "toolbarclass", elements:[
+                          { type:"header", template:"Output Labels", css:"windowtitleclass" },
+                          { view:"icon", icon:"wxi-close", click:function() {
+                              $$("labelsHistogramWinId").hide();
+                          } }
+                      ]
+                  },                  
+
+                  position:"center",
+                  body: histogramWindowForm
+
+      })
+
+
+
+
+
+       //-------------------------------------------------------//
+       //-------------------------Main--------------------------//
+       //-------------------------------------------------------// 
+
+
+
+       webix.ui({
+          margin:5,
+          rows:[toolbar,
+          {
+              margin:20,
+              padding: 20,
+              cols: [
+
+
+                        {
+                            view:"form",
+                            scroll:true,  
+                            padding:{
+                                top:0, bottom:0, left:0, right:15
+                            },
+                            css:{"background":"#f3f3f6 !important"},
+                            borderless: true,
+                           
+                            elements:[{ margin:2,  width: 250,
+                                                 rows:[
+                                                        referenceImage,
+                                                        inputOptions,
+                                                        Segmentation,
+                                                        outputOptions,
+                                                        downloadNiftiFile,
+                                                        hardwareStatus,
+                                                        {}
+                                                      ]   
+                         }]
+                        },
+
+
+                       { rows: [ 
+                                  { type:"header", template:"MRI  Viewer",
+                                    css:"headerclass"
+                                  },
+                                  { view: "template", content: "papayaMriDiv", borderless:true},
+                                
+                               ]
+                                     
+                        },
+                        {rows: [ 
+                                      { type:"header", template:"Labels Viewer", 
+                                        css: "headerclass"
+                                      },
+                                      { view: "template", content: "papayaLabelDiv", borderless:true},
+                                                                          
+                               ]
+                      }                              
+                  ]
+            }],
+
+        });
+
+
+        //-- To excutes immediately after window loading
+        //-- 0 for MRI viewer, 1 for Label viewer
+        papayaContainers[0].preferences.smoothDisplay = 'Yes';
+        papayaContainers[1].preferences.smoothDisplay = 'No';
+
+        //-- papaya.Container.restartViewer(0, ["data/t1_c.nii.gz"], true);
+        papaya.Container.restartViewer(1, ["data/labels.nii.gz"], true);  
+
+
+        fetch('data/t1_c.nii.gz')
+          .then((response) => {
+            if (response.status >= 200 && response.status <= 299) {
+              return response.blob();
+            } else {
+              throw Error(response.statusText);
+            }
+          })          
+          .then(blob => {
+                 let initFile = new File([blob], "initLoadFile.nii");
+
+                 let reader = new FileReader();
+
+                 reader.readAsArrayBuffer(initFile);  
+
+                 reader.onload = evt => { 
+
+                      params_mri["binaryImages"] = [evt.target.result];
+                      papaya.Container.resetViewer(0, params_mri);  
+
+                      let startTime = performance.now(); 
+                      // decompress/check uploaded Nifti data
+                      rawNiftiData = getNiftiRawData(evt.target.result);
+                      niftiHeader = readNiftiHeader(rawNiftiData);
+                      niftiImage = readNiftiImageData(niftiHeader, rawNiftiData);  
+
+                      statData["Data_Load"] = ((performance.now() - startTime)/1000).toFixed(4);   
+
+                      statData["File_Type"] = nifti.isNIFTI1(rawNiftiData) ? "NIFTI-1" : 
+                                                                             nifti.isNIFTI2(rawNiftiData) ? "NIFTI-2" : "NOT-NIFTI"; 
+                      statData["Img_Size"] = JSON.stringify([niftiHeader.dims[1], niftiHeader.dims[2], niftiHeader.dims[3]]);  
+                      statData["Num_Bits_Per_Voxel"] = niftiHeader['numBitsPerVoxel'] ;
+                      statData["Data_Type_Code"] = niftiHeader['datatypeCode'];
+                      statData["Vox_Offset"] = niftiHeader['vox_offset'];
+                      statData["Vox_1mm"] = isVoxelSize1mm(niftiHeader);
+                      statData["File_Verified"] = isNiftiFileVerified(niftiHeader);
+
+
+                      // // To sync swap view button 
+                      // document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).addEventListener("click", function(){
+                      //         papayaContainers[1].viewer.rotateViews()
+
+                      // })
+
+                     document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[0].containerIndex).disabled = true;
+
+                      numOfOverlays = 0;                                                                                             
+                      if(checkGPU()) {
+                         $$("segmentBtn").enable();
+                      }                      
+
+                 }                          
+
+        }).catch(function() {
+                console.log("File not found");
+                $$("segmentBtn").disable();
+        });
+
+
+
+
+       //--Activate annotation for papaya container 1- default    
+       //-- addMouseMoveHandler(inferenceModelsList[$$("selectModel").getValue() - 1]["labelsPath"], 1);
+       addMouseMoveHandler("./models/GT/labels.json", 1);
+
+
+      document.getElementById(PAPAYA_CONTROL_MAIN_SWAP_BUTTON_CSS + papayaContainers[1].containerIndex).addEventListener("click", function(){
+                 papayaContainers[0].viewer.rotateViews()
+
+        })         
+
+       // Check for possible wrongly report or duplicate models ids
+       checkInferenceModelList(); 
+       
+
+     })  
+
+
+
+  </script>
+
+
+    <div class="grid-container" id ="papayaMriDiv">
+      <div class="grid-item" id="divMri">
+        <div  class="papaya" data-params="params_mri"></div>
+     </div>
+      <div class="grid-item">
+        <input type="text" id="annotOfContainer_0" disabled></input>
+      </div>        
+    </div>  
+
+    <div class="grid-container" id ="papayaLabelDiv">
+      <div class="grid-item">
+        <div  class="papaya" data-params="params_label"></div>
+      </div>
+      <div class="grid-item">
+        <input type="text" id="annotOfContainer_1" disabled></input>
+      </div>      
+    </div>  
+
+
+    <div class="w3-container" style="margin-top: 0.5vh;" id="progressBarDiv" >
+        <div class="w3-border" style="visibility: hidden;">
+          <div class="w3-blue" style="height:0.75vh;width:0%;" id="progressBarChild"></div>
+        </div>  
+        <div class="w3-border" style="margin-top: 0.75vh">   
+          <div class="w3-blue" style="height:1.5vh;width:0%;" id="progressBar"></div>
+        </div>
+    </div>
+<!--     <div class="w3-container" style="margin-top: 1vh;" id="subProgressBarDiv" >
+        <div class="w3-border" >
+          <div class="w3-blue" style="height:2vh;width:0%;" id="subProgressBar"></div>
+        </div>
+    </div>  -->   
+
+
+   <div style="height: 0vh; width: 0vw;" >
+    <form method="post" autocomplete="off" name="google-sheet" id="googleSubForm" style="visibility: hidden;">
+       <input type="text" name="Brainchop_Ver" id= "Brainchop_Ver"   />
+       <input type="text" name="Country" id= "Country"   />
+       <input type="text" name="State" id= "State"   />
+       <input type="text" name="City" id= "City"   />       
+       <input type="text" name="Date" id= "Date"   />
+       <input type="text" name="Time" id= "Time"   />
+       <input type="text" name="File_Name" id= "File_Name"   />   
+       <input type="text" name="File_Type" id= "File_Type"   />         
+       <input type="text" name="File_Verified" id= "File_Verified"   />        
+       <input type="text" name="Img_Size" id= "Img_Size"   />       
+
+       <input type="number" step=any name="Num_Bits_Per_Voxel" id= "Num_Bits_Per_Voxel"   /> 
+       <input type="number" step=any name="Data_Type_Code" id= "Data_Type_Code"   />           
+       <input type="number" step=any name="Vox_Offset" id= "Vox_Offset"   />
+       <input type="text" name="Vox_1mm" id= "Vox_1mm"   />
+       <input type="text" name="Resampled" id= "Resampled"   />
+
+       <input type="text" name="Input_Shape" id= "Input_Shape"   />
+       <input type="text" name="Output_Shape" id= "Output_Shape"   />
+       <input type="text" name="Channel_Last" id= "Channel_Last"   />    
+       <input type="number" step=any name="Model_Param" id= "Model_Param"   /> 
+       <input type="number" step=any name="Model_Layers" id= "Model_Layers"   />           
+       <input type="number" step=any name="No_SubVolumes" id= "No_SubVolumes"   />
+       <input type="number" step=any name="Actual_Labels" id= "Actual_Labels"   />
+       <input type="number" step=any name="Expect_Labels" id= "Expect_Labels"   />       
+       <input type="text" name="NumLabels_Match" id= "NumLabels_Match"   />   
+       <input type="number" step=any  name="Data_Load" id= "Data_Load"   />
+       <input type="number" step=any  name="Preprocess_t" id= "Preprocess_t"  />
+       <input type="number" step=any  name="Inference_t" id= "Inference_t"   />
+       <input type="number" step=any  name="Merge_t" id= "Merge_t"   />
+       <input type="number" step=any  name="Postprocess_t" id= "Postprocess_t"   />
+       <input type="text" name="Model" id= "Model"   />
+       <input type="text" name="Browser" id= "Browser"   />
+       <input type="number" step=any  name="Browser_Ver" id= "Browser_Ver"   />       
+       <input type="text" name="OS" id= "OS"   />
+       <input type="number" step=any  name="Texture_Size" id= "Texture_Size" />
+       <input type="number" step=any  name="Heap_Size_MB" id= "Heap_Size_MB" />
+       <input type="number" step=any  name="Used_Heap_MB" id= "Used_Heap_MB" />
+       <input type="number" step=any  name="Heap_Limit_MB" id= "Heap_Limit_MB" />                     
+       <input type="text"  name="Status" id= "Status" />    
+       <input type="text"  name="WebGL1" id= "WebGL1" />  
+       <input type="text"  name="WebGL2" id= "WebGL2" />  
+       <input type="text"  name="TF_Backend" id= "TF_Backend" />
+       <input type="text"  name="GPU_Vendor" id= "GPU_Vendor" />  
+       <input type="text"  name="GPU_Card" id= "GPU_Card" />   
+       <input type="text"  name="GPU_Vendor_Full" id= "GPU_Vendor_Full" />  
+       <input type="text"  name="GPU_Card_Full" id= "GPU_Card_Full" />                
+       <input type="text"  name="Error_Type" id= "Error_Type" />  
+       <input type="text"  name="Extra_Err_Info" id= "Extra_Err_Info" /> 
+       <input type="text"  name="Extra_Info" id= "Extra_Info" /> 
+       <input type="number" step=any name="CPU_Cores" id= "CPU_Cores"   /> 
+       <input type="text"  name="Which_Brainchop" id= "Which_Brainchop" />  
+       <input type="text"  name="Seq_Conv" id= "Seq_Conv" />  
+       <input type="submit" id="SubmitStatisticalData"  />
+     </form>
+    </div>
+
+    <!-- Credit for github logo: https://github.com/tholman/github-corners --> 
+    <a  href="https://github.com/neuroneural/brainchop" style="cursor: pointer;" target='_blank'>      
+      <svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0px; right: 0px; border: 0px; cursor: pointer; " aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z" fill="#151513" style="cursor: pointer;"></path>
+        <path  d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="#ffffff" style="transform-origin: 130px 106px; cursor: pointer;"></path>
+        <path  d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="#ffffff" style="cursor: pointer;"></path>
+      </svg>
+    </a>
+
+ </body>
+</html>

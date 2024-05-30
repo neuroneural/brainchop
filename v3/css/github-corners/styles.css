@@ -1,0 +1,132 @@
+/**
+ * GitHub Corners, page css
+ * Author: Tim Holman
+ */
+
+@import "corner.css";
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: Helvetica, Arial, sans-serif;
+    background: #fff;
+    margin: 0px;
+}
+
+h1 {
+    font-size: 30px;
+}
+
+p {
+    font-size: 16px;
+    font-weight: 100;
+    line-height: 24px;
+}
+
+.wrapper {
+    padding-right: 20px;
+    padding-left: 20px;
+    padding-top: 50px;
+    max-width: 580px;
+    margin: auto;
+}
+
+/**
+ * Demo Code
+ */
+
+.version {
+    border: 2px solid #eee;
+    margin-top: 25px;
+    height: 200px;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.version-section {
+    padding: 10px;
+    height: 100%;
+}
+
+.version-section.dark {
+    background: #151513;
+}
+
+.demo {
+    border-right: 2px solid #eee;
+    position: relative;
+    width: 200px;
+}
+
+.code {
+    vertical-align: top;
+    width: 336px;
+}
+
+.code textarea {
+    border: 2px solid #eee;
+    outline: 0px;
+    height: 100%;
+    width: 100%;
+    font-family: monospace;
+    font-size: 10px;
+}
+
+/**
+ * Footer
+ */
+
+footer {
+    width: 100%;
+    margin-top: 25px;
+    margin-bottom: 100px;
+    background: #F3F3F3;
+    height: 50px;
+    padding: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
+    color: #2D2D2D;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: monospace;
+}
+
+footer a {
+    color: #2d2d2d;
+}
+
+footer span {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.twitter-share-button {
+    margin-bottom: -4px;
+}
+
+/**
+ * Media
+ */
+
+@media (max-width: 500px) {
+
+    footer {
+        text-align: center;
+        height: auto;
+        line-height: 30px;
+    }
+
+    footer span {
+        display: none;
+    }
+
+    footer a {
+        display: block;
+    }
+
+    .twitter-share-button {
+        margin-bottom: -8px;
+    }
+}
