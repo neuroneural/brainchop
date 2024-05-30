@@ -41,6 +41,7 @@ module.exports = defineConfig({
         ...devices['Desktop Chrome'],
         // set window size to 1280x720
         viewport: { width: 1280, height: 720 },
+        headless: true,
       },
     },
 
@@ -50,6 +51,7 @@ module.exports = defineConfig({
         ...devices['Desktop Firefox'], 
         // set window size to 1280x720
         viewport: { width: 1280, height: 720 },
+        headless: true,
       },
     },
 
@@ -59,6 +61,7 @@ module.exports = defineConfig({
         ...devices['Desktop Safari'],
         // set window size to 1280x720
         viewport: { width: 1280, height: 720 },
+        headless: true,
        },
     },
   ],
@@ -68,7 +71,7 @@ module.exports = defineConfig({
     command: 'npm run preview',
     url: 'http://127.0.0.1:8088',
     reuseExistingServer: !process.env.CI,
-    timeout: 10 * 1000,
+    timeout: 20 * 1000,
   }
 });
 
