@@ -13,7 +13,10 @@
   "dependencies": {
     "@niivue/niivue": "^0.43.3",
     "@tensorflow/tfjs": "^4.19.0",
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "headless-gl": "^4.1.2",
+    "gl": "^4.9.1",
+    "node-canvas": "^2.8.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",

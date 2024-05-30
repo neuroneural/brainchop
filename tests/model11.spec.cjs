@@ -1,3 +1,5 @@
+const gl = require('gl');
+
 const { test, expect} = require('@playwright/test');
 
 // we want to save timing info from the models to timing.json
