@@ -359,7 +359,7 @@ const inferenceModelsList = [
     path: '/models/model21_104class/model.json',
     modelName: '\u{1F52A} Aparc+Aseg 104 (Low Mem, Slow)',
     colormapPath: './models/model21_104class/colormap.json',
-    preModelId: 0, // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
+    preModelId: null, // model run first e.g.  Brain_Extraction  { null, 1, 2, ..  }
     preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
     isBatchOverlapEnable: false, // create extra overlap batches for inference
     numOverlapBatches: 200, // Number of extra overlap batches for inference
