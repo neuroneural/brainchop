@@ -1,0 +1,39 @@
+{
+  "name": "webix",
+  "productTag": "webix",
+  "version": "9.0.0",
+  "description": "Javascript UI for Web",
+  "scripts": {
+    "lint": "yarn eslint \"sources/**/*.js\"",
+    "build": "rollup -c ./rollup.config.js",
+    "watch": "rollup -c ./rollup.config.js -w",
+    "server": "node backend/index.js"
+  },
+  "private":true,
+  "homepage": "https://webix.com",
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "rollup": "^0.66.2",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-eslint": "^5.0.0",
+    "rollup-plugin-hypothetical": "^2.1.0",
+    "rollup-plugin-less": "^0.1.4",
+    "rollup-plugin-license": "^0.7.0",
+    "rollup-plugin-replace": "^2.1.0",
+    "rollup-plugin-uglify": "^6.0.0",
+    "rollup-plugin-commonjs": "^9.1.8",
+    "rollup-plugin-node-resolve": "^3.4.0",
+
+    "apollo-server-express": "^2.2.2",
+    "bluebird": "^3.5.3",
+    "body-parser": "^1.18.3",
+    "busboy": "^0.2.14",
+    "eslint": "^5.8.0",
+    "express": "^4.16.4",
+    "faye": "^1.2.4",
+    "graphql": "^14.0.2",
+    "nedb": "^1.8.0"
+  },
+  "dependencies": {}
+}
