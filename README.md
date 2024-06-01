@@ -3,8 +3,9 @@
 
 
 <div align="center">
-
-  ![Banner](https://github.com/neuroneural/brainchop/releases/download/v3.4.0/Banner.png)
+  <a href="https://neuroneural.github.io/brainchop">
+    <img width="100%" src="https://github.com/neuroneural/brainchop/releases/download/v3.4.0/Banner.png">
+  </a>
 
 
 **Frontend For Neuroimaging.  Open Source**
@@ -69,7 +70,7 @@ For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 <div align="center">
 
-![BrainchopV4](https://github.com/neuroneural/brainchop/releases/download/v4.0.0/Brainchop_Niivue.png)
+ <img src="https://github.com/neuroneural/brainchop/releases/download/v4.0.0/Brainchop_Niivue.png" width="100%">
 
 **Brainchop <a href= "https://neuroneural.github.io/brainchop/" target="_blank"  style="text-decoration: none"> v4 </a> with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
 </div>
