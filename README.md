@@ -71,7 +71,6 @@ For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 ![BrainchopV4](https://github.com/neuroneural/brainchop/releases/download/v4.0.0/Brainchop_Niivue.png)
 
-
 **Brainchop <a href= "https://neuroneural.github.io/brainchop/" target="_blank"  style="text-decoration: none"> v4 </a> with <a href= "https://github.com/niivue/niivue" target="_blank"  style="text-decoration: none"> NiiVue</a> viewer**
 </div>
 
@@ -79,7 +78,7 @@ For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 <div align="center">
 
-  <img src="https://github.com/neuroneural/brainchop/blob/master/css/images/BrainchopMoreRobustModels.gif"  width="60%">
+  <img src="https://github.com/neuroneural/brainchop/releases/download/v3.4.0/BrainchopMoreRobustModels.gif"  width="60%">
 
 **Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v3 </a> with more robust models**
 </div>
