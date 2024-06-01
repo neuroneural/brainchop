@@ -1,0 +1,62 @@
+/*button of pager*/
+.webix_view.webix_pager{
+	padding: @skin_input_y_padding 0;
+	#box > .sizing;
+	background-color: transparent;
+}
+.webix_pager_item, .webix_pager_item_selected{
+	padding: 0 6px;
+	text-align:center;
+	height: 100%;
+	width:auto;
+	min-width:32px;
+
+	margin: 0 @skin_input_x_padding;
+	cursor: pointer;
+	#box > .sizing;
+	#border > .radius(@skin_input_radius);
+
+	.webix_icon{
+		line-height: 0;
+		font-size: 17px;
+	}
+}
+
+.webix_pager_item{
+	.buttonBackground;
+	&:hover{
+		.darkHoverRule(@buttonColor);
+	}
+	&:focus{
+		.darkFocusRule(@buttonColor);
+	}
+	&:active{
+		.activeShadow;
+		.darkActiveRule(@buttonColor);
+	}
+}
+
+/*selected  button of pager*/
+.webix_pager_item_selected{
+	cursor:default;
+
+	&:hover{
+		.darkHoverRule(@formButtonColor);
+	}
+	&:focus{
+		.darkFocusRule(@formButtonColor);
+	}
+	&:active{
+		.activeShadow;
+		.darkActiveRule(@formButtonColor);
+	}
+}
+.webix_animation .webix_ss_header{
+	position: relative; z-index:1;
+}
+.webix_animation .webix_ss_vscroll_header{
+	z-index:1;
+}
+.webix_animation .webix_ss_footer, .webix_animation .webix_vscroll_x{
+	position: absolute;  bottom:0px; z-index:1;
+}

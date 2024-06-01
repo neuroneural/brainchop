@@ -1,0 +1,69 @@
+.webix_daterange .webix_view{
+	background-color:@backColor;
+}
+.webix_daterange .webix_range_0 .webix_cal_next_button,
+.webix_daterange .webix_range_N .webix_cal_prev_button{
+	visibility:hidden;
+}
+.webix_daterange .webix_range_1{
+	.webix_cal_next_button, .webix_cal_prev_button{
+		visibility:hidden;
+	}
+	.webix_cal_next_button:hover, .webix_cal_prev_button:hover{
+		cursor:default;
+	}
+}
+.webix_daterange .webix_range_left .webix_cal_next_button:hover,
+.webix_daterange .webix_range_right .webix_cal_prev_button:hover{
+	cursor:default;
+}
+.webix_cal_range{
+	background-color:lighten(@selectColor, 48%);
+}
+.webix_cal_range_start{
+	border-radius:3px 0 0 3px;
+}
+.webix_cal_range_end{
+	border-radius:0 3px 3px 0;
+}
+.webix_cal_range_start, .webix_cal_range_end, 
+.webix_cal_event.webix_cal_range_start, .webix_cal_event.webix_cal_range_end,
+.webix_cal_body .webix_cal_today.webix_cal_range_start, .webix_cal_body .webix_cal_today.webix_cal_range_end
+{
+	background-color:@selectColor;
+	color:@selectFontColor;
+}
+.webix_cal_outside.webix_cal_range, 
+.webix_cal_body .webix_cal_outside.webix_cal_range_start, .webix_cal_body .webix_cal_outside.webix_cal_range_end,
+.webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_start, .webix_cal_body .webix_cal_outside.webix_cal_today.webix_cal_range_end{
+	background-color:transparent;
+	color:lighten(@fontColor, 40%);
+}
+.webix_daterange .webix_cal_icons{
+	text-align:right;
+	padding:0 4px;
+	.webix_cal_icon{
+		border-top:1px solid @borderColor;
+	}
+}
+.webix_daterange .webix_cal_time{
+	display:none;
+}
+.webix_daterange .webix_cal_timepicker .webix_range_time_start{
+	display:block;
+}
+.webix_daterange .webix_range_timepicker{
+	.webix_cal_time{
+		display:block;
+		padding:5px 15px;
+	}
+	.webix_range_time_start{
+		float:left;
+	}
+	.webix_range_time_end{
+		float:right;
+	}
+}
+.webix_daterange .webix_range_footer .webix_cal_footer{
+	padding:0;
+}
