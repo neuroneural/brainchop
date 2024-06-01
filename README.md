@@ -31,7 +31,7 @@
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/brainchop_Arch.png)
+![Interface](https://github.com/neuroneural/brainchop/releases/download/v3.4.0/brainchop_Arch.png)
 
 **Brainchop high-level architecture**
 </div>
@@ -39,7 +39,7 @@
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/DL_Arch.png)
+![Interface](https://github.com/neuroneural/brainchop/releases/download/v3.4.0/DL_Arch.png)
 
 **MeshNet deep learning architecture used for inference with Brainchop** (MeshNet  <a href="https://arxiv.org/pdf/1612.00940.pdf" target="_blank"  style="text-decoration: none"> paper</a>)
 </div>
@@ -89,7 +89,7 @@ For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Input3DEnhancements.gif)
+![Interface](https://github.com/neuroneural/brainchop/releases/download/v3.4.0/Input3DEnhancements.gif)
 
 **Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v1.4.0 - v3.4.0 </a> rendering MRI Nifti file in 3D**
 </div>
@@ -98,7 +98,7 @@ For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
 <div align="center">
 
-![Interface](https://github.com/neuroneural/brainchop/blob/master/css/images/Brainchop3D.gif)
+![Interface](https://github.com/neuroneural/brainchop/releases/download/v3.4.0/Brainchop3D.gif)
 
 
 **Brainchop <a href= "https://neuroneural.github.io/brainchop/v3" target="_blank"  style="text-decoration: none"> v1.3.0 - v3.4.0 </a>  rendering segmentation output in 3D**
