@@ -1,0 +1,129 @@
+//height of tab
+@tabHeight: @barHeight;
+
+.webix_el_tabbar{
+	background:transparent;
+}
+.webix_all_tabs{
+	height: 100%;
+	display:table;
+}
+.webix_tab_filler{
+	display: table-cell;
+	background: transparent;
+	font-size: 1px;
+	border-bottom: 1px solid @tabbarBorderColor;
+	#box > .sizing;
+}
+.webix_tab_filler:first-child{
+	border-right: 1px solid @borderColor;
+};
+.webix_item_tab:first-child{
+	border-left: 1px solid @tabbarBorderColor;
+};
+.webix_item_tab{
+	display: table-cell;
+	text-align:center;
+	vertical-align: middle;
+	overflow: hidden;
+	cursor: pointer;
+	border: 1px solid @tabbarBorderColor;
+	border-left-width:0px;
+	.passiveBarBG;
+	#border> .corners(@tabBorderRadius, @tabBorderRadius);
+	#box > .sizing;
+}
+.webixtype_bottom .webix_item_tab{
+	#border> .radius(0);
+}
+.webix_item_tab.webix_selected {
+	border-bottom-width:0px;
+	.activeBarBG;
+}
+.webixtype_bottom .webix_item_tab.webix_selected {
+	border-bottom-width:1px;
+}
+.webix_before_all_tabs{
+	width: 100%;
+}
+.webix_after_all_tabs{
+	width: 100%;
+	border-left: 1px solid @tabbarBorderColor;
+	border-right: 1px solid @tabbarBorderColor;
+	#box > .sizing;
+}
+
+.webix_view.webix_control .webix_disabled_box{
+	.webix_item_tab{
+		.buttonDisabled;
+	}
+}
+
+.webix_el_tabbar .webixtype_icon{
+	.webix_img_btn{
+		#box > .sizing;
+		margin: 0 auto;
+		text-align: center;
+	}
+	.webix_img_btn{
+		.webix_icon_btn{
+			#box > .sizing;
+			margin: 0 3px;
+		}
+	}
+}
+
+
+.webix_el_tabbar .webixtype_icon, .webix_el_tabbar .webixtype_iconTop, .webix_el_tabbar .webixtype_image{
+	.webix_item_tab{
+		padding: @skin_input_y_padding 0;
+		border-radius: 0;
+
+	}
+	.webix_img_btn_top{
+		background-position: center 0;
+		position: relative;
+		height: 100%;
+	}
+}
+
+.webix_tab_more_icon{
+	cursor: pointer;
+	//padding-top: 5px;
+	display: table-cell;
+	overflow: hidden;
+	text-align: center;
+	box-sizing: border-box;
+	vertical-align: middle;
+	padding:0 3px;
+	.webix_icon{
+		width: 100%;
+	}
+}
+
+.webix_tab_list .webix_list_item:last-child{
+	border-bottom: none;
+}
+.webix_icon.webix_tab_close{
+ 	font-size:12px;
+ 	float:right;
+ 	padding:4px;
+ 	margin-top:-4px;
+ 	&:focus{
+ 		color: @dangerColor;
+ 	}
+}
+
+.webix_all_tabs .webix_item_tab.webix_disabled{
+	color: @disabledFontColor;
+	background-color: @disabledColor;
+	border-color: transparent;
+	cursor: not-allowed;
+	#box > .noselect;
+
+	&:hover, &.webix_selected, &.webix_selected:hover{
+		color: @disabledFontColor;
+		background-color: @disabledColor;
+		border-color: transparent;
+	}
+}

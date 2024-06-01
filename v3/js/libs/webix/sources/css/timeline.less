@@ -1,0 +1,53 @@
+.webix_timeline .webix_scroll_cont{
+	padding-top:28px;
+}
+.webix_timeline_item{
+	height: @timelineItemHeight;
+	line-height: 0;
+	box-sizing: border-box;
+	padding: 0 @dataPadding;
+	position: relative;
+}
+.webix_timeline_date, .webix_timeline_event{
+	line-height: 20px;
+	overflow:hidden;
+	position:absolute;
+	top:0px;
+}
+.webix_timeline_left .webix_timeline_date,
+.webix_timeline_right .webix_timeline_details,
+.webix_timeline_right .webix_timeline_value{
+	text-align: right;
+}
+.webix_timeline_value{
+	font-weight: @boldStyle;
+}
+.webix_timeline_details{
+	color:@inactiveFontColor;
+	padding-top:2px;
+}
+.webix_timeline_date{
+	white-space: nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+// horizontal mode
+.webix_timeline_horizontal .webix_scroll_cont{
+	white-space:nowrap;
+	display:inline-block;
+	padding-top:unset;
+	padding-left:28px;
+	height:100%;
+}
+.webix_timeline_horizontal .webix_timeline_item{
+	display:inline-block;
+	height:100%;
+	padding:@dataPadding 0 @dataPadding 0;
+	white-space:normal;
+	.webix_timeline_date, .webix_timeline_event{
+		left:0px;
+	}
+	&.webix_timeline_bottom .webix_timeline_event{
+		top: initial;
+	}
+}
