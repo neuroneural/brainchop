@@ -4,7 +4,7 @@
 
 <div align="center">
   <a href="https://neuroneural.github.io/brainchop/v3">
-    <img width="100%" src="./css/images/Banner.png">
+    <img width="100%" src="https://github.com/neuroneural/brainchop/releases/download/v3.4.0/Banner.png">
   </a>
 
 
