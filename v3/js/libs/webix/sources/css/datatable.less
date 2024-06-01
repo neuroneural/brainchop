@@ -1,0 +1,501 @@
+@import "common/html5.less";
+@import "common/images.less";
+@import "common/common.less";
+
+@import "view.less";
+@import "resizer.less";
+@import "scroll.less";
+@import "pager.less";
+@import "editors.less";
+
+@import "message.less";
+@import "dnd.less";
+
+.webix_column, .webix_hcolumn{
+	position:absolute;
+	top:0px;
+}
+.webix_cell{
+	overflow:hidden;
+	line-height: @rowHeight - 3;
+	white-space:nowrap;
+}
+.webix_hcell{
+	width:100%;
+	overflow:hidden;
+}
+
+.webix_cell, .webix_hcell{
+	background:inherit;
+	font:inherit;
+	text-align:inherit;
+	color:inherit;
+}
+.webix_ss_body{
+	overflow:hidden;
+	position:relative;
+}
+.webix_hs_left, .webix_hs_center, .webix_hs_right, .webix_ss_center, .webix_ss_right, .webix_ss_left{
+	overflow:hidden;
+	float:left;
+	position:relative;
+}
+.webix_ss_center, .webix_ss_right{
+	position: relative;
+}
+
+.webix_ss_center_scroll{
+	height:100%;
+	position:relative;
+	overflow:hidden;
+	min-height:1px; // workaround for Chrome where height:0 sets scrollLeft to 0
+}
+.webix_ss_hscroll{
+	bottom:0px; //for mac-os
+}
+.webix_ss_vscroll{
+	position:absolute;
+	top:0px; right:0px;
+	z-index:2;
+}
+.webix_ss_vscroll_footer{
+	position:absolute;
+	bottom:0px; right:0px;
+	border-left:1px solid @dataBorderColor;
+	border-top:1px solid @dataBorderColor;
+	z-index:1;
+}
+.webix_ss_vscroll_header{
+	position:absolute;
+	top:0px; right:0px;
+	border-left:1px solid @dataHeaderBorderColor;
+	border-bottom:1px solid @dataHeaderBorderColor;
+	z-index:1;
+}
+.webix_dtable{
+	position:relative;
+	cursor:default;
+	z-index:0;
+}
+
+
+.webix_ss_footer, .webix_ss_header{
+	clear:both;
+	overflow:hidden;
+}
+
+
+
+.webix_table_cell, .webix_view.webix_table_cell, .webix_block_selection, .webix_hcell, .webix_cell{
+	#box > .sizing;
+}
+.webix_table_cell{
+	font-size:@fontSize;
+}
+
+.webix_block_selection{
+	position:absolute;
+}
+
+.webix_ss_sort_asc, .webix_ss_sort_desc {
+	position: absolute;
+	top: 50%;
+	right: 2px;
+
+	font-family: @iconFamily;
+	font-size: 20px;
+	width: 24px;
+	height: 24px;
+	line-height: 24px;
+	margin-top: -12px;
+	float: none;
+
+	&.webix_ss_sort_single{
+		width: 20px;
+		text-align: center;
+	}
+	#box >.noselect;
+}
+.webix_ss_sort_asc:before{
+	content: '\F004';
+}
+.webix_ss_sort_desc:before{
+	content: '\F001';
+}
+
+.webix_ss_sort_num{
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	height: @smallFontSize;
+	line-height: @smallFontSize;
+
+	font-family: @fontFamily;
+	font-size: @smallFontSize - 2px;
+	text-align: right;
+
+	color: @baseColor;
+}
+.webix_ss_sort_single .webix_ss_sort_num{
+	display: none;
+}
+
+.webix_hcell .webix_excel_filter{
+	position: absolute;
+	top: 50%;
+	right: 2px;
+
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+	margin-top: -10px;
+	vertical-align: middle;
+	text-align: center;
+	cursor: pointer;
+	color:@inactiveFontColor;
+	&:hover{
+		color: @baseColor;
+	}
+}
+
+.webix_excel_filter ~ .webix_ss_sort_asc, .webix_excel_filter ~ .webix_ss_sort_desc{
+	right: 24px;
+}
+
+.webix_hcell.webix_ss_excel_filter{
+	position: relative;
+}
+.webix_hcell.webix_ss_filter_active .webix_excel_filter{
+	color: @baseColor;
+
+	&:hover{
+		color: darken(@baseColor, 8%);
+	}
+}
+
+.webix_hcell.webix_ss_filter{
+	padding: @skin_input_y_padding 5px @skin_input_y_padding 5px;
+}
+.webix_hcell .webix_tree_close, .webix_hcell .webix_tree_open{
+	margin-right:5px;
+}
+
+.webix_table_checkbox, .webix_hcell input[type="checkbox"]{
+	margin:0px 1px 2px;
+	vertical-align:middle;
+}
+
+@filterHeight: @barHeight - @skin_input_y_padding*2;
+
+
+.webix_ss_filter select, .webix_ss_filter input{
+	width:100%;
+	font-size:inherit;
+	color: @fontColor !important;
+	height: @filterHeight;
+
+	margin-top: -2px;
+	padding: 0 3px;
+	vertical-align: top;
+	border: 1px solid @borderColor;
+	line-height: @inputHeight - @skin_input_y_padding*2; //IE8
+	#box > .sizing;
+	font-family: @fontFamily;
+}
+.webix_richfilter{
+	margin-top:1px;
+	line-height: @inputHeight - @skin_input_y_padding*2;
+}
+.webix_ss_filter select{
+	padding:3px;
+}
+
+/*headers and footers*/
+.webix_ss_header, .webix_hcolumn, .webix_ss_vscroll_header, .webix_dd_drag_column,
+.webix_hs_left, .webix_hs_center, .webix_hs_right{ //only for export with styles
+	.dataHeaderFont;
+	.dataHeaderBg;
+}
+.webix_ss_footer, .webix_ss_footer .webix_hcolumn,
+.webix_ss_footer .webix_hs_left, .webix_ss_footer .webix_hs_center, .webix_ss_footer .webix_hs_right,
+.webix_ss_footer div.webix_ss_vscroll_footer{
+	.dataFooterFont;
+	.dataFooterBg;
+	background: darken(@backColor,2%);
+}
+.webix_hcell.webix_measure_size{
+	#box > .sizing;
+	.dataHeaderFont;
+}
+
+/*content in header and footer*/
+.webix_hcell{
+	padding:0px @dataPadding 0px @dataPadding;
+	text-align:left;
+}
+
+/*borders in header and footer*/
+.webix_ss_header .webix_hcolumn .webix_hcell, .webix_ss_header .webix_span {
+	border-right:1px solid @dataHeaderBorderColor;
+	border-bottom:1px solid @dataHeaderBorderColor;
+	.dataHeaderBorders;
+}
+.webix_ss_footer .webix_hcolumn .webix_hcell, .webix_ss_footer .webix_span {
+	border-right:1px solid @dataBorderColor;
+	border-top:1px solid @dataBorderColor;
+}
+
+/*remove rightmost borders*/
+.webix_hs_right .webix_hcell.webix_last, .webix_hs_center .webix_hcell.webix_last{
+	border-right-width:0px;
+}
+
+
+/*right inner border*/
+.webix_column.webix_last>div{
+	border-right-width:0px;
+}
+/*borders between split areas*/
+.webix_ss_right .webix_column.webix_first>div,
+.webix_hs_right .webix_first{
+	border-left:1px solid @borderColor;
+}
+.webix_ss_left .webix_column.webix_last>div{
+	border-right:1px solid @borderColor;
+}
+.webix_last_topcell.webix_cell{
+	border-bottom:1px solid @borderColor;
+}
+
+/*normal data cell of the table*/
+.webix_column>div, .webix_table_cell{
+	border-right:1px solid @dataBorderColor;
+	border-bottom:1px solid @lightBorderColor;
+
+	padding: 0 @dataPadding;
+
+	.dataFont;
+	.dtBodyCell;
+}
+
+.webix_column, .webix_hcolumn{
+	text-align:left;
+}
+
+/*header selection in column mode, column dnd*/
+.webix_ss_header .webix_sel_hcell,
+.webix_ss_footer .webix_sel_hcell,
+.webix_ss_header .webix_dd_over_column {
+	background-color:#c9eaf5;
+}
+
+.webix_block_selection{
+	z-index:2;
+	background:rgba(0,0,0,0.1);
+	border:2px solid @selectBorderColor;
+}
+
+
+
+.webix_dd_drag{
+	white-space: nowrap; overflow: hidden;
+	border-left:1px solid @lightBorderColor;
+	height:@rowHeight;
+}
+.webix_dd_drag > div{
+	display:inline-block;
+	vertical-align: top;
+	background: @backColor;
+	border-top:1px solid @lightBorderColor;
+	border-right:1px solid @lightBorderColor;
+	border-bottom:1px solid @lightBorderColor;
+	padding:5px @dataPadding;
+
+	height:@rowHeight;
+	line-height:@rowHeight - 8;
+	#box > .sizing;
+}
+.webix_dd_drag_column{
+	padding:5px 10px 5px 10px;
+}
+
+.webix_column >  .webix_drag_over.webix_cell{
+	background-color: darken(@backColor, 10%);
+	color: @fontColor;
+
+	&.webix_row_select, &.webix_cell_select{
+		.selectLine;
+	}
+}
+
+
+
+.webix_cell.webix_invalid{
+	background-color: #ffeeee;
+}
+.webix_invalid_cell{
+	position:relative;
+}
+.webix_invalid_cell:after {
+	content: "";
+
+	position:absolute;
+	top:0px; right:0px;
+	width:0px; height:1px;
+	border-top: 8px solid #f44;
+	border-left: 8px solid transparent;
+}
+
+/*selection*/
+.webix_column>div.webix_cell_select, .webix_column>div.webix_column_select, .webix_column>div.webix_row_select{
+	.selectLine;
+}
+
+/*extra borders, for selection in cell mode*/
+.webix_column>div.webix_cell_select{
+	.selectXLine;
+	.selectYLine;
+
+	padding-top:0px;
+	padding-left:(@dataPadding - 1);
+}
+.webix_ss_right .webix_column.webix_first>div.webix_cell_select{
+	padding-left:@dataPadding;
+}
+
+
+/*extra borders, for selection in row mode*/
+.webix_column>div.webix_row_select{
+	.selectXLine;
+	padding-top:0px;
+}
+/*extra borders for selection in column mode*/
+.webix_column>div.webix_column_select{
+	.selectYLine;
+	padding-left:(@dataPadding - 1);
+}
+
+.webix_cell.webix_dtable_colrow, .webix_cell.webix_dtable_subrow, .webix_dtable_subview{
+	position:absolute;
+	left:0px;
+	top:0px;
+	background-color: white;
+	width: 100%;
+	padding-right:@dataPadding + 18;
+	padding-left:@dataPadding;
+	padding-top:1px;
+
+	.dataFont;
+	border-bottom:1px solid @lightBorderColor;
+}
+.webix_cell.webix_dtable_colrow.webix_selected{
+	.selectLine;
+}
+.webix_dtable_subrow{
+	border-top:1px solid @lightBorderColor;
+	text-align: right;
+}
+.webix_dtable_subview{
+	background: @lightBorderColor;
+	border-top:1px solid @lightBorderColor;
+	padding: 0px 0px 0px 0px;
+	padding-left:10px;
+	box-sizing: border-box;
+}
+.number .webix_cell{
+	text-align:right;
+}
+.webix_rotate{
+	transform: rotate(-90deg);
+	-webkit-transform: rotate(-90deg);
+	line-height: normal;
+}
+
+
+.webix_measure_rotate{
+	line-height: normal;
+	white-space:normal;
+	padding:10px;
+}
+
+.webix_span_layer, .webix_span_layer_top{
+	background: transparent;
+	position:absolute;
+	left:0px;
+	top:0px;
+	height:0px;
+	width:0px;
+	overflow: visible;
+}
+.webix_span_layer_top{
+	z-index:1;
+}
+
+.webix_ss_right{
+	.webix_span_layer,
+	.webix_span_layer_top{
+		border-left: 1px solid @borderColor;
+	}
+}
+
+.webix_dtable_span{
+	position:absolute;
+	background: @backColor;
+	text-align:left;
+}
+
+.webix_dtable_span.webix_selected{
+	.selectLine;
+}
+
+.webix_hcell .webix_input_icon{
+   background-color: @dataHeaderBorderColor;
+}
+
+// areaselection
+.webix_area_selection_layer{
+	position: absolute;
+	z-index:2;
+}
+
+.webix_area_selection{
+	position: absolute;
+	background: @fontColor;
+}
+.webix_dtable_focused .webix_area_selection{
+	.darkFocusRule(@fontColor);
+}
+.webix_area_selection_top, .webix_area_selection_bottom{
+	height:2px;
+}
+.webix_area_selection_left, .webix_area_selection_right{
+	width:2px;
+}
+.webix_area_selection_handle{
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	border:1px solid #fff;
+	background: @fontColor;
+	cursor: crosshair;
+	margin: -6px 0 0 -6px;
+}
+.webix_topcell{
+	position:relative;
+	background:@backColor;
+	z-index:1;
+}
+
+.webix_dtable{
+	.webix_resize_handle_x .webix_handle_content,
+	.webix_resize_handle_y .webix_handle_content{
+	    border:none;
+	    background-color:@mainColor;
+	}
+}
+
+.webix_dtable_focused .webix_column > div.webix_row_select,
+.webix_dtable_focused .webix_column > div.webix_column_select{
+	.selectFocusRule();
+}

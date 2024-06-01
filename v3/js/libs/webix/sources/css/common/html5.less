@@ -1,0 +1,166 @@
+#border{
+	.corners(@lefttop:0px, @righttop: 0px, @bottomright: 0px, @leftbottom: 0px){
+		-webkit-border-top-left-radius: @lefttop;
+		-webkit-border-bottom-left-radius: @leftbottom;
+		-webkit-border-top-right-radius: @righttop;
+		-webkit-border-bottom-right-radius: @bottomright;
+		-moz-border-radius-topleft: @lefttop;
+		-moz-border-radius-bottomleft: @leftbottom;
+		-moz-border-radius-topright: @righttop;
+		-moz-border-radius-bottomright: @bottomright;
+		border-top-left-radius: @lefttop;
+		border-bottom-left-radius: @leftbottom;
+		border-top-right-radius: @righttop;
+		border-bottom-right-radius: @bottomright;
+	};
+	.radius(@size){
+		border-radius: @size;
+	};
+	.top(@size){
+		-moz-border-top-left-radius:@size;
+		-moz-border-top-right-radius:@size;
+		-webkit-border-top-left-radius:@size;
+		-webkit-border-top-right-radius:@size;
+		border-top-left-radius: @size;
+		border-top-right-radius: @size;
+	};
+	.bottom(@size){
+		border-bottom-left-radius: @size;
+		border-bottom-right-radius: @size;
+		-moz-border-bottom-left-radius:@size;
+		-moz-border-bottom-right-radius:@size;
+		-webkit-border-bottom-left-radius:@size;
+		-webkit-border-bottom-right-radius:@size;
+
+	};
+	.right(@size){
+        -moz-border-top-right-radius:@size;
+        -moz-border-bottom-right-radius:@size;
+		-webkit-border-top-right-radius:@size;
+		-webkit-border-bottom-right-radius:@size;
+	};
+	.left(@size){
+        -moz-border-top-left-radius:@size;
+        -moz-border-bottom-left-radius:@size;
+		-webkit-border-top-left-radius:@size;
+		-webkit-border-bottom-left-radius:@size;
+	};
+};
+#box {
+	.sizing( @type:border-box ){
+		-moz-box-sizing:@type;
+		-webkit-box-sizing:@type;
+		box-sizing:@type;
+	};
+	.noselect(){
+		-moz-user-select:none;
+		-webkit-user-select:none;
+		-ms-user-select: none;
+		user-select:none; 	
+	};
+	.select(){
+		-moz-user-select:text;
+		-webkit-user-select:text;  
+		user-select:text; 	
+	}
+	.rotate(@deg: 45deg){
+		-webkit-transform:  rotate(@deg);
+		-moz-transform:  rotate(@deg);
+		-ms-transform:  rotate(@deg);
+		-o-transform:  rotate(@deg);
+	}
+};
+
+#gradient{
+	.v2(@startColor: #555, @endColor: #333) {
+		background: @endColor;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@startColor), color-stop(100%,@endColor)); /* old webkit */
+		background-image: -webkit-linear-gradient(@startColor, @endColor);
+		background-image: -moz-linear-gradient(@startColor, @endColor);
+		background-image: -ms-linear-gradient(top,  @startColor,  @endColor);
+		background-image: -o-linear-gradient(top,  @startColor,  @endColor);
+	};
+	.v3(@startColor: #555, @middleColor: #888, @endColor: #333) {
+		background: @middleColor;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@startColor), color-stop(50%,@middleColor), color-stop(100%,@endColor)); /* old webkit */
+		background-image: -webkit-linear-gradient(@startColor, @middleColor, @endColor);
+		background-image: -moz-linear-gradient(@startColor, @middleColor, @endColor);
+		background-image: -ms-linear-gradient(top,  @startColor,  @middleColor, @endColor);
+		background-image: -o-linear-gradient(top,  @startColor,  @middleColor, @endColor);
+	};
+	.h3(@startColor: #555, @middleColor: #888, @endColor: #333) {
+		background: @middleColor;
+		background: -webkit-gradient(linear, left top, right top, color-stop(0%,@startColor), color-stop(50%,@middleColor), color-stop(100%,@endColor)); /* old webkit */
+		background-image: -webkit-linear-gradient(left, @startColor, @middleColor, @endColor);
+		background-image: -moz-linear-gradient(left, @startColor, @middleColor, @endColor);
+		background-image: -ms-linear-gradient(left,  @startColor,  @middleColor, @endColor);
+		background-image: -o-linear-gradient(left,  @startColor,  @middleColor, @endColor);
+	};
+	.v3-head(@color1: #333, @color2: #555, @color3: #333){
+		background: @color2;
+		background: -webkit-gradient(linear, left top, left bottom,color-stop(0%,@color1), color-stop(50%,@color2), color-stop(100%,@color3)); /* old webkit */
+		background-image: -webkit-linear-gradient(top, @color1 0%, @color2 50%, @color3 100%);
+		background-image: -moz-linear-gradient(top, @color1 0%, @color2 60%, @color3 100%);
+		background-image: -ms-linear-gradient(top, @color1 0%, @color2 60%, @color3 100%);
+		background-image: -o-linear-gradient(top, @color1 0%, @color2 60%, @color3 100%);
+	};
+	.v4-head(@color1: #555, @color2: #333, @color3: #555, @color4: #333){
+		background: @color3;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@color1), color-stop(5%,@color2), color-stop(50%,@color3), color-stop(100%,@color4)); /* old webkit */
+		background-image: -webkit-linear-gradient(top, @color1 0%, @color2 5%, @color3 50%, @color4 100%);
+		background-image: -moz-linear-gradient(top, @color1 0%, @color2 5%, @color3 60%, @color4 100%);
+		background-image: -ms-linear-gradient(top, @color1 0%, @color2 5%, @color3 60%, @color4 100%);
+		background-image: -o-linear-gradient(top, @color1 0%, @color2 5%, @color3 60%, @color4 100%);
+	};
+	.v4-edge(@color1: #555, @color2: #333, @color3: #555, @color4: #333){
+		background: @color3;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@color1), color-stop(20%,@color2), color-stop(80%,@color3), color-stop(100%,@color4)); /* old webkit */
+		background-image: -webkit-linear-gradient(top, @color1 0%, @color2 20%, @color3 80%, @color4 100%);
+		background-image: -moz-linear-gradient(top, @color1 0%, @color2 20%, @color3 80%, @color4 100%);
+		background-image: -ms-linear-gradient(top, @color1 0%, @color2 20%, @color3 80%, @color4 100%);
+		background-image: -o-linear-gradient(top, @color1 0%, @color2 20%, @color3 80%, @color4 100%);
+	};
+	.v4-top-split(@color1: #555, @color2: #333, @color3: #555, @color4: #333){
+		background: @color3;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@color1), color-stop(71%,@color2), color-stop(72%,@color3), color-stop(100%,@color4)); /* old webkit */
+		background-image: -webkit-linear-gradient(top, @color1 0%, @color2 71%, @color3 72%, @color4 100%);
+		background-image: -moz-linear-gradient(top, @color1 0%, @color2 71%, @color3 72%, @color4 100%);
+		background-image: -ms-linear-gradient(top, @color1 0%, @color2 71%, @color3 72%, @color4 100%);
+		background-image: -o-linear-gradient(top, @color1 0%, @color2 71%, @color3 72%, @color4 100%);
+	};
+	.v4-center-split(@color1: #555, @color2: #333, @color3: #555, @color4: #333){
+		background: @color1;
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@color1), color-stop(50%,@color2), color-stop(51%,@color3), color-stop(100%,@color4)); /* old webkit */
+		background-image: -webkit-linear-gradient(top, @color1 0%, @color2 50%, @color3 51%, @color4 100%);
+		background-image: -moz-linear-gradient(top, @color1 0%, @color2 50%, @color3 51%, @color4 100%);
+		background-image: -ms-linear-gradient(top, @color1 0%, @color2 50%, @color3 51%, @color4 100%);
+		background-image: -o-linear-gradient(top, @color1 0%, @color2 50%, @color3 51%, @color4 100%);
+	};
+    .v2-radial(@color1: #ffc341, @color2: #ffc341){
+        background: @color1;
+        background: -moz-radial-gradient(center 45deg, circle closest-corner, @color1 0%,  @color2 100%);
+        background: -webkit-gradient(radial, center center, 1, center center, 4,  from(@color1),to(@color2));
+        background: -webkit-radial-gradient(center 45deg, circle closest-corner, @color1 0%,  @color2 100%);
+        background: -o-radial-gradient(center 45deg, circle closest-corner, @color1 0%,  @color2 100%);
+        background: -ms-radial-gradient(center 45deg, circle closest-corner, @color1 0%,  @color2 100%);
+        background: radial-gradient(center 45deg, circle closest-corner, @color1 0%,  @color2 100%);
+    };
+	.point(@color1: #3498DB, @color2: #fff, @size: 22%){
+		background: @color1;
+		background: -moz-radial-gradient(center center 45deg, circle closest-corner, @color1 0%, @color1 @size, @color2 @size, @color2 100%);
+		background: -webkit-gradient(radial, center center, 1, center center, 4,  from(@color1),to(@color2));
+		background: -webkit-radial-gradient(center 45deg, circle closest-corner, @color1 0%, @color1 @size, @color2 @size, @color2 100%);
+		background: -o-radial-gradient(center 45deg, circle closest-corner, @color1 0%, @color1 @size, @color2 @size, @color2 100%);
+		background: -ms-radial-gradient(center 45deg, circle closest-corner, @color1 0%, @color1 @size, @color2 @size, @color2 100%);
+		background: radial-gradient(center 45deg, circle closest-corner, @color1 0%, @color1 @size, @color2 @size, @color2 100%);
+	};
+	.arrowgradient(@color: #E6E6E6){
+		background: @color;
+		background: -webkit-gradient(linear, left top, right bottom, from(white), to(@color));
+		background: -moz-linear-gradient(-45deg, white, @color);
+		background: -ms-linear-gradient(-45deg, white, @color);
+		background: -o-linear-gradient(-45deg, white, @color);
+	}
+
+
+}

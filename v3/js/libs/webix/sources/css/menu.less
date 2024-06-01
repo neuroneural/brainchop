@@ -1,0 +1,92 @@
+@menuLeftMargin: 4px;
+@menuTopMargin: @menuHeight/2 - @listPaddingY - 4;
+@menuItemHeight: @menuHeight ;
+@menuArrowColor: darken(@borderColor,40%);
+
+
+.webix_menu, .webix_menu-x{
+    .webix_list_item:hover, .webix_list_item:active, .webix_list_item:focus{
+        background:rgba(100,100,100,0.1);
+    }
+
+    .webix_list_item{
+        border:none;
+	    text-decoration: none;
+        background:@backColor;
+	    height: @menuItemHeight;
+        .webix_submenu_icon{
+            float: right;
+            text-align: right;
+            position:relative;
+            margin-left: @menuLeftMargin;
+        }
+    }
+}
+
+// Menu
+.webix_menu-x{
+	.webix_list_item:first-child{
+		margin-left: @menuMargin;
+	}
+	.webix_submenu_icon{
+		top: @menuHeight/2 - @listPaddingY - 2;
+    }
+
+    .webix_list_item{
+        display:inline-block;
+        line-height:@menuItemHeight - @listPaddingY*2 - @menuMargin*2;
+    }
+    .xMenuItems;
+
+
+    &.webix_disabled_view{
+        .webix_disabled{
+            background-color:transparent;
+        }
+        .webix_list_item.menu{
+            color: @disabledFontColor;
+            background: darken(@disabledColor,2%);
+        }
+    }
+}
+
+/* Submenu */
+.webix_menu{
+    background: @backColor;
+    border: 1px solid @borderColor;
+    border-radius: @windowRadius;
+    .webix_list_item{
+	    display: block;
+
+    }
+    .webix_context_separator{
+        height: 3px;
+        padding: 1px 3px 0 3px;
+        .sep_line{
+            height: 1px;
+            border-top: 1px solid  @borderColor;
+        }
+    }
+	.webix_submenu_icon{
+		top: @menuTopMargin;
+	}
+    .webix_context_spacer{
+        height:@listItemHeight;
+    }
+}
+.webix_menu_link{
+	color: inherit;
+	text-decoration: none;
+	display: block;
+	height:100%;
+
+}
+
+/* Toolbar */
+.webix_toolbar.webix_layout_subbar{
+	.layoutBarBG;
+	.subBarBG;
+}
+.webix_toolbar .webix_layout_line, .webix_toolbar .webix_layout_clean{
+	background:transparent;
+}
