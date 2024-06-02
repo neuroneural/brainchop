@@ -23,7 +23,7 @@
  </p>
 
  <p align="justify">
- We make the implementation of Brainchop freely available, releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based end-to-end solution for 3D MRI segmentation. <b><a href="v"  style="text-decoration: none">NiiVue</a></b> viewer is integrated with the tool for MRI visualization.  For more information about Brainchop, please refer to this detailed <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b>.
+ We make the implementation of brainchop freely available, releasing its pure javascript code as open-source. The user interface (UI)  provides a web-based end-to-end solution for 3D MRI segmentation. <b><a href="v"  style="text-decoration: none">NiiVue</a></b> viewer is integrated with the tool for MRI visualization.  For more information about Brainchop, please refer to this detailed <b><a href="https://github.com/neuroneural/brainchop/wiki/"  style="text-decoration: none">Wiki</a></b> and this <b><a href="https://trendscenter.org/in-browser-3d-mri-segmentation-brainchop-org/"  style="text-decoration: none"> Blog</a></b>.
 
   For questions or to share ideas, please refer to our  <b><a href="https://github.com/neuroneural/brainchop/discussions/"  style="text-decoration: none"> Discussions </a></b> board.
 
