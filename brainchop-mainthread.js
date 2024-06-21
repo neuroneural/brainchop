@@ -1219,7 +1219,7 @@ async function enableProductionMode(textureF16Flag = true) {
   tf.env().set('DEBUG', false)
   tf.env().set('WEBGL_FORCE_F16_TEXTURES', textureF16Flag)
   // -- set this flag so that textures are deleted when tensors are disposed.
-  tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0)
+  tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', -1)
   // -- tf.env().set('WEBGL_PACK', false)
   // -- Put ready after sets above
   await tf.ready()
