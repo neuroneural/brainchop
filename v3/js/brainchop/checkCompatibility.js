@@ -1,2 +1,0 @@
-    // Test browser support ES6 classes
-    try { eval('"use strict"; class foo {};'); } catch (e) { console.log(e); alert("Your browser does not support JS ES6 version, for supported browsers please refer to https://caniuse.com/es6"); }
