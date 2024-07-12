@@ -137,7 +137,7 @@ async function main() {
     }
   }
   saveImgBtn.onclick = function () {
-    nv1.volumes[1].saveToDisk('Custom.nii')
+    nv1.volumes[1].saveToDisk('segmentaion.nii.gz')
   }
   saveSceneBtn.onclick = function () {
     nv1.saveDocument("brainchop.nvd");
