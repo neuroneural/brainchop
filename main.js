@@ -160,6 +160,39 @@ async function main() {
     const js = await response.json()
     return js
   }
+  async function getUniqueValuesAndCounts(uint8Array) {
+  // Use a Map to count occurrences
+  const countsMap = new Map();
+
+  for (let i = 0; i < uint8Array.length; i++) {
+    const value = uint8Array[i];
+    if (countsMap.has(value)) {
+      countsMap.set(value, countsMap.get(value) + 1);
+    } else {
+      countsMap.set(value, 1);
+    }
+  }
+
+  // Convert the Map to an array of objects
+  const result = Array.from(countsMap, ([value, count]) => ({ value, count }));
+
+  return result;
+  }
+  async function createLabeledCounts(uniqueValuesAndCounts, labelStrings) {
+  if (uniqueValuesAndCounts.length !== labelStrings.length) {
+    console.error('Mismatch in lengths: uniqueValuesAndCounts has', 
+                  uniqueValuesAndCounts.length, 'items, but labelStrings has', 
+                  labelStrings.length, 'items.');
+    return null;
+  }
+
+  // Sort uniqueValuesAndCounts by key (value property)
+  uniqueValuesAndCounts.sort((a, b) => a.value - b.value);
+
+  return uniqueValuesAndCounts.map((item, index) => {
+    return `${labelStrings[item.value]} ${item.count} mm3`;
+  });
+}
   async function callbackImg(img, opts, modelEntry) {
     closeAllOverlays()
     const overlayVolume = await nv1.volumes[0].clone()
@@ -167,9 +200,16 @@ async function main() {
     overlayVolume.hdr.scl_inter = 0
     overlayVolume.hdr.scl_slope = 1
     overlayVolume.img = new Uint8Array(img)
+      const roiVolumes = await getUniqueValuesAndCounts(overlayVolume.img);
+      console.log(roiVolumes)
     if (modelEntry.colormapPath) {
-      const cmap = await fetchJSON(modelEntry.colormapPath)
-      overlayVolume.setColormapLabel(cmap)
+        const cmap = await fetchJSON(modelEntry.colormapPath)
+        const newLabels = await createLabeledCounts(roiVolumes, cmap['labels']);
+        console.log(newLabels)
+        overlayVolume.setColormapLabel({"R": cmap["R"],
+                                        "G": cmap["G"],
+                                        "B": cmap["B"],
+                                        "labels": newLabels})
       // n.b. most models create indexed labels, but those without colormap mask scalar input
       overlayVolume.hdr.intent_code = 1002 // NIFTI_INTENT_LABEL
     } else {
