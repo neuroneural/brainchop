@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Brainchop Mocha Tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <!-- <script src="https://unpkg.com/chai/chai.js"></script> -->
+    <!-- <script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script> -->
+    <script src="lib/chai.js"></script>
+    <script src="lib/mocha.js"></script>
+
+    <!-- Brainchop Libs -->
+    <script src="../js/libs/tf.min.js"></script>
+    <script src="https://docs.opencv.org/3.4.0/opencv.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+
+
+    <!-- Mocha Setup -->
+    <script class="mocha-init">
+        mocha.ui('tdd');
+        mocha.setup('bdd');
+        mocha.reporter('html');
+        var expect = chai.expect;
+        // var assert = chai.assert;
+        // mocha.checkLeaks();
+        mocha.setup({globals: ['hasCert']});
+    </script>
+    <!-- src -->
+    <script src="../js/brainchop/mainMeshNetFunctions.js"></script>
+    <script src="../js/brainchop/connectedComponents3DAll.js"></script>
+    <script src="../js/brainchop/mainNiftiReadingFunctions.js"></script>
+
+    <!-- Tests -->
+    <script src="bc_test/mainMeshNetFunctions_test.js"></script>
+    <script src="bc_test/mainNiftiReadingFunctions_test.js"></script>
+
+    <script class="mocha-exec">
+      mocha.run();
+    </script>
+  </body>
+</html>
