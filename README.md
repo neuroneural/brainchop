@@ -224,6 +224,7 @@ If you use or modify Brainchop in a derivative work intended for publication (su
 We also request that significant contributions to derivative works be recognized by including original authors as co-authors, where appropriate.
 
 <br>
+
 ## Funding
 
 This work was funded by the NIH grant RF1MH121885. Additional support from NIH R01MH123610, R01EB006841 and NSF 2112455.
