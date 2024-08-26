@@ -217,7 +217,7 @@ For **IEEE** style:
 
 ## Contribution and Authorship Guidelines
 
-If you use or modify Brainchop in a derivative work intended for publication (such as a research paper or software tool), please acknowledge the original Brainchop project and the original authors. Proper citation should include the following:
+If you modify or extend Brainchop in a derivative work intended for publication (such as a research paper or software tool), please cite and acknowledge the original Brainchop project and the original authors. Proper acknowledge should include the following:
 
 "Brainchop, originally developed by Mohamed Masoud and Sergey Plis (2023), was used in the development of this work."
 
