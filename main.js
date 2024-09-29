@@ -303,4 +303,14 @@ async function main() {
   }
 }
 
+async function updateStarCount() {
+  try {
+      const response = await fetch(`https://api.github.com/repos/neuroneural/brainchop`);
+      const data = await response.json();
+      document.getElementById('star-count').textContent = data.stargazers_count;
+  } catch (error) {
+      console.error('Error fetching star count:', error);
+  }
+}
+updateStarCount()
 main()
