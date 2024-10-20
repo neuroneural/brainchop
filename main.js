@@ -190,7 +190,7 @@ async function main() {
   uniqueValuesAndCounts.sort((a, b) => a.value - b.value);
 
   return uniqueValuesAndCounts.map((item, index) => {
-    return `${labelStrings[item.value]} ${item.count} mm3`;
+    return `${labelStrings[item.value]}   ${item.count} mm3`;
   });
 }
   async function callbackImg(img, opts, modelEntry) {
@@ -261,7 +261,7 @@ async function main() {
     }
   }
   function handleLocationChange(data) {
-    document.getElementById('location').innerHTML = '&nbsp;&nbsp;' + data.string
+    document.getElementById('location').innerHTML = data.string.split('   ').map(value => `<p style="font-size: ${24/(data.string.split('   ').length-1)}px;margin:0px;">${value}</p>`).join('');
   }
   const defaults = {
     backColor: [0.4, 0.4, 0.4, 1],
@@ -313,4 +313,4 @@ async function updateStarCount() {
   }
 }
 updateStarCount()
-main()
+main()  
