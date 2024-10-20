@@ -1,0 +1,85 @@
+.bt_1 button:active{
+  background: #396D9E !important;
+}    
+
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(1) > div{
+  border-radius: 20px;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line{
+  background-color: #F3F3F6;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_toolbar.toolbarclass.webix_layout_toolbar > div > div > div.webix_view.webix_control.webix_el_label > div > p{
+  margin: 0!important;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_toolbar.toolbarclass.webix_layout_toolbar > div > div > div.webix_view.webix_control.webix_el_label > div > p > span{
+  margin: 0!important;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(1) > div:nth-child(2) > div > div.webix_view.webix_control.webix_el_select > div > select{
+  background: white;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(1) > div:nth-child(1) > div > div.webix_view.webix_layout_line > div.webix_view.webix_control.webix_el_button.webix_uploader.webix_secondary.bt_1 > div > button, body > div.webix_view.webix_layout_line > div.webix_view.webix_toolbar.toolbarclass.webix_layout_toolbar > div > div > div.webix_view.webix_control.webix_el_button.webix_secondary.bt_1 > div > button{
+  color:#FFFFFF;
+  font-size: 13px;
+  background: black!important;
+  border-radius: 10px!important;
+  color: white!important;
+  box-shadow: none !important;
+  border: none !important;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(2){
+    border-radius: 20px;
+    padding: 20px 0;
+    background: white;
+    max-height: fit-content!important;
+    height: auto!important;
+    border-width: 1px;
+
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(3){
+    border-radius: 20px;
+    padding: 20px 0;
+    background: white;
+    border-width: 1px;
+    max-height: fit-content!important;
+    height: auto!important;
+}
+#feedbackId{
+  color: black;
+}
+#githubId{
+  color: black;
+}
+
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(2) > div:nth-child(2){
+    max-height: fit-content!important;
+    height: auto!important;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line > div:nth-child(3) > div:nth-child(2){
+    max-height: fit-content!important;
+    height: auto!important;
+}
+body > div.webix_view.webix_layout_line > div.webix_view.webix_layout_line{
+    margin-top: 0px !important;
+}
+.webix_view.webix_control .webix_disabled_box .webix_button{
+  color: #000000!important;
+    background: #ffffff!important;
+    text-shadow: none!important;
+    border: 1px solid!important;
+    border-radius: 10px!important;
+}
+.bt_1 button.webix_button{
+  font-size: 13px;
+    background: black!important;
+    border-radius: 10px!important;
+    color: white!important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+
+
