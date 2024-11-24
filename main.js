@@ -60,6 +60,13 @@ async function main() {
       );
       return;
     }
+    missingLabelStatus = missingLabelStatus.slice(0, -2);
+    if (missingLabelStatus !== "") {
+      if (diagnosticsString.includes('Status: OK')) {
+        diagnosticsString = diagnosticsString.replace('Status: OK', `Status: ${missingLabelStatus}`);
+      }
+    }
+    missingLabelStatus = ""
     navigator.clipboard.writeText(diagnosticsString);
     window.alert("Diagnostics copied to clipboard\n" + diagnosticsString);
   };
@@ -214,6 +221,7 @@ async function main() {
   }
   async function createLabeledCounts(uniqueValuesAndCounts, labelStrings) {
     if (uniqueValuesAndCounts.length !== labelStrings.length) {
+      missingLabelStatus = "Failed to Predict Labels - "
       console.error(
         "Mismatch in lengths: uniqueValuesAndCounts has",
         uniqueValuesAndCounts.length,
@@ -221,14 +229,19 @@ async function main() {
         labelStrings.length,
         "items.",
       );
-      return null;
     }
 
-    // Sort uniqueValuesAndCounts by key (value property)
-    uniqueValuesAndCounts.sort((a, b) => a.value - b.value);
+    return labelStrings.map((label, index) => {
+      // Find the entry matching the current label index
+      const entry = uniqueValuesAndCounts.find(item => item.value === index);
 
-    return uniqueValuesAndCounts.map((item, index) => {
-      return `${labelStrings[item.value]}   ${item.count} mm3`;
+      // If an entry is found, append the count value with 'mm3', otherwise show 'Missing'
+      const countText = entry ? `${entry.count} mm3` : "Missing";
+
+      countText === "Missing"
+      ? missingLabelStatus += `${label}, ` : null;
+
+      return `${label}   ${countText}`;
     });
   }
   async function callbackImg(img, opts, modelEntry) {
@@ -318,6 +331,7 @@ async function main() {
     onLocationChange: handleLocationChange,
   };
   let diagnosticsString = "";
+  let missingLabelStatus = ""
   let chopWorker;
   const nv1 = new Niivue(defaults);
   nv1.attachToCanvas(gl1);
