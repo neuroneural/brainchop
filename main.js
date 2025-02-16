@@ -377,5 +377,5 @@ async function updateStarCount() {
     console.error("Error fetching star count:", error);
   }
 }
+await main();
 updateStarCount();
-main();
