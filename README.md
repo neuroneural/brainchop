@@ -56,9 +56,8 @@ This basic example provides an overview of the training pipeline for the MeshNet
 
 ## Live Demo
 
-To see Brainchop **v4** in action please click  [here](https://neuroneural.github.io/brainchop).
-
-<br>
+To see Brainchop **v4** in action please click  [here](https://neuroneural.github.io/brainchop). Or click on the gif below to see a video:
+[![Brainchop Overhaul](https://github.com/neuroneural/brainchop/releases/download/v4.1.0/Brainchop_preview.gif)](https://github.com/neuroneural/brainchop/releases/download/v4.1.0/Brainchop_overhaul.mp4)
 
 For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
