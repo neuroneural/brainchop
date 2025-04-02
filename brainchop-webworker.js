@@ -285,10 +285,10 @@ async function inferenceFullVolumeSeqCovLayerPhase2(
           callbackUI(msg, -1, msg)
         }
 
-        const Inference_t = ((performance.now() - startTime) / 1000).toFixed(4)
-
         console.log(' find array max ')
         const curBatchMaxLabel = await outputTensor.max().dataSync()[0]
+        const Inference_t = ((performance.now() - startTime) / 1000).toFixed(4)
+        
         if (maxLabelPredicted < curBatchMaxLabel) {
           maxLabelPredicted = curBatchMaxLabel
         }
