@@ -80,7 +80,8 @@ async function main() {
   async function ensureConformed() {
     const nii = nv1.volumes[0];
     let isConformed =
-      nii.dims[1] === 256 && nii.dims[2] === 256 && nii.dims[3] === 256;
+      nii.dims[1] === 256 && nii.dims[2] === 256 && nii.dims[3] === 256
+        && nii.img instanceof Uint8Array && nii.img.length === 256 * 256 * 256;
     if (
       nii.permRAS[0] !== -1 ||
       nii.permRAS[1] !== 3 ||
