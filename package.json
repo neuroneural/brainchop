@@ -11,7 +11,7 @@
     "pretest": "vite build"
   },
   "dependencies": {
-    "@niivue/niivue": "^0.43.5",
+    "@niivue/niivue": "^0.62.0",
     "@tensorflow/tfjs": "^4.20.0",
     "gl-matrix": "^3.4.3"
   },
