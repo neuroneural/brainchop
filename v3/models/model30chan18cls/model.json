@@ -1,0 +1,808 @@
+{
+    "format": "layers-model",
+    "generatedBy": "keras v2.7.0",
+    "convertedBy": "TensorFlow.js Converter v3.9.0",
+    "modelTopology": {
+        "keras_version": "2.6.0",
+        "backend": "tensorflow",
+        "model_config": {
+            "class_name": "Functional",
+            "config": {
+                "name": "model",
+                "layers": [
+                    {
+                        "class_name": "InputLayer",
+                        "config": {
+                            "batch_input_shape": [
+                                null,
+                                256,
+                                256,
+                                256,
+                                1
+                            ],
+                            "dtype": "float32",
+                            "sparse": false,
+                            "ragged": false,
+                            "name": "input"
+                        },
+                        "name": "input",
+                        "inbound_nodes": []
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_0",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_0",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "input",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_1",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_1",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_0",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_2",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                2,
+                                2,
+                                2
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_2",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_1",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_3",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_3",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_2",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_4",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                4,
+                                4,
+                                4
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_4",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_3",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_5",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_5",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_4",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_6",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                8,
+                                8,
+                                8
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_6",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_5",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_7",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_7",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_6",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_8",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                16,
+                                16,
+                                16
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_8",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_7",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_9",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_9",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_8",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_10",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                8,
+                                8,
+                                8
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_10",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_9",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_11",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_11",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_10",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_12",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                4,
+                                4,
+                                4
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_12",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_11",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_13",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_13",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_12",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_14",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                2,
+                                2,
+                                2
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_14",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_13",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_15",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_15",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_14",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "conv3d_16",
+                            "trainable": false,
+                            "filters": 30,
+                            "kernel_size": [
+                                3,
+                                3,
+                                3
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "conv3d_16",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_15",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Activation",
+                        "config": {
+                            "name": "activation_17",
+                            "trainable": false,
+                            "dtype": "float32",
+                            "activation": "elu"
+                        },
+                        "name": "activation_17",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "conv3d_16",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    },
+                    {
+                        "class_name": "Conv3D",
+                        "config": {
+                            "name": "output",
+                            "trainable": false,
+                            "filters": 18,
+                            "kernel_size": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "strides": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "dilation_rate": [
+                                1,
+                                1,
+                                1
+                            ],
+                            "padding": "same",
+                            "data_format": "channels_last",
+                            "activation": "linear",
+                            "use_bias": true,
+                            "dtype": "float32"
+                        },
+                        "name": "output",
+                        "inbound_nodes": [
+                            [
+                                [
+                                    "activation_17",
+                                    0,
+                                    0,
+                                    {}
+                                ]
+                            ]
+                        ]
+                    }
+                ],
+                "input_layers": [
+                    [
+                        "input",
+                        0,
+                        0
+                    ]
+                ],
+                "output_layers": [
+                    [
+                        "output",
+                        0,
+                        0
+                    ]
+                ]
+            }
+        }
+    },
+    "weightsManifest": [
+        {
+            "paths": [
+                "model.bin"
+            ],
+            "weights": [
+                {
+                    "name": "conv3d_0/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        1,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_0/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_2/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_2/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_4/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_4/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_6/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_6/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_8/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_8/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_10/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_10/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_12/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_12/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_14/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_14/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_16/kernel",
+                    "shape": [
+                        3,
+                        3,
+                        3,
+                        30,
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "conv3d_16/bias",
+                    "shape": [
+                        30
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "output/kernel",
+                    "shape": [
+                        1,
+                        1,
+                        1,
+                        30,
+                        18
+                    ],
+                    "dtype": "float32"
+                },
+                {
+                    "name": "output/bias",
+                    "shape": [
+                        18
+                    ],
+                    "dtype": "float32"
+                }
+            ]
+        }
+    ]
+}
