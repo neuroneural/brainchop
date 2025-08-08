@@ -3,7 +3,7 @@ import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
   root: '.',
-  base: '/',
+  base: './', // Use relative paths for GitHub Pages
   plugins: [
     // Generate gzip compressed files
     viteCompression({
