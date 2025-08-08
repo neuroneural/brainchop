@@ -4,10 +4,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/niivue.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- DNS prefetch for external resources -->
+  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+  
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  
+  <!-- Preload critical CSS -->
+  <link rel="preload" href="./niivue.css" as="style" />
+  <link rel="stylesheet" href="./niivue.css" />
+  
+  <!-- Load Font Awesome with resource hints -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
+  
   <title>AI powered brain segmentation</title>
-  <script type="module" crossorigin src="/assets/index-_lFKxMXe.js"></script>
+  <script type="module" crossorigin src="/assets/index-BGxb6XbA.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/vendor-DOCzr95M.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-math-CA38DMGy.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-niivue-DkxzteUE.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-tf-Blupv7mO.js">
 </head>
 
 <body>
