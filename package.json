@@ -1,5 +1,5 @@
 {
-  "name": "niivue-brainchop",
+  "name": "brainchop",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -18,7 +18,8 @@
   "devDependencies": {
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.12",
-    "vite": "^7.0.5"
+    "vite": "^7.0.5",
+    "vite-plugin-compression": "^0.5.1"
   },
   "homepage": "https://neuroneural.github.io/brainchop/"
 }
