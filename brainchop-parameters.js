@@ -376,5 +376,51 @@ const inferenceModelsList = [
     inferenceDelay: 100, // Delay in ms time while looping layers applying.
     description:
       'FreeSurfer aparc+aseg atlas 104 parcellate brain areas into 104 regions. It contains a combination of the Desikan-Killiany atlas for cortical area and also segmentation of subcortical regions. The model use sequential convolution for inference to overcome browser memory limitations but leads to longer computation time. '
-  }
+  },
+  {
+    id: 16,
+    type: 'Brain_Extraction',
+    path: '/models/mindgrab/model.json',
+    modelName: '\u{1F9E0}\u{1FA93} omnimodal Skull Strip (High Mem, Fast)',
+    preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }
+    preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
+    isBatchOverlapEnable: false, // create extra overlap batches for inference
+    numOverlapBatches: 0, // Number of extra overlap batches for inference
+    enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
+    enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+    cropPadding: 0, // Padding size add to cropped brain
+    autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    enableQuantileNorm: false, // Some models needs Quantile Normaliztion.
+    filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+    enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
+    textureSize: 0, // Requested Texture size for the model, if unknown can be 0.
+    warning:
+      "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
+    inferenceDelay: 100, // Delay in ms time while looping layers applying.
+    description:
+      'Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version.'
+  },
+  {
+    id: 17,
+    type: 'Brain_Extraction',
+    path: '/models/mindgrab/model.json',
+    modelName: '\u{1F9E0}\u{1FA93} omnimodal Skull Strip (Low Mem, Slow)',
+    preModelId: null, // Model run first e.g.  crop the brain  { null, 1, 2, ..  }
+    preModelPostProcess: false, // If true, perform postprocessing to remove noisy regions after preModel inference generate output.
+    isBatchOverlapEnable: false, // create extra overlap batches for inference
+    numOverlapBatches: 0, // Number of extra overlap batches for inference
+    enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
+    enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
+    cropPadding: 0, // Padding size add to cropped brain
+    autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    enableQuantileNorm: false, // Some models needs Quantile Normaliztion.
+    filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
+    enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
+    textureSize: 0, // Requested Texture size for the model, if unknown can be 0.
+    warning:
+      "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
+    inferenceDelay: 100, // Delay in ms time while looping layers applying.
+    description:
+      'Extract the brain high accuracy model operates on  image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version.'
+  },    
 ] // inferenceModelsList

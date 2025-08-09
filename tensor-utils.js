@@ -82,7 +82,6 @@ export async function convByOutputChannelAndInputSlicing(input, filter, biases, 
   // Slice the input tensor and process one output channel at a time
   for (let channel = 0; channel < outChannels; channel++) {
     const numSlices = Math.ceil(inChannels / sliceSize)
-    const biasesSlice = biases.slice([channel], [1])
     let outputChannel = null
 
     for (let i = 0; i < numSlices; i++) {
@@ -109,10 +108,22 @@ export async function convByOutputChannelAndInputSlicing(input, filter, biases, 
       }
     }
 
-    // Add the biases to the accumulated convolutions for this channel
-    const biasedOutputChannel = outputChannel.add(biasesSlice)
-    outputChannel.dispose()
-    biasesSlice.dispose()
+    // --- Start of Fix ---
+    // This variable will hold the final result for this channel, after bias is (optionally) added.
+    let biasedOutputChannel;
+
+    // Check if the biases tensor was actually provided for this layer.
+    if (biases) {
+      // If biases exist, slice the correct one for this channel and add it.
+      const biasesSlice = biases.slice([channel], [1]);
+      biasedOutputChannel = outputChannel.add(biasesSlice);
+      outputChannel.dispose();
+      biasesSlice.dispose();
+    } else {
+      // If no biases exist, the result is simply the accumulated convolution output.
+      biasedOutputChannel = outputChannel;
+    }
+    // --- End of Fix ---
 
     // Accumulate the channel to the output array
     if (outputChannels == null) {
@@ -126,6 +137,109 @@ export async function convByOutputChannelAndInputSlicing(input, filter, biases, 
   }
 
   return outputChannels
+}
+
+/**
+ * Applies instance normalization to a single-channel 3D tensor.
+ * Normalizes the tensor over its depth, height, and width.
+ * @param {tf.Tensor} x A 5D tensor of shape [1, D, H, W, 1].
+ * @param {number} epsilon A small float added to variance to avoid dividing by zero.
+ * @returns {tf.Tensor} The normalized tensor.
+ */
+function instanceNorm(x, epsilon = 1e-5) {
+  return tf.tidy(() => {
+    // Axes [1, 2, 3] correspond to Depth, Height, Width.
+    const { mean, variance } = tf.moments(x, [1, 2, 3], true);
+    const invStd = tf.rsqrt(variance.add(epsilon));
+    return x.sub(mean).mul(invStd);
+  });
+}
+
+export async function gn_convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, dilationRate, sliceSize) {
+  const inChannels = input.shape[4];
+  const outChannels = filter.shape[4];
+
+  // Array to hold the normalized output channels before concatenation.
+  const normalizedChannels = [];
+
+  for (let channel = 0; channel < outChannels; channel++) {
+    // This section computes a single channel's convolution, same as before.
+    const numSlices = Math.ceil(inChannels / sliceSize);
+    let outputChannel = null;
+    for (let i = 0; i < numSlices; i++) {
+      const startChannel = i * sliceSize;
+      const endChannel = Math.min((i + 1) * sliceSize, inChannels);
+      if (startChannel < inChannels) {
+        const resultSlice = tf.tidy(() => {
+          const inputSlice = input.slice([0, 0, 0, 0, startChannel], [-1, -1, -1, -1, endChannel - startChannel]);
+          const filterSlice = filter.slice([0, 0, 0, startChannel, channel], [-1, -1, -1, endChannel - startChannel, 1]);
+          return tf.conv3d(inputSlice, filterSlice, stride, pad, 'NDHWC', dilationRate);
+        });
+        if (outputChannel === null) {
+          outputChannel = resultSlice;
+        } else {
+          const updatedOutputChannel = outputChannel.add(resultSlice);
+          outputChannel.dispose();
+          resultSlice.dispose();
+          outputChannel = updatedOutputChannel;
+        }
+      }
+    }
+
+    let biasedOutputChannel;
+    if (biases) {
+      const biasesSlice = biases.slice([channel], [1]);
+      biasedOutputChannel = outputChannel.add(biasesSlice);
+      outputChannel.dispose();
+      biasesSlice.dispose();
+    } else {
+      biasedOutputChannel = outputChannel;
+    }
+
+    // --- KEY CHANGE ---
+    // Apply instance normalization to the resulting channel.
+    const normalizedChannel = instanceNorm(biasedOutputChannel);
+    normalizedChannels.push(normalizedChannel);
+    
+    // Dispose the intermediate tensor for this channel.
+    biasedOutputChannel.dispose();
+  }
+
+  // Concatenate all normalized channels into a single tensor.
+  const finalOutput = tf.concat(normalizedChannels, 4);
+
+  // Dispose the tensors in the array.
+  normalizedChannels.forEach(t => t.dispose());
+
+  return finalOutput;
+}
+
+/**
+ * Applies instance normalization to a tensor and disposes the input tensor
+ * to simulate an in-place operation, minimizing peak memory usage.
+ * Assumes input shape [1, D, H, W, C]. Normalization is per-channel.
+ *
+ * @param {tf.Tensor} x The input tensor to normalize.
+ * @param {number} [epsilon=1e-5] A small float added to variance to avoid division by zero.
+ * @returns {tf.Tensor} The new, normalized tensor.
+ */
+export function LayerNormInPlace(x, epsilon = 1e-5) {
+  // tf.tidy will automatically dispose of intermediate tensors (mean, variance, invStd).
+  const normalizedX = tf.tidy(() => {
+    // Axes [1, 2, 3] correspond to Depth, Height, Width.
+    // keepDims=true is crucial for broadcasting during the sub/mul operations.
+    const { mean, variance } = tf.moments(x, [1, 2, 3], true);
+
+    // Calculate (x - mean) * (1 / sqrt(variance + epsilon))
+    const invStd = tf.rsqrt(variance.add(epsilon));
+    return x.sub(mean).mul(invStd);
+  });
+
+  // Dispose the original, un-normalized input tensor to free its memory.
+  x.dispose();
+
+  // Return the new, normalized tensor.
+  return normalizedX;
 }
 
 export async function draw3dObjBoundingVolume(unstackOutVolumeTensor, opts, modelEntry, callbackImg) {

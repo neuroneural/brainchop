@@ -1,0 +1,6 @@
+{
+    "R": [ 0, 255],
+    "G": [ 0, 255],
+    "B": [ 0, 255],
+    "labels": [ "background", "brain mask"]
+}
