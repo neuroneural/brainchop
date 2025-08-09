@@ -1,24 +1,26 @@
 import * as tf from '@tensorflow/tfjs'
 import { inferenceModelsList } from './brainchop-parameters.js'
 import {
-  addZeroPaddingTo3dTensor,
-  applyMriThreshold,
-  binarizeVolumeDataTensor,
-  convByOutputChannelAndInputSlicing,
-  draw3dObjBoundingVolume,
-  firstLastNonZero3D,
-  generateBrainMask,
-  generateOutputSlicesV2,
-  getAllSlicesDataAsTF3D,
-  getModelNumLayers,
-  getModelNumParameters,
-  isModelChnlLast,
-  load_model,
-  minMaxNormalizeVolumeData,
-  quantileNormalizeVolumeData,
-  removeZeroPaddingFrom3dTensor,
-  resizeWithZeroPadding,
-  SequentialConvLayer
+    addZeroPaddingTo3dTensor,
+    applyMriThreshold,
+    binarizeVolumeDataTensor,
+    convByOutputChannelAndInputSlicing,
+    gn_convByOutputChannelAndInputSlicing,
+    LayerNormInPlace,
+    draw3dObjBoundingVolume,
+    firstLastNonZero3D,
+    generateBrainMask,
+    generateOutputSlicesV2,
+    getAllSlicesDataAsTF3D,
+    getModelNumLayers,
+    getModelNumParameters,
+    isModelChnlLast,
+    load_model,
+    minMaxNormalizeVolumeData,
+    quantileNormalizeVolumeData,
+    removeZeroPaddingFrom3dTensor,
+    resizeWithZeroPadding,
+    SequentialConvLayer
 } from './tensor-utils.js'
 
 function callbackUI(message = '', progressFrac = -1, modalMessage = '', statData = []) {
@@ -209,15 +211,31 @@ async function inferenceFullVolumeSeqCovLayerPhase2(
         if (res.layers[i].activation.getClassName() !== 'linear') {
           curTensor[i] = await res.layers[i].apply(curTensor[i - 1])
         } else {
-          curTensor[i] = await convByOutputChannelAndInputSlicing(
-            curTensor[i - 1],
-            res.layers[i].getWeights()[0],
-            res.layers[i].getWeights()[1],
-            res.layers[i].strides,
-            res.layers[i].padding,
-            res.layers[i].dilationRate,
-            3
-          ) // important for memory use
+  // Check if the layer's name ends with our special suffix
+  if (res.layers[i].name.endsWith('_gn')) {
+    // Use the new GroupNorm-aware convolution function
+    curTensor[i] = await gn_convByOutputChannelAndInputSlicing(
+      curTensor[i - 1],
+      res.layers[i].getWeights()[0],
+      res.layers[i].getWeights()[1], // Can be undefined, the function handles it
+      res.layers[i].strides,
+      res.layers[i].padding,
+      res.layers[i].dilationRate,
+      3
+    );
+  } else {
+    // Use the original convolution function for non-GN layers
+    curTensor[i] = await convByOutputChannelAndInputSlicing(
+      curTensor[i - 1],
+      res.layers[i].getWeights()[0],
+      res.layers[i].getWeights()[1],
+      res.layers[i].strides,
+      res.layers[i].padding,
+      res.layers[i].dilationRate,
+      3
+    );
+  }
+                                    
         }
 
         tf.dispose(curTensor[i - 1])
@@ -575,8 +593,12 @@ async function inferenceFullVolumePhase2(
 
     while (true) {
       try {
-        // -- curTensor[i] = res.layers[i].apply( curTensor[i-1])
-        curTensor[i] = res.layers[i].apply(curTensor[i - 1])
+          let resultTensor = await res.layers[i].apply(curTensor[i - 1]);
+          if (res.layers[i].name.endsWith('_gn')) {
+              // LayerNormInPlace will dispose of the old resultTensor internally.
+              resultTensor = LayerNormInPlace(resultTensor);
+          }
+          curTensor[i] = resultTensor;
       } catch (err) {
         callbackUI(err.message, -1, err.message)
         tf.engine().endScope()
@@ -592,10 +614,20 @@ async function inferenceFullVolumePhase2(
 
         return 0
       }
+        if (res.layers[i].activation.getClassName() == 'linear') {
+            // --- FORCE EXECUTION BY READING THE FIRST ELEMENT (Corrected) ---
+            // 1. Create a tiny slice tensor.
+            const firstElement = curTensor[i].slice([0, 0, 0, 0, 0], [1, 1, 1, 1, 1]);           
+            // 2. Awaiting its data forces GPU synchronization.
+            await firstElement.data();
+            // 3. Manually dispose of the temporary slice tensor now that it has served its purpose.
+            firstElement.dispose();
+            // --- SYNCHRONIZATION IS NOW COMPLETE ---        
+        }
       callbackUI('Layer ' + i.toString(), (i + 1) / layersLength)
       console.log('layer output Tensor shape : ', curTensor[i].shape)
       console.log('layer count params ', res.layers[i].countParams())
-      res.layers[i].dispose()
+      //res.layers[i].dispose()
       curTensor[i - 1].dispose()
       if (tf.memory().unreliable) {
         const unreliableReasons = 'unreliable reasons :' + tf.memory().reasons
