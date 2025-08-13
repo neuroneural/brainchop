@@ -388,8 +388,8 @@ const inferenceModelsList = [
     numOverlapBatches: 0, // Number of extra overlap batches for inference
     enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
     enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-    cropPadding: 10, // Padding size add to cropped brain
-    autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    cropPadding: 20, // Padding size add to cropped brain
+    autoThreshold: 0.5, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
     enableQuantileNorm: false, // Some models needs Quantile Normaliztion.
     filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
     enableSeqConv: false, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -398,7 +398,7 @@ const inferenceModelsList = [
       "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
     inferenceDelay: 100, // Delay in ms time while looping layers applying.
     description:
-      'Extract the brain high accuracy model operates on full T1 image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version.'
+      'The omnimodal skull stripping model delivers high-accuracy brain extraction in seconds, supporting multiple imaging modalities including T1, T2, FLAIR, DWI, EPI, MRA, PDw, CT, and PET without a need for tuning. It runs in a single pass with only 15 filters per layer, and is offered in high-memory/fast and low-memory/slow configurations. Use it today to improve and accelerate your brain extraction!'
   },
   {
     id: 17,
@@ -411,8 +411,8 @@ const inferenceModelsList = [
     numOverlapBatches: 0, // Number of extra overlap batches for inference
     enableTranspose: true, // Keras and tfjs input orientation may need a tranposing step to be matched
     enableCrop: true, // For speed-up inference, crop brain from background before feeding to inference model to lower memory use.
-    cropPadding: 10, // Padding size add to cropped brain
-    autoThreshold: 0, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
+    cropPadding: 20, // Padding size add to cropped brain
+    autoThreshold: 0.5, // Threshold between 0 and 1, given no preModel and tensor is normalized either min-max or by quantiles. Will remove noisy voxels around brain
     enableQuantileNorm: false, // Some models needs Quantile Normaliztion.
     filterOutWithPreMask: false, // Can be used to multiply final output with premodel output mask to crean noisy areas
     enableSeqConv: true, // For low memory system and low configuration, enable sequential convolution instead of last layer
@@ -421,6 +421,6 @@ const inferenceModelsList = [
       "This model may need dedicated graphics card.  For more info please check with Browser Resources <i class='fa fa-cogs'></i>.",
     inferenceDelay: 100, // Delay in ms time while looping layers applying.
     description:
-      'Extract the brain high accuracy model operates on  image in a single pass, but uses only 11 filters per layer. Can work on dedicated graphics cards. Still more accurate than the fast version.'
+      'The omnimodal skull stripping model delivers high-accuracy brain extraction in seconds, supporting multiple imaging modalities including T1, T2, FLAIR, DWI, EPI, MRA, PDw, CT, and PET without a need for tuning. It runs in a single pass with only 15 filters per layer, and is offered in high-memory/fast and low-memory/slow configurations. Use it today to improve and accelerate your brain extraction!'
   },    
 ] // inferenceModelsList
