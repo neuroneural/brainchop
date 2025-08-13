@@ -3,10 +3,33 @@ import { BWLabeler } from './bwlabels.js'
 
 export async function addZeroPaddingTo3dTensor(tensor3d, rowPadArr = [1, 1], colPadArr = [1, 1], depthPadArr = [1, 1]) {
   if (tensor3d.rank !== 3) {
-    throw new Error('Tensor must be 3D')
+    throw new Error('Tensor must be 3D');
   }
-  return tensor3d.pad([rowPadArr, colPadArr, depthPadArr])
+
+  const [height, width, depth] = tensor3d.shape;
+
+  const adjustPadding = (size, padding) => {
+    const totalPad = padding[0] + padding[1];
+    if (size + totalPad > 256) {
+      const scale = (256 - size) / totalPad;
+      return [Math.floor(padding[0] * scale), Math.floor(padding[1] * scale)];
+    }
+    return padding;
+  };
+
+  return tensor3d.pad([
+    adjustPadding(height, rowPadArr),
+    adjustPadding(width, colPadArr),
+    adjustPadding(depth, depthPadArr)
+  ]);
 }
+
+// export async function addZeroPaddingTo3dTensor(tensor3d, rowPadArr = [1, 1], colPadArr = [1, 1], depthPadArr = [1, 1]) {
+//   if (tensor3d.rank !== 3) {
+//     throw new Error('Tensor must be 3D')
+//   }
+//   return tensor3d.pad([rowPadArr, colPadArr, depthPadArr])
+// }
 
 export async function applyMriThreshold(tensor, percentage) {
   // Perform asynchronous operations outside of tf.tidy
@@ -155,15 +178,17 @@ function instanceNorm(x, epsilon = 1e-5) {
   });
 }
 
+
 export async function gn_convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, dilationRate, sliceSize) {
+
+//    const finalResult = tf.tidy(() => {
   const inChannels = input.shape[4];
   const outChannels = filter.shape[4];
 
-  // Array to hold the normalized output channels before concatenation.
-  const normalizedChannels = [];
+  let outputChannels = null;
 
   for (let channel = 0; channel < outChannels; channel++) {
-    // This section computes a single channel's convolution, same as before.
+    // This section computes a single channel's convolution.
     const numSlices = Math.ceil(inChannels / sliceSize);
     let outputChannel = null;
     for (let i = 0; i < numSlices; i++) {
@@ -197,22 +222,26 @@ export async function gn_convByOutputChannelAndInputSlicing(input, filter, biase
     }
 
     // --- KEY CHANGE ---
-    // Apply instance normalization to the resulting channel.
+      // Apply instance normalization to the resulting channel.
+    // Apply normalization
     const normalizedChannel = instanceNorm(biasedOutputChannel);
-    normalizedChannels.push(normalizedChannel);
-    
-    // Dispose the intermediate tensor for this channel.
     biasedOutputChannel.dispose();
+
+    // Incremental concatenation
+    if (outputChannels === null) {
+      outputChannels = normalizedChannel;
+    } else {
+      const updatedOutputChannels = await tf.concat([outputChannels, normalizedChannel], 4);
+      normalizedChannel.dispose();
+      outputChannels.dispose();
+      outputChannels = updatedOutputChannels;
+    }
   }
 
-  // Concatenate all normalized channels into a single tensor.
-  const finalOutput = tf.concat(normalizedChannels, 4);
-
-  // Dispose the tensors in the array.
-  normalizedChannels.forEach(t => t.dispose());
-
-  return finalOutput;
-}
+  return outputChannels;
+    }// );
+//     return finalResult;
+// }
 
 /**
  * Applies instance normalization to a tensor and disposes the input tensor
@@ -224,22 +253,11 @@ export async function gn_convByOutputChannelAndInputSlicing(input, filter, biase
  * @returns {tf.Tensor} The new, normalized tensor.
  */
 export function LayerNormInPlace(x, epsilon = 1e-5) {
-  // tf.tidy will automatically dispose of intermediate tensors (mean, variance, invStd).
-  const normalizedX = tf.tidy(() => {
-    // Axes [1, 2, 3] correspond to Depth, Height, Width.
-    // keepDims=true is crucial for broadcasting during the sub/mul operations.
+  return tf.tidy(() => {
     const { mean, variance } = tf.moments(x, [1, 2, 3], true);
-
-    // Calculate (x - mean) * (1 / sqrt(variance + epsilon))
-    const invStd = tf.rsqrt(variance.add(epsilon));
-    return x.sub(mean).mul(invStd);
+    const invStd = tf.rsqrt(tf.add(variance, epsilon));
+    return tf.mul(tf.sub(x, mean), invStd);
   });
-
-  // Dispose the original, un-normalized input tensor to free its memory.
-  x.dispose();
-
-  // Return the new, normalized tensor.
-  return normalizedX;
 }
 
 export async function draw3dObjBoundingVolume(unstackOutVolumeTensor, opts, modelEntry, callbackImg) {
@@ -595,133 +613,151 @@ export async function resizeWithZeroPadding(croppedTensor3d, newDepth, newHeight
   ])
 }
 
+
 export class SequentialConvLayer {
   constructor(model, chunkSize, isChannelLast, callbackUI, isWebWorker = true) {
-    this.model = model
-    this.outChannels = model.outputLayers[0].kernel.shape[4]
-    this.chunkSize = chunkSize
-    this.isChannelLast = isChannelLast
-    this.callbackUI = callbackUI
-    this.isWebWorker = isWebWorker
+    this.model = model;
+    this.outChannels = model.outputLayers[0].kernel.shape[4];
+    this.chunkSize = chunkSize;
+    this.isChannelLast = isChannelLast;
+    this.callbackUI = callbackUI;
+    this.isWebWorker = isWebWorker;
   }
-
-  /**
-   * Apply sequential convolution layer
-   * @since 3.0.0
-   * @member SequentialConvLayer
-   * @param {tf.Tensor}  inputTensor  e.g.  [ 1, 256, 256, 256, 5 ]
-   * @return {outC}
-   */
 
   async apply(inputTensor) {
-    const oldDeleteTextureThreshold = tf.ENV.get('WEBGL_DELETE_TEXTURE_THRESHOLD')
-    tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0)
+    const startTime = performance.now();
+    const convLayer = this.model.layers[this.model.layers.length - 1];
+    const weights = convLayer.getWeights()[0];
+    const biases = convLayer.getWeights()[1];
+    const outputShape = this.isChannelLast ? inputTensor.shape.slice(1, -1) : inputTensor.shape.slice(2);
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this
-    // Important to avoid "undefined" class var members inside the timer.
-    // "this" has another meaning inside the timer.
+    // Initialize output tensors
+    let outB = await tf.mul(tf.ones(outputShape), -10000);
+    let outC = await tf.zeros(outputShape);
 
-    // document.getElementById("progressBarChild").parentElement.style.visibility = "visible"
-    const startTime = performance.now()
+    // Process in larger chunks to reduce overhead
+    const CHUNK_SIZE = 3; // Process 8 channels at once
+    const chunks = Math.ceil(this.outChannels / CHUNK_SIZE);
 
-    const convLayer = self.model.layers[self.model.layers.length - 1]
-    const weights = convLayer.getWeights()[0] //
-    const biases = convLayer.getWeights()[1]
-    const outputShape = self.isChannelLast ? inputTensor.shape.slice(1, -1) : inputTensor.shape.slice(2)
-    // -- e.g.  outputShape : [256,256,256] or cropped Dim
-    // -- if inputTensor [ 1, D, H, W, 50 ], channelLast true ->   outputShape : outputShape [D, H, W]
-    // -- if inputTensor [ 1, 50, D, H, W ], channelLast false ->   outputShape : outputShape [D, H, W]
+    for (let chunk = 0; chunk < chunks; chunk++) {
+      const startIdx = chunk * CHUNK_SIZE;
+      const endIdx = Math.min((chunk + 1) * CHUNK_SIZE, this.outChannels);
 
-    let outB = tf.mul(tf.ones(outputShape), -10000)
-    // -- e.g. outB.shape  [256,256,256]
-    let outC = tf.zeros(outputShape)
-    // -- e.g. outC.shape  [256,256,256]
-    let chIdx = 0
+      // Process chunk in single tidy to optimize memory
+      const [newOutB, newOutC] = await tf.tidy(() => {
+        let currentOutB = outB;
+        let currentOutC = outC;
 
-    // console.log("---------------------------------------------------------")
-    console.log(' channel loop')
+        for (let chIdx = startIdx; chIdx < endIdx; chIdx++) {
+          const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1]);
+          const filterBiases = biases.slice([chIdx], [1]);
 
-    while (true) {
-      tf.engine().startScope() // Start TensorFlow.js scope
-      /* console.log('=======================')
-      const memoryInfo0 = await tf.memory()
-      console.log(`| Number of Tensors: ${memoryInfo0.numTensors}`)
-      console.log(`| Number of Data Buffers: ${memoryInfo0.numDataBuffers}`) */
+          const outA = processTensorInChunks(
+            inputTensor,
+            filterWeights,
+            Math.min(this.chunkSize, this.outChannels)
+          ).add(filterBiases);
 
-      const result = await tf.tidy(() => {
-        const filterWeights = weights.slice([0, 0, 0, 0, chIdx], [-1, -1, -1, -1, 1])
-        // -- e.g. filterWeights.shape [ 1, 1, 1, 5, 1 ]
-        const filterBiases = biases.slice([chIdx], [1])
-        // -- e.g. filterBiases.shape [1] -> Tensor  [-0.7850812]
-        const outA = processTensorInChunks(inputTensor, filterWeights, Math.min(self.chunkSize, self.outChannels)).add(
-          filterBiases
-        )
-        const greater = tf.greater(outA, outB)
-        const newoutB = tf.where(greater, outA, outB)
-        const newoutC = tf.where(greater, tf.fill(outC.shape, chIdx), outC)
-        // Dispose the old tensors before reassigning
-        tf.dispose([outB, outC, filterWeights, filterBiases, outA, greater])
-        // Dummy operation to trigger cleanup
-        tf.tidy(() => tf.matMul(tf.ones([1, 1]), tf.ones([1, 1])))
-        return [newoutC, newoutB]
-      })
-      console.log('=======================')
-      self.callbackUI(`Iteration ${chIdx}`, chIdx / self.outChannels)
-      if (!self.isWebWorker) {
-        // allow user interface to refresh
-        await new Promise((resolve) => setTimeout(resolve, 17))
-      }
-      const memoryInfo = await tf.memory()
-      console.log(`Number of Tensors: ${memoryInfo.numTensors}`)
-      console.log(`Number of Data Buffers: ${memoryInfo.numDataBuffers}`)
-      console.log(`Megabytes In Use: ${(memoryInfo.numBytes / 1048576).toFixed(3)} MB`)
-      if (memoryInfo.unreliable) {
-        console.log(`Unreliable: ${memoryInfo.unreliable}`)
-      }
-      // Dispose of previous values before assigning new tensors to outC and outB
-      if (typeof outC !== 'undefined') {
-        outC.dispose()
-      }
-      if (typeof outB !== 'undefined') {
-        outB.dispose()
-      }
-      // Assign the new values to outC and outB
-      outC = tf.keep(result[0])
-      outB = tf.keep(result[1])
-      // // Assign the new values to outC and outB
-      // outC = result[0]
-      // outB = result[1]
-      tf.engine().endScope()
+          const greater = tf.greater(outA, currentOutB);
+          currentOutB = tf.where(greater, outA, currentOutB);
+          currentOutC = tf.where(greater, tf.fill(currentOutC.shape, chIdx), currentOutC);
+        }
 
-      if (chIdx === self.outChannels - 1) {
-        // document.getElementById("progressBarChild").style.width = 0 + "%"
-        tf.dispose(outB)
-        const endTime = performance.now()
-        const executionTime = endTime - startTime
-        console.log(`Execution time for output layer: ${executionTime} milliseconds`)
-        tf.ENV.set('WEBGL_DELETE_TEXTURE_THRESHOLD', oldDeleteTextureThreshold)
-        return outC
-      } else {
-        chIdx++
+        return [currentOutB, currentOutC];
+      });
 
-        // the seemingly strange sequence of operations
-        // below prevents tfjs from uncontrolably
-        // grabbing buffers, even when all tensors have
-        // already been disposed
+      // Clean up previous tensors
+      tf.dispose([outB, outC]);
+      outB = newOutB;
+      outC = newOutC;
 
-        const outCShape = outC.shape
-        const outCdata = outC.dataSync()
-        const outBShape = outC.shape
-        const outBdata = outB.dataSync()
-        outC.dispose()
-        outB.dispose()
-        // tf.disposeVariables()
-        outC = tf.tensor(outCdata, outCShape)
-        outB = tf.tensor(outBdata, outBShape)
+      // Update progress
+      this.callbackUI(`Processing chunk ${chunk + 1}/${chunks}`, (chunk + 1) / chunks);
 
-        // document.getElementById("progressBarChild").style.width = (chIdx + 1) * 100 / self.outChannels + "%"
+      // Allow UI update and prevent GPU timeout
+      if (!this.isWebWorker) {
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
+
+    // Clean up and return result
+    const result = outC.clone();
+    tf.dispose([outB, outC]);
+
+    const endTime = performance.now();
+    console.log(`Execution time: ${endTime - startTime} milliseconds`);
+    return result;
   }
-} // <<<< End of class
+}
+
+
+
+/**
+ * Main orchestrator function to process a segmentation volume.
+ * OPTIMIZED: This version performs a single GPU->CPU data transfer and then
+ * executes all subsequent logic on the CPU, avoiding inefficient data round-trips.
+ * It is based on the logic of the proven `generateOutputSlicesV2` function.
+ *
+ * @param {tf.Tensor} outLabelVolume The final tensor from the model inference.
+ * @param {Uint8Array|Float32Array} niftiImage The raw data from the original NIfTI file.
+ * @param {object} modelEntry The model configuration object.
+ * @param {object} opts The options object, containing `isPostProcessEnable`.
+ * @returns {Promise<Uint8Array>} The final processed image data as a Uint8Array.
+ */
+export async function processSegmentationVolume(outLabelVolume, niftiImage, modelEntry, opts) {
+  // --- Step 1: Single Data Transfer from GPU to CPU ---
+  // This is the only 'await' and the only interaction with the GPU.
+    console.log('Downloading segmentation data from GPU to CPU...');
+    const segmentationData = await outLabelVolume.data(); // This returns a TypedArray (e.g., Int32Array)
+
+  const Vshape = outLabelVolume.shape;
+  console.log('Data download complete. Starting CPU processing.');
+
+  // --- Step 2: Apply Post-Processing (if enabled) ---
+  // This logic is now identical to your old, working function.
+  if (opts.isPostProcessEnable) {
+    console.log('Applying CPU-based connected-component labeling...');
+    const bwStartTime = performance.now();
+
+    const BWInstance = new BWLabeler();
+    const [_labelCount, labeledImage] = BWInstance.bwlabel(
+      segmentationData,
+      Vshape,
+      26,    // conn
+      true,  // binarize
+      true   // onlyLargestClusterPerClass
+    );
+
+    // This loop applies the mask IN-PLACE, which is very efficient.
+    for (let i = 0; i < segmentationData.length; i++) {
+      segmentationData[i] *= labeledImage[i];
+    }
+
+    const bwTime = ((performance.now() - bwStartTime) / 1000).toFixed(4);
+    console.log(`Connected-component labeling took: ${bwTime} seconds.`); // <-- This will likely show ~5 seconds.
+  }
+
+  // --- Step 3: Apply Final Model Logic on the CPU ---
+  // This switch statement is adapted directly from your old function.
+  switch (modelEntry.type) {
+    case 'Brain_Masking': {
+      const brainMask = new Uint8Array(segmentationData.length);
+      for (let i = 0; i < segmentationData.length; i++) {
+        brainMask[i] = segmentationData[i] !== 0 ? 1 : 0;
+      }
+      return brainMask;
+    }
+    case 'Brain_Extraction': {
+      const maskedData = new Uint8Array(segmentationData.length);
+      for (let i = 0; i < segmentationData.length; i++) {
+        const maskValue = segmentationData[i] !== 0 ? 1 : 0;
+        maskedData[i] = niftiImage[i] * maskValue;
+      }
+      return maskedData;
+    }
+    default: {
+      // For other cases, return the (potentially modified) segmentation data.
+      return new Uint8Array(segmentationData);
+    }
+  }
+}
