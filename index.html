@@ -4,100 +4,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
   <!-- DNS prefetch for external resources -->
   <link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
-  
+
   <!-- Preconnect to external domains -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-  
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
   <!-- Preload critical CSS -->
   <link rel="preload" href="./niivue.css" as="style" />
   <link rel="stylesheet" href="./niivue.css" />
-  
+
   <title>AI powered brain segmentation</title>
-  <script type="module" crossorigin src="/assets/index-C4qQaV9g.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/vendor-DOCzr95M.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-math-CA38DMGy.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-niivue-DkxzteUE.js">
-  <link rel="modulepreload" crossorigin href="/assets/vendor-tf-C1mOOeJ2.js">
+  <script type="module" crossorigin src="/brainchop-test/assets/index-C-lEH7Wr.js"></script>
+  <link rel="modulepreload" crossorigin href="/brainchop-test/assets/vendor-Da8HlJrh.js">
+  <link rel="modulepreload" crossorigin href="/brainchop-test/assets/vendor-math-CA38DMGy.js">
+  <link rel="modulepreload" crossorigin href="/brainchop-test/assets/vendor-niivue-CgtaimhT.js">
+  <link rel="modulepreload" crossorigin href="/brainchop-test/assets/vendor-tf-BFsyQNtv.js">
+  <link rel="stylesheet" crossorigin href="/brainchop-test/assets/index-Dcq5zR05.css">
 </head>
 
 <body>
   <header>
-    <label for="clipCheck">Clip Plane</label>
-    <input type="checkbox" id="clipCheck" unchecked />
-    <label for="opacitySlider0">Background Opacity</label>
-    <input type="range" min="0" max="255" value="255" class="slider" id="opacitySlider0" />
-    &nbsp;
-    <label for="opacitySlider1">Overlay Opacity</label>
-    <input type="range" min="0" max="255" value="128" class="slider" id="opacitySlider1" />
-    &nbsp;
-    <label for="modelSelect">Segmentation Model</label>
+
+
+    <div class="control-group">
+      <label for="opacitySlider0">BG Opacity</label>
+      <input type="range" min="0" max="255" value="255" class="slider" id="opacitySlider0" />
+    </div>
+
+    <div class="control-group">
+      <label for="opacitySlider1">Overlay</label>
+      <input type="range" min="0" max="255" value="128" class="slider" id="opacitySlider1" />
+    </div>
+
+    <!-- Backend selection is now automatic -->
     <select id="modelSelect">
+      <option value="-1" disabled selected>Loading models...</option>
     </select>
-    &nbsp;
-    <button id="saveImgBtn">Save Segmentation</button>
-    &nbsp;
-    <button id="saveSceneBtn">Save Scene</button>
-    &nbsp;
-    <label for="workerCheck">Use Webworker</label>
-    <input type="checkbox" title="webworkers are faster but not supported by all browsers" id="workerCheck" checked />
-    &nbsp;
-    <label for="penDrop">Draw</label>
-    <select id="penDrop">
-      <option value="-1">Off</option>
-      <option value="2">On</option>
-      <option value="10">Filled</option>
-      <option value="0">Erase</option>
-    </select>
-    <select id="drawDrop">
-      <option value="0">Undo</option>
-      <option value="1">Append</option>
-      <option value="2">Remove</option>
-    </select>
-    &nbsp;
-    <label for="dragMode">Drag Mode</label>
-    <select id="dragMode">
-      <option>none</option>
-      <option>contrast</option>
-      <option>measurement</option>
-      <option selected>pan/zoom</option>
-      <option>slicer3D</option>
-    </select>
-    &nbsp;
+
+    <div class="button-group">
+      <button id="saveImgBtn">Save Seg</button>
+      <button id="saveSceneBtn">Save Scene</button>
+    </div>
+
+    <div class="control-group">
+      <label for="penDrop">Draw</label>
+      <select id="penDrop">
+        <option value="-1">Off</option>
+        <option value="2">On</option>
+        <option value="10">Filled</option>
+        <option value="0">Erase</option>
+      </select>
+      <select id="drawDrop">
+        <option value="0">Undo</option>
+        <option value="1">Append</option>
+        <option value="2">Remove</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="dragMode">Drag</label>
+      <select id="dragMode">
+        <option>none</option>
+        <option>contrast</option>
+        <option>measurement</option>
+        <option selected>pan/zoom</option>
+        <option>slicer3D</option>
+      </select>
+    </div>
+
     <button id="diagnosticsBtn">Diagnostics</button>
-    &nbsp;
     <button id="aboutBtn">About</button>
   </header>
+
   <main id="canvas-container">
     <canvas id="gl1"></canvas>
   </main>
+
   <footer>
-    <div class="footer">
-      <table class="footer">
-        <tr>
-          <th id="location">Drag and Drop any NIfTI image</th>
-          <th><progress id="modelProgress" value="0" max="100"> 32% </progress></th>
-          <th>
-            <!-- important to use class footer here -->
-            <div class="footer" id="memstatus" style="color: green">Memory OK</div>
-          </th>
-          <th>
-            <a href="https://github.com/neuroneural/brainchop" target="_blank" style="text-decoration:none">
-              <div class="github-star">
-                <div class="star-button">
-                  <i class="fa-brands fa-github" style="color: #000000;"></i>
-                  <span>Star</span>
-                </div>
-                <div id="star-count">0</div>
-              </div>
-            </a>
-          </th>
-        </tr>
-      </table>
+    <div class="footer-content">
+      <div class="footer-item" id="location">Drag and Drop any NIfTI image</div>
+
+      <div class="footer-item">
+        <progress id="modelProgress" value="0" max="100"> 0% </progress>
+      </div>
+
+      <div class="footer-item" id="memstatus" style="color: green">Memory OK</div>
+
+      <div class="footer-item">
+        <div id="backendStatus" style="color: gray; cursor: help" title="Detecting backend...">⏳ Checking Backend...
+        </div>
+      </div>
+
+      <div class="footer-item">
+        <a href="https://github.com/neuroneural/brainchop" target="_blank" style="text-decoration:none">
+          <div class="github-star">
+            <div class="star-button">
+              <span>Star</span>
+            </div>
+            <span id="star-count">0</span>
+          </div>
+        </a>
+      </div>
     </div>
   </footer>
+
+  <!-- Custom Modal Dialog -->
+  <dialog id="appDialog">
+    <h3 id="dialogTitle">Message</h3>
+    <div id="dialogMessage"></div>
+    <button id="dialogCloseBtn">Close</button>
+  </dialog>
+
 </body>
 
 </html>

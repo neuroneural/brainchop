@@ -26,6 +26,63 @@ main {
 footer {
   margin: 10px;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    padding: 5px;
+    margin: 5px;
+  }
+  
+  header label {
+    display: none; /* Hide labels on mobile */
+  }
+  
+  header select,
+  header button,
+  header input[type="checkbox"] {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  
+  header input[type="range"] {
+    width: 60px;
+  }
+  
+  /* Hide less essential controls on mobile */
+  #clipCheck,
+  #penDrop,
+  #drawDrop,
+  #dragMode,
+  #saveSceneBtn,
+  #diagnosticsBtn,
+  #aboutBtn {
+    display: none;
+  }
+  
+  /* Keep only essential controls visible */
+  #modelSelect,
+  #saveImgBtn,
+  #opacitySlider1 {
+    display: inline-block;
+  }
+  
+  footer {
+    margin: 5px;
+  }
+  
+  .footer {
+    font-size: 11px;
+  }
+  
+  table.footer th {
+    padding: 2px;
+  }
+}
 canvas {
   position: absolute;
   cursor: crosshair;
