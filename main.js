@@ -322,6 +322,8 @@ async function main() {
       } catch (e) {
         console.error("WebGPU inference failed, falling back to WebGL.", e);
         callbackUI("WebGPU failed — switching to WebGL backend...", 0);
+        // Allow GPU to release WebGPU resources before requesting WebGL context
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
 

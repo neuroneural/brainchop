@@ -104,6 +104,7 @@ export async function runInferenceWebGpu(device, opts, modelEntry, niftiHeader, 
     statData.isModelFullVol = true;
 
     let outLabelVolume; // To hold the tensor for final disposal
+    const resources = []; // Track WebGPU buffers for cleanup
 
     try {
         // Validate inputs
@@ -142,9 +143,6 @@ export async function runInferenceWebGpu(device, opts, modelEntry, niftiHeader, 
 
         // --- DYNAMIC RUNNER & INFERENCE ---
         callbackUI('Loading model runner...', 0.4);
-
-        // Track resources for cleanup
-        const resources = [];
 
         // Proxy the device to intercept createBuffer calls
         const proxyDevice = new Proxy(device, {
@@ -253,7 +251,7 @@ export async function runInferenceWebGpu(device, opts, modelEntry, niftiHeader, 
         }
 
         // Clean up WebGPU resources
-        if (typeof resources !== 'undefined' && resources.length > 0) {
+        if (resources.length > 0) {
             console.log(`Cleaning up ${resources.length} WebGPU buffers...`);
             for (const buffer of resources) {
                 buffer.destroy();
