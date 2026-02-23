@@ -243,7 +243,7 @@ export async function runInferenceWebGpu(device, opts, modelEntry, niftiHeader, 
 
         markFailure(statData, errorMessage, 'WebGPU inference failed');
 
-        callbackUI('', -1, `WebGPU Error: ${errorMessage}`, statData);
+        callbackUI('WebGPU inference failed, attempting fallback...', -1, '', statData);
         throw error; // Re-throw to trigger fallback in main.js
     } finally {
         // Clean up input tensor (it was disposed earlier but let's be safe if logic changes)
