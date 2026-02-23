@@ -3,7 +3,7 @@ import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
   root: '.',
-  base: '/', // Root path for custom domain brainchop.org
+  base: '/brainchop/', // Subdirectory path for GitHub Pages
   plugins: [
     // Generate gzip compressed files
     viteCompression({
