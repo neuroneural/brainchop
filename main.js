@@ -320,7 +320,10 @@ async function main() {
         await runInferenceWebGpu(gpuDevice, opts, modelEntry, nv1.volumes[0].hdr, niftiImage, callbackImg, callbackUI);
         return; // Success
       } catch (e) {
-        console.error("WebGPU inference failed, falling back to WebWorker.", e);
+        console.error("WebGPU inference failed, falling back to WebGL.", e);
+        callbackUI("WebGPU failed — switching to WebGL backend...", 0);
+        // Allow GPU to release WebGPU resources before requesting WebGL context
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
 
