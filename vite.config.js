@@ -3,7 +3,7 @@ import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
   root: '.',
-  base: '/brainchop/',
+  base: '/',
   plugins: [
     // Generate gzip compressed files
     viteCompression({
