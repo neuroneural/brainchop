@@ -1,199 +1,281 @@
-.grid-container {
-  display: grid;
-  grid-template-columns: auto;
-  padding: 0vh;
+/* Modern, Clean, Responsive CSS for BrainChop */
+:root {
+  --primary-color: #007bff;
+  --bg-color: #202020;
+  /* Dark Background */
+  --text-color: #ffffff;
+  /* White Text */
+  --header-bg: #333333;
+  /* Dark Header */
+  --footer-bg: #333333;
+  /* Dark Footer */
+  --border-radius: 4px;
+  --spacing: 0.5rem;
+  --input-bg: #ffffff;
+  --input-text: #000000;
 }
 
-.grid-item {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 0px solid rgba(0, 0, 0, 0.8);
-  padding: 1vh;
-  width: 40vw;
-  height: auto;
-  font-size: 15px;
-  text-align: center;
-}
-
-
-.toolbarclass {
-  background-color: white !important;
-  font-weight: bold;
-  box-shadow: 5px 5px;
-} 
-
-.titleclass {
-  font-style: italic;
-  font-weight: bold;
-  color: black !important;
-}  
-
-.headerclass {
-      border-left: 10px solid black!important;
-      background: #f3f3f6a3!important;
-      margin-left: 0!important;
-      width: 100%!important;
-      color: black!important;
-      font-weight: bold;
-      border-left-color: black!important;
-}
-
-.windowtitleclass {
-  background-color: #ccc !important;
-  box-shadow: none,
-}      
-
-.webixbg .webix_view {
-  background-color:black !important;
-  box-shadow:none;
-}
-
-#feedbackId {
-  cursor: pointer;
-  margin-right: 20px;
-}
-
-#resourcesHwSwId {
-  cursor: pointer;
-  margin-right: 20px;
-}
-
-#githubId {
-  cursor: pointer;
-  margin-right: 20px;
-}
-.customTheme {
-    font-weight: bold;
-    background-color: black;
-    color:  white;
-}
-
-#annotOfContainer_0 {
-    /*font-weight: bold;*/
-    background-color: black;
-    color:  white;
-    text-align: center;
-    height: 3vh;
-}
-
-#annotOfContainer_1 {
-    /*font-weight: bold;*/
-    background-color: black;
-    color:  white;
-    text-align: center;
-    height: 3vh;
-}
-
-.bt_1 button.webix_button {
-  background: #396D9E;
-  background: -moz-linear-gradient(top, #5D91C3 0% , #396D9E 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0,#5D91C3), color-stop(1, black));
-  border:1px solid #396D9E;
-  text-shadow: 0 -1px #134471;
-  box-shadow: inset 0px 1px 10px #8eb3d5;
-  -webkit-box-shadow: inset 0px 1px 1px #8eb3d5;
-  color:#FFFFFF;
-  font-size: 13px;
-}
-
-.bt_1 button:active {
-  background: #396D9E !important;
-}    
-
-#output_gui_container {
-  position: absolute;
-  top: 10%;
-  right: 1%;
-  height: auto;
-}
-
-#input_gui_container {
-  position: absolute;
-  top: 10%;
-  right: 1%;
-  height: auto;
-}
-
-#output-threejs-container {
-    background-color: black!important;
-}
-
-.panel {
-      position: fixed;
-      z-index: 1;
-      scrollbar-color: rgba(255,255,255, 1);
-      scrollbar-width: thin;
-      transition: 0.5s;
-}    
-
-.progress-line{
-  background: linear-gradient(217deg, rgba(127,127, 127,.8), rgba(255,0,0,0) 70.71%),
-        linear-gradient(127deg, rgba(0, 0, 0,.8), rgba(0,255,0,0) 70.71%),
-        linear-gradient(336deg, rgba(255, 255, 255,.8), rgba(0,0,255,0) 70.71%);
-  top: 88%;
-  left: 2.5%;
-  max-width: 96%;
-  height: 1.4vh;
-  position: absolute;
-  transition: 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
-} 
-
- /*****dat.GUI List Extention***/
-
-.dropdown-check-list {
-  display: none;
-  position: absolute;
-  top: 28%;
-  right: 1%;
-  background-color: #222;
-}
-
-.dropdown-check-list .anchor {
-  position: relative;
-  cursor: pointer;
-  display: inline-block;
-  padding: 5px 50px 5px 10px;
-  border: 1px solid #333;
-  width: 7.5vw; /* header width */
-}
-
-.dropdown-check-list .anchor:after {
-  position: absolute;
-  content: "";
-  border-left: 2px solid white;
-  border-top: 2px solid white;
-  padding: 5px;
-  right: 10px;
-  top: 20%;
-  -moz-transform: rotate(-135deg);
-  -ms-transform: rotate(-135deg);
-  -o-transform: rotate(-135deg);
-  -webkit-transform: rotate(-135deg);
-  transform: rotate(-135deg);
-}
-
-.dropdown-check-list .anchor:active:after {
-  right: 8px;
-  top: 21%;
-}
-
-.dropdown-check-list ul.items {
-  padding: 2px;
-  display: '';
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
-  border: 1px solid #333;
-  border-top: none;
-  max-height: 20vh;
-  height: auto;
-  width: 7.5vw; /* list width */
-  overflow: scroll;        
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  /* Lock body to viewport to fix mobile bottom bar visibility */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  overflow: hidden;
+  /* Prevent body scroll, canvas handles it */
 }
 
-.dropdown-check-list ul.items li {
-  list-style: none;
-} 
+/* Reset aggressive styles from niivue.css */
+div {
+  background-color: transparent;
+}
 
-label {
-    color: white;
-    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
-    font-size: 10px;
-}  
+/* Header */
+header {
+  margin: 0;
+  background-color: var(--header-bg);
+  padding: var(--spacing);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-wrap: wrap;
+  /* Critical for mobile responsiveness */
+  align-items: center;
+  gap: var(--spacing);
+  flex-shrink: 0;
+  color: var(--text-color);
+}
+
+header label {
+  font-weight: 500;
+  font-size: 14px;
+  /* Normalized to match buttons */
+  white-space: nowrap;
+  color: var(--text-color);
+}
+
+/* Form Controls */
+select,
+button,
+input[type="text"] {
+  padding: 5px 12px;
+  /* Tighter */
+  border: 1px solid #d1d5da;
+  /* Subtle border like GitHub star */
+  border-radius: 6px;
+  /* Slightly more rounded */
+  font-size: 14px;
+  /* Standard readable size */
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+button {
+  cursor: pointer;
+  background-color: #e0e0e0;
+  color: #000;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: #ffffff;
+  border-color: #999;
+}
+
+button:active {
+  background-color: #ccc;
+}
+
+/* Specific Button Styles */
+#diagnosticsBtn {
+  color: #000;
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+#aboutBtn {
+  color: #000;
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+/* Sliders */
+input[type=range] {
+  vertical-align: middle;
+  max-width: 100px;
+}
+
+/* Main Canvas Area */
+main#canvas-container {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Footer */
+footer {
+  margin: 0;
+  background-color: var(--footer-bg);
+  padding: var(--spacing);
+  font-size: 14px;
+  /* Normalized to match header */
+  font-weight: bold;
+  /* Make footer text bold */
+  border-top: 1px solid #555;
+  flex-shrink: 0;
+  color: var(--text-color);
+}
+
+/* Footer Layout - replacing table with flexbox in CSS if possible, but HTML change is better */
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#location {
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 14px;
+  /* Normalized */
+  line-height: 1.2;
+  /* Stabilize layout: Fixed width prevent jitter when text changes */
+  width: 260px;
+  min-width: 260px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Progress Bar */
+progress {
+  height: 1.2em;
+  width: 150px;
+}
+
+/* Loading Indicator */
+.loading-spinner::after {
+  content: " \23F3";
+  /* Hourglass */
+  animation: spin 2s linear infinite;
+  display: inline-block;
+}
+
+/* Mobile Tweaks */
+@media (max-width: 768px) {
+  header {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  header label {
+    font-size: 0.8rem;
+  }
+
+  select,
+  button {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  /* Stack some items on very small screens if needed, 
+     but wrap usually handles it. 
+     Maybe hide less important controls? */
+}
+
+/* OVERRIDE NIIVUE.CSS HIDING */
+@media (max-width: 768px) {
+
+
+  #penDrop,
+  #drawDrop,
+  #dragMode,
+  #saveSceneBtn,
+  #diagnosticsBtn,
+  #aboutBtn {
+    display: inline-block !important;
+    /* Force show */
+  }
+
+  header label {
+    display: inline-block !important;
+  }
+
+  /* Make sure our control groups wrap nicely */
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+}
+
+/* Modal Dialog */
+dialog {
+  padding: 1.5rem;
+  border: 1px solid #555;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  max-width: 500px;
+  width: 90%;
+  font-family: inherit;
+  background-color: #333;
+  /* Dark modal */
+  color: white;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+dialog h3 {
+  margin-top: 0;
+  color: #fff;
+  border-bottom: 1px solid #555;
+  padding-bottom: 0.5rem;
+}
+
+dialog p {
+  color: #ddd;
+  white-space: pre-wrap;
+  /* Preserve newlines in messages */
+}
+
+dialog button {
+  background-color: #e0e0e0;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  float: right;
+  cursor: pointer;
+}
+
+dialog button:hover {
+  background-color: #fff;
+}

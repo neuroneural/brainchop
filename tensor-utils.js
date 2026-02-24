@@ -1,6 +1,51 @@
 import * as tf from '@tensorflow/tfjs'
 import { BWLabeler } from './bwlabels.js'
 
+export async function cropAndGetCorner(tensor3d, mask_3d, userPadding) {
+  // Find bounding box
+  const [row_min, row_max, col_min, col_max, depth_min, depth_max] = await firstLastNonZero3D(mask_3d);
+
+  // Calculate dimensions
+  const height = row_max - row_min + 1;
+  const width = col_max - col_min + 1;
+  const depth = depth_max - depth_min + 1;
+
+  // Adjust starting corner based on padding, ensuring we don't exceed 256 or go negative
+  const adjustCorner = (min, max, size, pad) => {
+    const startPad = Math.min(min, pad); // how much we can pad towards start
+    const endPad = Math.min(255 - max, pad); // how much we can pad towards end
+    const newStart = Math.max(0, min - startPad);
+    const newEnd = Math.min(255, max + endPad);
+    return [newStart, newEnd];
+  };
+
+  const [safeRowStart, safeRowEnd] = adjustCorner(row_min, row_max, height, userPadding);
+  const [safeColStart, safeColEnd] = adjustCorner(col_min, col_max, width, userPadding);
+  const [safeDepthStart, safeDepthEnd] = adjustCorner(depth_min, depth_max, depth, userPadding);
+
+  // Extract cropped brain with safe bounds
+  const cropped = tensor3d.slice(
+    [safeRowStart, safeColStart, safeDepthStart],
+    [safeRowEnd - safeRowStart + 1, safeColEnd - safeColStart + 1, safeDepthEnd - safeDepthStart + 1]
+  );
+
+  return { cropped, corner: [safeRowStart, safeColStart, safeDepthStart] };
+}
+
+
+export async function restoreTo256Cube(tensor3d, corner) {
+  const [row_min, col_min, depth_min] = corner;
+  const [height, width, depth] = tensor3d.shape;
+
+  const paddings = [
+    [row_min, Math.max(0, 256 - height - row_min)],
+    [col_min, Math.max(0, 256 - width - col_min)],
+    [depth_min, Math.max(0, 256 - depth - depth_min)]
+  ];
+
+  return tensor3d.pad(paddings);
+}
+
 export async function addZeroPaddingTo3dTensor(tensor3d, rowPadArr = [1, 1], colPadArr = [1, 1], depthPadArr = [1, 1]) {
   if (tensor3d.rank !== 3) {
     throw new Error('Tensor must be 3D');
@@ -63,34 +108,42 @@ export async function binarizeVolumeDataTensor(volumeDataTensor) {
 }
 
 async function calculateQuantiles(tensor, lowerQuantile = 0.01, upperQuantile = 0.99) {
-  // Flatten the tensor
+  // OPTIMIZED: Download flat tensor to CPU, then sample and sort on CPU.
+  // This avoids tf.gather on large tensors which causes memory issues in WebGL.
+  // Still much faster than sorting all 16M+ elements since we only sort the sample.
   const flatTensor = tensor.flatten()
+  const totalSize = flatTensor.shape[0]
 
-  // Convert the flattened tensor to an array to sort it
-  const flatArray = await flatTensor.array()
-  flatArray.sort((a, b) => a - b) // Sort the array in ascending order
-
-  // Convert the sorted array back to a tensor
-  const sortedTensor = tf.tensor1d(flatArray)
-
-  // Calculate the indices for the quantiles
-  const numElements = sortedTensor.shape[0]
-  const lowIndex = Math.floor(numElements * lowerQuantile)
-  const highIndex = Math.ceil(numElements * upperQuantile) - 1 // Subtract 1 because indices are 0-based
-
-  // Slice the sorted tensor to get qmin and qmax
-  const qmin = sortedTensor.slice(lowIndex, 1) // Get the value at the low index
-  const qmax = sortedTensor.slice(highIndex, 1) // Get the value at the high index
-
-  // Get the actual values from the tensors
-  const qminValue = (await qmin.array())[0]
-  const qmaxValue = (await qmax.array())[0]
-
-  // Clean up tensors to free memory
+  // Download tensor data to CPU (TypedArray, not JS Array - much faster)
+  const flatData = await flatTensor.data()
   flatTensor.dispose()
-  sortedTensor.dispose()
-  qmin.dispose()
-  qmax.dispose()
+
+  // Sample on CPU - no GPU memory issues
+  const sampleSize = Math.min(100000, totalSize)
+  let sampleArray
+
+  if (sampleSize >= totalSize) {
+    // Use all elements
+    sampleArray = Array.from(flatData)
+  } else {
+    // Random sampling on CPU
+    sampleArray = new Array(sampleSize)
+    for (let i = 0; i < sampleSize; i++) {
+      const randomIndex = Math.floor(Math.random() * totalSize)
+      sampleArray[i] = flatData[randomIndex]
+    }
+  }
+
+  // Sort only the sample on CPU (100k elements is fast)
+  sampleArray.sort((a, b) => a - b)
+
+  // Calculate quantile indices on the sample
+  const numElements = sampleArray.length
+  const lowIndex = Math.floor(numElements * lowerQuantile)
+  const highIndex = Math.ceil(numElements * upperQuantile) - 1
+
+  const qminValue = sampleArray[lowIndex]
+  const qmaxValue = sampleArray[highIndex]
 
   return { qmin: qminValue, qmax: qmaxValue }
 }
@@ -181,7 +234,7 @@ function instanceNorm(x, epsilon = 1e-5) {
 
 export async function gn_convByOutputChannelAndInputSlicing(input, filter, biases, stride, pad, dilationRate, sliceSize) {
 
-//    const finalResult = tf.tidy(() => {
+  //    const finalResult = tf.tidy(() => {
   const inChannels = input.shape[4];
   const outChannels = filter.shape[4];
 
@@ -222,7 +275,7 @@ export async function gn_convByOutputChannelAndInputSlicing(input, filter, biase
     }
 
     // --- KEY CHANGE ---
-      // Apply instance normalization to the resulting channel.
+    // Apply instance normalization to the resulting channel.
     // Apply normalization
     const normalizedChannel = instanceNorm(biasedOutputChannel);
     biasedOutputChannel.dispose();
@@ -239,7 +292,7 @@ export async function gn_convByOutputChannelAndInputSlicing(input, filter, biase
   }
 
   return outputChannels;
-    }// );
+}// );
 //     return finalResult;
 // }
 
@@ -570,18 +623,14 @@ export async function quantileNormalizeVolumeData(tensor, lowerQuantile = 0.05, 
   // Call calculateQuantiles and wait for the result
   const { qmin, qmax } = await calculateQuantiles(tensor, lowerQuantile, upperQuantile)
 
-  // Convert qmin and qmax back to scalars
-  const qminScalar = tf.scalar(qmin)
-  const qmaxScalar = tf.scalar(qmax)
-
   // Perform the operation: (tensor - qmin) / (qmax - qmin)
-  const resultTensor = tensor.sub(qminScalar).div(qmaxScalar.sub(qminScalar))
+  // Break up chained operations to properly dispose intermediate tensors
+  const range = qmax - qmin
+  const shifted = tensor.sub(qmin)
+  const resultTensor = shifted.div(range)
+  shifted.dispose() // Dispose intermediate tensor to prevent memory leak
 
-  // Dispose of the created scalars to free memory
-  qminScalar.dispose()
-  qmaxScalar.dispose()
-
-  // Return the resulting tensor
+  // Return the resulting tensor (caller is responsible for disposing input tensor)
   return resultTensor
 }
 
@@ -706,15 +755,13 @@ export class SequentialConvLayer {
  */
 export async function processSegmentationVolume(outLabelVolume, niftiImage, modelEntry, opts) {
   // --- Step 1: Single Data Transfer from GPU to CPU ---
-  // This is the only 'await' and the only interaction with the GPU.
-    console.log('Downloading segmentation data from GPU to CPU...');
-    const segmentationData = await outLabelVolume.data(); // This returns a TypedArray (e.g., Int32Array)
+  console.log('Downloading segmentation data from GPU to CPU...');
+  const segmentationData = await outLabelVolume.data(); // This returns a TypedArray (e.g., Int32Array)
 
   const Vshape = outLabelVolume.shape;
   console.log('Data download complete. Starting CPU processing.');
 
   // --- Step 2: Apply Post-Processing (if enabled) ---
-  // This logic is now identical to your old, working function.
   if (opts.isPostProcessEnable) {
     console.log('Applying CPU-based connected-component labeling...');
     const bwStartTime = performance.now();
@@ -734,11 +781,10 @@ export async function processSegmentationVolume(outLabelVolume, niftiImage, mode
     }
 
     const bwTime = ((performance.now() - bwStartTime) / 1000).toFixed(4);
-    console.log(`Connected-component labeling took: ${bwTime} seconds.`); // <-- This will likely show ~5 seconds.
+    console.log(`Connected-component labeling took: ${bwTime} seconds.`); // <-- This will likely show ~0.5 seconds.
   }
 
   // --- Step 3: Apply Final Model Logic on the CPU ---
-  // This switch statement is adapted directly from your old function.
   switch (modelEntry.type) {
     case 'Brain_Masking': {
       const brainMask = new Uint8Array(segmentationData.length);
@@ -760,4 +806,185 @@ export async function processSegmentationVolume(outLabelVolume, niftiImage, mode
       return new Uint8Array(segmentationData);
     }
   }
+}
+
+/**
+ * Estimates the maximum number of elements in any intermediate tensor of the model.
+ * @param {tf.LayersModel} model The TensorFlow.js model.
+ * @param {number[]} inputShape The shape of the input tensor (including batch size).
+ * @returns {number} The maximum number of elements.
+ */
+/**
+ * Estimates the maximum number of elements in any intermediate tensor of the model.
+ * Performs a precise calculation of peak memory usage by summing Input and Output sizes
+ * for each layer invocation, assuming sequential execution.
+ * 
+ * @param {tf.LayersModel} model The TensorFlow.js model.
+ * @param {number[]} inputShape The shape of the input tensor (including batch size).
+ * @param {boolean} isChannelLast Whether the model uses channels-last data format.
+ * @returns {number} The maximum number of elements.
+ */
+export function estimateMaxIntermediateTensorSize(model, inputShape, isChannelLast) {
+  let maxElements = 0;
+
+  // 1. Calculate Spatial Volume (assumed constant/upper-bound size 256^3)
+  let spatialVol = 1;
+  // Heuristic: multiply the middle dimensions.
+  if (isChannelLast) {
+    // Expected: [Batch, D, H, W, C]
+    if (inputShape.length === 5) {
+      spatialVol = inputShape[1] * inputShape[2] * inputShape[3];
+    } else {
+      // Fallback usually [1, D, H, W]
+      for (let i = 0; i < inputShape.length; i++) {
+        if (inputShape[i] > 1) spatialVol *= inputShape[i];
+      }
+    }
+  } else {
+    // Expected: [Batch, C, D, H, W]
+    if (inputShape.length === 5) {
+      spatialVol = inputShape[2] * inputShape[3] * inputShape[4];
+    } else {
+      for (let i = 0; i < inputShape.length; i++) {
+        if (inputShape[i] > 32) spatialVol *= inputShape[i];
+      }
+    }
+  }
+
+  // 2. Iterate Layers to find Peak Memory (Input + Output) and Max Output
+  // checkMemoryAllocation tests both packed (peak) and unpacked (maxOutput).
+  let maxOutputElements = 0;
+
+  if (model && model.layers) {
+    for (const layer of model.layers) {
+      // A. Calculate Output Channels
+      let outputChannels = 0;
+      let outputShape = layer.outputShape;
+      // Normalize outputShape to array
+      if (Array.isArray(outputShape) && Array.isArray(outputShape[0])) {
+        outputShape = outputShape[0];
+      }
+      if (Array.isArray(outputShape)) {
+        if (isChannelLast) {
+          outputChannels = outputShape[outputShape.length - 1];
+        } else {
+          // [Null, C, D, H, W]
+          outputChannels = outputShape[1];
+        }
+      }
+
+      // B. Calculate Input Channels (Robust)
+      let inputChannels = 0;
+
+      // B1. Try batchInputShape
+      const inputShapes = layer.batchInputShape;
+      const getChannelsFromShape = (s) => {
+        if (!Array.isArray(s)) return 0;
+        if (isChannelLast) return s[s.length - 1];
+        return s[1];
+      };
+
+      if (inputShapes) {
+        if (Array.isArray(inputShapes) && Array.isArray(inputShapes[0])) {
+          // Array of shapes (e.g. Concatenate layer inputs)
+          for (const s of inputShapes) {
+            inputChannels += getChannelsFromShape(s);
+          }
+        } else if (Array.isArray(inputShapes)) {
+          // Single shape
+          inputChannels = getChannelsFromShape(inputShapes);
+        }
+      }
+
+      // B2. Fallback: Try Weights (Kernels)
+      // Conv3D kernel: [D, H, W, In, Out]
+      if (inputChannels === 0 && layer.weights && layer.weights.length > 0) {
+        // We assume the first weight is the kernel.
+        // Warning: Accessing .val or .tensor might be expensive? 
+        // layer.weights is array of LayerVariable. variable.shape is available.
+        const w = layer.weights[0];
+        if (w && w.shape) {
+          if (w.shape.length === 5) { // Conv3D
+            // Kernel layout is channel selection logic dependent?
+            // TF.js Conv3D kernel is [D, H, W, In, Out] usually.
+            inputChannels = w.shape[3];
+          } else if (w.shape.length === 4) { // Conv2D
+            // [H, W, In, Out]
+            inputChannels = w.shape[2];
+          }
+        }
+      }
+
+      // B3. Final Fallback: Assume Input = Output (e.g. Activation layers)
+      if (inputChannels === 0) {
+        inputChannels = outputChannels;
+      }
+
+      // C. Calculate Peak and Update Max
+      if (typeof outputChannels === 'number' && typeof inputChannels === 'number') {
+        const currentPeakElements = spatialVol * (inputChannels + outputChannels);
+        const currentOutputElements = spatialVol * outputChannels;
+
+        if (currentPeakElements > maxElements) {
+          maxElements = currentPeakElements;
+        }
+        // Track output of LAST layer (overwrite each iteration)
+        // Only the FINAL output is unpacked for argmax. Intermediates are packed.
+        maxOutputElements = currentOutputElements;
+      }
+    }
+  }
+
+  // Fallback
+  if (maxElements === 0) {
+    maxElements = spatialVol * 32 * 2;
+  }
+
+  // Return BOTH peak (In+Out) and max output separately
+  // This allows checkMemoryAllocation to test packed (peak) and unpacked (maxOutput)
+  console.log(`[Estimator] Total Layers: ${model?.layers?.length}, Peak: ${maxElements}, Final Output: ${maxOutputElements}`);
+  return { peak: maxElements, maxOutput: maxOutputElements };
+}
+
+/**
+ * Proactively checks if a tensor of the specified size can be allocated on the GPU.
+ * @param {number} peakElements Total elements for peak allocation (In+Out) - used for packed check.
+ * @param {number} maxOutputElements Elements for largest single output - used for unpacked check.
+ * @returns {boolean} True if allocation is likely to succeed, false otherwise.
+ */
+export function checkMemoryAllocation(peakElements, maxOutputElements) {
+  try {
+    const backend = tf.backend();
+    if (backend && backend.gpgpu && backend.gpgpu.gl) {
+      const maxTextureSize = backend.gpgpu.gl.getParameter(backend.gpgpu.gl.MAX_TEXTURE_SIZE);
+
+      // TF.js WebGL uses PACKED textures (4 elem/pixel) for INTERMEDIATE layers.
+      // However, the FINAL OUTPUT (e.g., class logits before argmax) is UNPACKED (1 elem/pixel).
+
+      // Check for PACKED intermediates (4 elements per pixel)
+      const packedNeededPixels = Math.ceil(peakElements / 4);
+      const packedNeededDim = Math.ceil(Math.sqrt(packedNeededPixels));
+
+      // Check for UNPACKED final output (1 element per pixel)
+      const unpackedNeededPixels = maxOutputElements; // 1 elem/pixel
+      const unpackedNeededDim = Math.ceil(Math.sqrt(unpackedNeededPixels));
+
+      console.log(`[Memory Check] Peak: ${peakElements}, MaxOutput: ${maxOutputElements}, Packed Dim: ${packedNeededDim}, Unpacked Dim: ${unpackedNeededDim}, MaxTextureSize: ${maxTextureSize}`);
+
+      if (packedNeededDim > maxTextureSize) {
+        console.warn(`Proactive check (PACKED): Tensor size ${peakElements} requires approx ${packedNeededDim}x${packedNeededDim} texture. Exceeds MAX_TEXTURE_SIZE ${maxTextureSize}`);
+        return false;
+      }
+
+      if (unpackedNeededDim > maxTextureSize) {
+        console.warn(`Proactive check (UNPACKED): Max output ${maxOutputElements} requires approx ${unpackedNeededDim}x${unpackedNeededDim} texture. Exceeds MAX_TEXTURE_SIZE ${maxTextureSize}`);
+        return false;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not check texture size limits:", e);
+  }
+
+  // If we reach here, texture size check passed (or no backend available)
+  return true;
 }

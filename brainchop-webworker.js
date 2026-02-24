@@ -1,17 +1,26 @@
-import * as tf from '@tensorflow/tfjs'
-import { inferenceModelsList } from './brainchop-parameters.js'
+import * as tf from '@tensorflow/tfjs';
+import { inferenceModelsList } from './brainchop-parameters.js';
 import { runFullVolumeInference } from './inference-logic.js';
 
 import {
-    generateBrainMask,
-    getAllSlicesDataAsTF3D,
-    getModelNumLayers,
-    getModelNumParameters,
-    isModelChnlLast,
-    load_model,
-    minMaxNormalizeVolumeData,
-    quantileNormalizeVolumeData,
+  generateBrainMask,
+  getAllSlicesDataAsTF3D,
+  getModelNumLayers,
+  getModelNumParameters,
+  isModelChnlLast,
+  load_model,
+  minMaxNormalizeVolumeData,
+  quantileNormalizeVolumeData
 } from './tensor-utils.js';
+
+import {
+  createStatData,
+  addModelInfo,
+  addLabelStats,
+  markSuccess,
+  markFailure,
+  ExecutionModes
+} from './diagnostic-stats.js';
 
 
 function callbackUI(message = '', progressFrac = -1, modalMessage = '', statData = []) {
@@ -164,11 +173,7 @@ async function inferenceFullVolumePhase1(
           tf.engine().endScope()
           tf.engine().disposeVariables()
 
-          statData.Inference_t = Infinity
-          statData.Postprocess_t = Infinity
-          statData.Status = 'Fail'
-          statData.Error_Type = err.message
-          statData.Extra_Err_Info = 'PreModel Failed while model layer ' + i + ' apply'
+          markFailure(statData, err, 'PreModel Failed while model layer ' + i + ' apply')
 
           callbackUI('', -1, '', statData)
 
@@ -271,9 +276,7 @@ async function inferenceFullVolumePhase1(
           const numSegClasses = maxLabelPredicted + 1
           console.log('Pre-model numSegClasses', numSegClasses)
 
-          statData.Actual_Labels = numSegClasses
-          statData.Expect_Labels = expected_Num_labels
-          statData.NumLabels_Match = numSegClasses === expected_Num_labels
+          addLabelStats(statData, expected_Num_labels, numSegClasses)
 
           // -- Transpose back to original unpadded size
           let outLabelVolume = await prediction_argmax.reshape([num_of_slices, slice_height, slice_width])
@@ -311,10 +314,8 @@ async function inferenceFullVolumePhase1(
             callbackUI(errTxt, -1, errTxt)
 
             statData.Inference_t = Inference_t
-            statData.Postprocess_t = Infinity
-            statData.Status = 'Fail'
-            statData.Error_Type = error.message
-            statData.Extra_Err_Info = 'Pre-model failed while generating output'
+            markFailure(statData, error, 'Pre-model failed while generating output')
+            statData.Inference_t = Inference_t // Preserve partial inference time
 
             callbackUI('', -1, '', statData)
 
@@ -327,9 +328,7 @@ async function inferenceFullVolumePhase1(
           )
 
           // -- Timing data to collect
-          statData.Inference_t = Inference_t
-          statData.Postprocess_t = Postprocess_t
-          statData.Status = 'OK'
+          markSuccess(statData, Inference_t, Postprocess_t)
 
           callbackUI('', -1, '', statData)
 
@@ -343,19 +342,19 @@ async function inferenceFullVolumePhase1(
             // --mask_3d = slices_3d_mask.greater([0]).asType('bool')
             // --slices_3d_mask.dispose()
 
-              if (isModelFullVol) {
-                  runFullVolumeInference(
-                      opts,
-                      modelEntry,
-                      model,
-                      slices_3d,
-                      slices_3d_mask,
-                      statData,
-                      callbackImg,
-                      callbackUI,
-                      niftiImage
-                  );
-
+            if (isModelFullVol) {
+              await runFullVolumeInference(
+                opts,
+                modelEntry,
+                model,
+                slices_3d,
+                slices_3d_mask,
+                statData,
+                callbackImg,
+                callbackUI,
+                niftiImage
+              );
+              return 0;
             } else {
               // -- In version 3.0.0 this function not used
               callbackUI('', -1, 'inferenceSubVolumes() is not dead code?')
@@ -368,7 +367,7 @@ async function inferenceFullVolumePhase1(
       callbackUI(err.message, -1, err.message)
       console.log(
         'If webgl context is lost, try to restore webgl context by visit the link ' +
-          '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
+        '<a href="https://support.biodigital.com/hc/en-us/articles/218322977-How-to-turn-on-WebGL-in-my-browser">here</a>'
       )
 
       // document.getElementById("webGl2Status").style.backgroundColor =  isWebGL2ContextLost() ? "Red" : "Green"
@@ -385,18 +384,18 @@ async function inferenceFullVolumePhase1(
     console.log('------ Run voxel cropping ------')
     // -- mask_3d = slices_3d.greater([0]).asType('bool')
 
-      if (isModelFullVol) {
-          runFullVolumeInference(
-              opts,
-              modelEntry,
-              model,
-              slices_3d,
-              null,
-              statData,
-              callbackImg,
-              callbackUI,
-              niftiImage
-          );
+    if (isModelFullVol) {
+      await runFullVolumeInference(
+        opts,
+        modelEntry,
+        model,
+        slices_3d,
+        null,
+        statData,
+        callbackImg,
+        callbackUI,
+        niftiImage
+      );
     } else {
       // -- In version 3.0.0 this function not used
       callbackUI('', -1, 'inferenceSubVolumes() is not dead code?')
@@ -426,9 +425,9 @@ async function enableProductionMode(textureF16Flag = true) {
 }
 
 async function runInferenceWW(opts, modelEntry, niftiHeader, niftiImage) {
-
-  const statData = []
-  statData.startTime = Date.now() // for common webworker/mainthread do not use performance.now()
+  // Determine execution mode based on sequential convolution setting
+  const executionMode = modelEntry.enableSeqConv ? ExecutionModes.WEBGL_SEQUENTIAL : ExecutionModes.WEBGL_WEBWORKER
+  const statData = createStatData(modelEntry, executionMode)
   callbackUI('Segmentation started', 0)
   const batchSize = opts.batchSize
   const numOfChan = opts.numOfChan
@@ -449,6 +448,17 @@ async function runInferenceWW(opts, modelEntry, niftiHeader, niftiImage) {
   await enableProductionMode(true)
   statData.TF_Backend = tf.getBackend()
   const modelObject = model
+
+  // Add model architecture info
+  await addModelInfo(
+    statData,
+    modelObject,
+    modelObject.layers[0].batchInputShape,
+    await isModelChnlLast(modelObject),
+    getModelNumParameters,
+    getModelNumLayers
+  )
+
   let batchInputShape = []
   // free global variable of 16777216 voxel
   // allOutputSlices3DCC1DimArray = []
@@ -529,15 +539,36 @@ async function runInferenceWW(opts, modelEntry, niftiHeader, niftiImage) {
         console.log('Transpose NOT Enabled')
       }
 
-      const enableSeqConv = modelEntry.enableSeqConv
+      let enableSeqConv = modelEntry.enableSeqConv
 
       if (enableSeqConv) {
-        callbackUI('', -1, 'inferenceFullVolumeSeqCovLayer() is not dead code?')
+        await runFullVolumeInference(
+          opts,
+          modelEntry,
+          model,
+          slices_3d,
+          null,
+          statData,
+          callbackImg,
+          callbackUI,
+          niftiImage
+        );
       } else {
-        callbackUI('', -1, 'inferenceFullVolume() is not dead code?')
+        await runFullVolumeInference(
+          opts,
+          modelEntry,
+          model,
+          slices_3d,
+          null,
+          statData,
+          callbackImg,
+          callbackUI,
+          niftiImage
+        );
       }
     }
   }
+  tf.engine().endScope();
 }
 
 self.addEventListener(
