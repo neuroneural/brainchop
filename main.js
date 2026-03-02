@@ -641,8 +641,15 @@ async function main() {
   // Use URLSearchParams to correctly parse the query string.
   const urlParams = new URLSearchParams(window.location.search);
   const modelParam = urlParams.get("model");
-  if (modelParam && modelParam < inferenceModelsList.length) {
-    modelSelect.value = modelParam;
+  const modelIdxParam = urlParams.get("model_idx");
+  if (modelParam) {
+    const idx = inferenceModelsList.findIndex(m => m.shortname === modelParam);
+    if (idx >= 0) {
+      modelSelect.value = idx;
+      runSelectedInference();
+    }
+  } else if (modelIdxParam && modelIdxParam < inferenceModelsList.length) {
+    modelSelect.value = modelIdxParam;
     runSelectedInference();
   }
 }

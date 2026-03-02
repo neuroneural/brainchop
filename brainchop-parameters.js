@@ -24,6 +24,7 @@ const brainChopOpts = {
 const inferenceModelsList = [
   {
     id: 1,
+    shortname: 'tissue-gwm',
     type: 'Segmentation',
     path: '/models/model5_gw_ae/model.json',
     modelName: '\u26A1 Tissue GWM (light)',
@@ -48,6 +49,7 @@ const inferenceModelsList = [
   },
   {
     id: 2,
+    shortname: 'skull-strip',
     type: 'Brain_Extraction',
     path: '/models/mindgrab/model.json',
     modelName: '\u{1FA93}\u{1F9E0} omnimodal Skull Stripping',
@@ -74,6 +76,7 @@ const inferenceModelsList = [
   },
   {
     id: 3,
+    shortname: 'subcortical-gwm',
     type: 'Atlas',
     path: '/models/model30chan18cls/model.json',
     modelName: '\u{1FA93} Subcortical + GWM',
@@ -99,6 +102,7 @@ const inferenceModelsList = [
   },
   {
     id: 4,
+    shortname: 'aparc50',
     type: 'Atlas',
     path: '/models/model30chan50cls/model.json',
     modelName: '\u{1F52A} Aparc+Aseg 50',
@@ -124,6 +128,7 @@ const inferenceModelsList = [
   },
   {
     id: 5,
+    shortname: 'aparc104',
     type: 'Atlas',
     path: '/models/model21_104class/model.json',
     modelName: '\u{1F52A} Aparc+Aseg 104',
@@ -155,6 +160,7 @@ const inferenceModelsList = [
   },
   {
     id: 7,
+    shortname: 'tissue-gwm-highacc',
     type: 'Segmentation',
     path: '/models/model20chan3cls/model.json',
     modelName: '\u{1F52A} Tissue GWM (High Acc)',
@@ -179,6 +185,7 @@ const inferenceModelsList = [
   },
   {
     id: 8,
+    shortname: 'subcortical-gwm-small',
     type: 'Atlas',
     path: '/models/model18cls/model.json',
     modelName: '\u{1FA93} Subcortical + GWM (Small Model)',
@@ -204,6 +211,7 @@ const inferenceModelsList = [
   },
   {
     id: 9,
+    shortname: 'brain-extract-fast',
     type: 'Brain_Extraction',
     path: '/models/model5_gw_ae/model.json',
     modelName: '\u26A1 Extract the Brain (FAST)',
@@ -226,6 +234,7 @@ const inferenceModelsList = [
   },
   {
     id: 10,
+    shortname: 'brain-extract-highacc',
     type: 'Brain_Extraction',
     path: '/models/model11_gw_ae/model.json',
     modelName: '\u{1F52A} Extract the Brain (High Acc, Slow)',
@@ -249,6 +258,7 @@ const inferenceModelsList = [
   },
   {
     id: 11,
+    shortname: 'brain-mask-fast',
     type: 'Brain_Masking',
     path: '/models/model5_gw_ae/model.json',
     modelName: '\u26A1 Brain Mask (FAST)',
@@ -272,6 +282,7 @@ const inferenceModelsList = [
   },
   {
     id: 12,
+    shortname: 'brain-mask-highacc',
     type: 'Brain_Masking',
     path: '/models/model11_gw_ae/model.json',
     modelName: '\u{1F52A} Brain Mask (High Acc, Low Mem)',
