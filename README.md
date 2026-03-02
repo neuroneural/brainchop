@@ -64,6 +64,8 @@ To see Brainchop **v4** in action please click  [here](https://neuroneural.githu
 
 For **v3** click [here](https://neuroneural.github.io/brainchop/v3).
 
+You can link directly to a specific model using the `?model=` URL parameter, e.g. [neuroneural.github.io/brainchop?model=skull-strip](https://neuroneural.github.io/brainchop?model=skull-strip).
+
 <br>
 
 
