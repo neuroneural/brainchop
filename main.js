@@ -642,15 +642,16 @@ async function main() {
   const urlParams = new URLSearchParams(window.location.search);
   const modelParam = urlParams.get("model");
   const modelIdxParam = urlParams.get("model_idx");
+  let urlModelIdx = -1;
   if (modelParam) {
-    const idx = inferenceModelsList.findIndex(m => m.shortname === modelParam);
-    if (idx >= 0) {
-      modelSelect.value = idx;
-      runSelectedInference();
-    }
+    urlModelIdx = inferenceModelsList.findIndex(m => m.shortname === modelParam);
   } else if (modelIdxParam && modelIdxParam < inferenceModelsList.length) {
-    modelSelect.value = modelIdxParam;
-    runSelectedInference();
+    urlModelIdx = parseInt(modelIdxParam);
+  }
+  if (urlModelIdx >= 0) {
+    modelSelect.value = urlModelIdx;
+    await runSelectedInference();
+    modelSelect.value = urlModelIdx;
   }
 }
 
