@@ -746,7 +746,10 @@ async function main() {
         : `Running ${entry.shortLabel}\u2026`
     }
     const rawMsg = ev.message ? sanitizeEngineText(ev.message).trim() : ''
-    return rawMsg || null
+    if (!rawMsg) return null
+    if (/^Loading cpu module$/i.test(rawMsg)) return 'Loading CPU module\u2026'
+    if (/^Loading webgl2 module$/i.test(rawMsg)) return 'Loading WebGL2 module\u2026'
+    return rawMsg
   }
 
   async function runModel(entry) {
@@ -773,7 +776,23 @@ async function main() {
         webgpuMode: urlOpts.webgpuMode,
         ct: urlOpts.ct || undefined,
         comply: urlOpts.comply || undefined,
-        onLog: (line) => log.push(sanitizeEngineText(line)),
+        onLog: (line) => {
+          const cleanLine = sanitizeEngineText(line)
+          log.push(cleanLine)
+          const backendMatch = /using\s+(cpu|webgl2)\s+backend/i.exec(cleanLine)
+          if (backendMatch) {
+            const tag = backendMatch[1].toLowerCase() === 'cpu' ? 'CPU' : 'WebGL2'
+            setProgress(0, { indeterminate: true })
+            setStatusText(
+              entry.kind === 'tissues'
+                ? `Estimating tissue fraction maps (${tag})\u2026`
+                : `Running ${entry.shortLabel} (${tag})\u2026`,
+            )
+          } else if (/^brainchop\s*::\s*Saved\b/i.test(cleanLine)) {
+            setProgress(0.95)
+            setStatusText('Finishing\u2026')
+          }
+        },
         onProgress: (ev) => {
           const stamped = { ...ev, t: performance.now() }
           progressEvents.push(ev)

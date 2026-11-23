@@ -470,6 +470,44 @@ progress::-moz-progress-bar {
   animation: var(--progress-bar-animation, revert-rule);
 }
 
+/* Indeterminate sweeping bar for CPU WASM / WebGL2 backends */
+progress:indeterminate {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(59, 130, 246, 0.28) 20%,
+      #60a5fa 50%,
+      rgba(59, 130, 246, 0.28) 80%,
+      transparent 100%
+    )
+    no-repeat,
+    rgba(255, 255, 255, 0.12);
+  background-size: 48% 100%, 100% 100%;
+  background-position: 50% 0, 0 0;
+}
+
+progress:indeterminate::-webkit-progress-bar,
+progress:indeterminate::-webkit-progress-value,
+progress:indeterminate::-moz-progress-bar {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  progress:indeterminate {
+    animation: progress-indeterminate-sweep 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes progress-indeterminate-sweep {
+  0% {
+    background-position: -90% 0, 0 0;
+  }
+  100% {
+    background-position: 190% 0, 0 0;
+  }
+}
+
 @keyframes progress-busy-pulse {
   0%,
   100% {
