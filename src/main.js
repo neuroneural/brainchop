@@ -25,7 +25,7 @@ import {
   updateCatLiteRgbaOpacity,
   computeCatLiteStats,
   buildCatLiteStatsCsv,
-} from './cat-lite-overlay.js'
+} from './pve-overlay.js'
 import {
   NIFTI_RE,
   downloadBlob,
@@ -731,6 +731,12 @@ async function main() {
   }
 
   // --- Inference via @brainchop/core (worker: true) ---
+  function sanitizeEngineText(text) {
+    return String(text ?? '')
+      .replace(/\bCAT-lite\s+partial-volume\b/gi, 'partial-volume')
+      .replace(/\bCAT-lite\b/gi, 'PVE')
+  }
+
   // Leave granular layer/Z-chunk advancement purely to the smooth progress bar
   // so LowMem128/paced runs never flicker status text in the bottom-left footer.
   function formatProgressStatus(entry, ev) {
@@ -739,7 +745,7 @@ async function main() {
         ? 'Estimating tissue fraction maps\u2026'
         : `Running ${entry.shortLabel}\u2026`
     }
-    const rawMsg = ev.message ? String(ev.message).trim() : ''
+    const rawMsg = ev.message ? sanitizeEngineText(ev.message).trim() : ''
     return rawMsg || null
   }
 
@@ -767,7 +773,7 @@ async function main() {
         webgpuMode: urlOpts.webgpuMode,
         ct: urlOpts.ct || undefined,
         comply: urlOpts.comply || undefined,
-        onLog: (line) => log.push(line),
+        onLog: (line) => log.push(sanitizeEngineText(line)),
         onProgress: (ev) => {
           const stamped = { ...ev, t: performance.now() }
           progressEvents.push(ev)
@@ -1406,7 +1412,7 @@ async function main() {
     })
   }
 
-  // --- Stats modal (discrete labels + MindGrab mask + CAT-lite continuous PVE) ---
+  // --- Stats modal (discrete labels + mindgrab mask + continuous PVE) ---
   function openStatsModal() {
     if (!seg || nv.volumes.length < 2) {
       showModal('Region volumes', '<p>No segmentation to measure &mdash; run a model first.</p>')
@@ -1686,17 +1692,19 @@ async function main() {
         <ul>
           <li><strong>Drag &amp; Drop</strong> any NIfTI (<code>.nii</code>/<code>.nii.gz</code>), NiiVue scene (<code>.nvd</code>), or DICOM file / folder.</li>
           <li>Press <strong>C</strong> to cycle the 3D clip plane and <strong>V</strong> to cycle slice views.</li>
-          <li><strong>Option/Alt-click</strong> a label or CAT-lite tissue (or use <strong>Stats &rarr; isolate</strong>) to show it alone in 2D + 3D. Click it again, click background, or press <strong>Esc</strong> to restore.</li>
+          <li><strong>Option/Alt-click</strong> a label or tissue map (or use <strong>Stats &rarr; isolate</strong>) to show it alone in 2D + 3D. Click it again, click background, or press <strong>Esc</strong> to restore.</li>
           <li>Click <strong>Reset view</strong> (or <strong>&#x27F2;</strong> on mobile) to restore default zoom, pan, 3D angle, and contrast.</li>
         </ul>
 
         <p><strong>Model Icon Key</strong></p>
         <ul>
-          <li><strong>&#x1FA93;</strong> Robust full-capacity models (24-channel / omnimodal)</li>
-          <li><strong>&#x26A1;</strong> Fast 16-channel model</li>
+          <li><strong>&#x1FA93;</strong> Robust full-capacity models</li>
+          <li><strong>&#x26A1;</strong> Fast lightweight model</li>
           <li><strong>&#x1F52A;</strong> Sharp high-detail Desikan-Killiany cortical parcellation</li>
-          <li><strong>&#x2154;&#x1F9E0;</strong> CAT-lite continuous GM/WM/CSF tissue fraction maps</li>
+          <li><strong>&#x2154;&#x1F9E0;</strong> Continuous GM/WM/CSF tissue fraction maps (experimental)</li>
         </ul>
+
+        <p class="about-note">Intended for research and educational use; not cleared as a medical device for clinical diagnosis.</p>
 
         <div class="about-links">
           <button type="button" id="aboutOpenCiteBtn" class="about-inline-btn">Cite BrainChop</button>
@@ -1929,7 +1937,7 @@ async function main() {
   }
   window.addEventListener('resize', scheduleHudSync)
 
-  // Live coordinate + CAT-lite GM/WM/CSF footer readout
+  // Live coordinate + continuous PVE GM/WM/CSF footer readout
   nv.addEventListener('locationChange', (e) => {
     const data = e.detail
     crosshairVox = data.vox

@@ -1,4 +1,4 @@
-// Single-RGBA32 display compositor and partial-volume statistics for CAT-lite
+// Single-RGBA32 display compositor and partial-volume statistics for continuous PVE
 // continuous tissue fraction maps ([GM, WM, CSF]) produced by @brainchop/core's
 // `segmentTissues()`.
 //
@@ -214,7 +214,7 @@ export function updateCatLiteRgbaOpacity(rgba, activeAlphaOffsets, activeBaseAlp
 }
 
 /**
- * Compute continuous partial-volume statistics for CAT-lite [GM, WM, CSF]:
+ * Compute continuous partial-volume statistics for [GM, WM, CSF]:
  *   - volume_mm3 = (Sum p_t) * voxelVolMm3
  *   - % of ICV = volume_mm3 / (GM + WM + CSF)
  *   - probability-weighted calibrated intensity mean & SD

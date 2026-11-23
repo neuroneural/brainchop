@@ -1,10 +1,10 @@
 /**
- * Model menu definitions mapped onto @brainchop/core@1.0.0's four canonical models
- * (mindgrab, mindmap, mindsnap, mindmap-fast) plus CAT-lite continuous tissue fractions.
+ * Model menu definitions mapped onto @brainchop/core's four canonical models
+ * (mindgrab, mindmap, mindsnap, mindmap-fast) plus continuous tissue fractions (PVE).
  *
  * Icon notation (matching BrainChop conventions):
  *   🪓  robust models
- *   ⚡  fast models (16-channel)
+ *   ⚡  fast lightweight model
  *   🔪  sharp high-detail cortical parcellation models
  */
 
@@ -14,9 +14,9 @@ export const MODEL_MENU = [
     coreModel: 'mindgrab',
     kind: 'mask',
     label: '\u{1FA93}\u{1F9E0} Omnimodal Skull Stripping',
-    shortLabel: 'MindGrab',
+    shortLabel: 'mindgrab',
     description:
-      'Omnimodal skull stripping (MindGrab) delivering brain extraction across T1, T2, FLAIR, DWI, EPI, MRA, PDw, qT1, CT, and PET.',
+      'Omnimodal skull stripping (mindgrab) delivering brain extraction across T1, T2, FLAIR, DWI, EPI, MRA, PDw, qT1, CT, and PET.',
     underlayOpacity: 0,
   },
   {
@@ -24,18 +24,18 @@ export const MODEL_MENU = [
     coreModel: 'mindmap',
     kind: 'labels',
     label: '\u{1FA93} Subcortical + Tissue',
-    shortLabel: 'MindMap-18',
+    shortLabel: 'mindmap',
     description:
-      'Primary 24-channel T1w brain parcellation into 17 cortical and subcortical regions (MindMap-18 v4.0 Gold).',
+      'Primary T1w cortical and subcortical brain parcellation (18 classes, mindmap).',
   },
   {
     id: 'pve',
     coreModel: 'mindmap',
     kind: 'tissues',
     label: '\u2154\u{1F9E0} Tissue fraction maps (GM/WM/CSF)',
-    shortLabel: 'CAT-lite PVE',
+    shortLabel: 'Tissue PVE',
     description:
-      'Neural-assisted CAT-lite continuous GM, WM, and CSF partial-volume fraction maps (experimental, not a CAT12 result).',
+      'Continuous GM, WM, and CSF partial-volume tissue fraction maps (experimental).',
     underlayOpacity: 0.1,
     probabilityDisplayMin: 0.03,
     probabilityOverlayFloor: 128,
@@ -51,9 +51,9 @@ export const MODEL_MENU = [
     coreModel: 'mindsnap',
     kind: 'labels',
     label: '\u{1FA93}\u{1F52A} Desikan-Killiany Atlas',
-    shortLabel: 'MindSnap-104',
+    shortLabel: 'mindsnap',
     description:
-      '104-region Desikan-Killiany cortical + subcortical + 5-part corpus callosum parcellation (MindSnap-104 v4.0 Gold).',
+      'Desikan-Killiany cortical, subcortical, and 5-part corpus callosum parcellation (104 classes, mindsnap).',
   },
   {
     id: 'divider',
@@ -64,10 +64,10 @@ export const MODEL_MENU = [
     id: 'mindmap-fast',
     coreModel: 'mindmap-fast',
     kind: 'labels',
-    label: '\u26A1\u{1FA93} Subcortical + Tissue',
-    shortLabel: 'MindMap-Fast',
+    label: '\u26A1\u{1FA93} Subcortical + Tissue (fast)',
+    shortLabel: 'mindmap-fast',
     description:
-      'Fast 16-channel 18-class cortical and subcortical brain parcellation (MindMap-Fast v3.5).',
+      'Fast lightweight cortical and subcortical brain parcellation (18 classes, mindmap-fast).',
   },
 ]
 

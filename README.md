@@ -22,12 +22,14 @@ BrainChop runs 3D MeshNet volumetric segmentation entirely on the user's device 
 ## Models
 
 - **🪓🧠 Omnimodal Skull Stripping** (`mindgrab`) — Modality-agnostic skull stripping & brain masking (T1, T2, FLAIR, DWI, EPI, MRA, PDw, qT1, CT, PET)
-- **🪓 Subcortical + Tissue** (`mindmap`) — 24-channel 18-class cortical & subcortical parcellation
-- **⅔🧠 Tissue fraction maps (GM/WM/CSF)** (`mindmap` + CAT-lite PVE) — Continuous GM/WM/CSF partial-volume estimation
-- **🪓🔪 Desikan-Killiany Atlas** (`mindsnap`) — 24-channel 104-region Desikan-Killiany cortical + subcortical + 5-part corpus callosum parcellation
-- **⚡🪓 Subcortical + Tissue** (`mindmap-fast`) — Fast 16-channel 18-class parcellation
+- **🪓 Subcortical + Tissue** (`mindmap`) — Primary 18-class cortical & subcortical parcellation
+- **⅔🧠 Tissue fraction maps (GM/WM/CSF)** (`mindmap` PVE) — Continuous GM/WM/CSF partial-volume estimation (experimental)
+- **🪓🔪 Desikan-Killiany Atlas** (`mindsnap`) — 104-region Desikan-Killiany cortical + subcortical + 5-part corpus callosum parcellation
+- **⚡🪓 Subcortical + Tissue (fast)** (`mindmap-fast`) — Fast lightweight 18-class parcellation
 
-*Icon key:* 🪓 robust models &middot; ⚡ fast 16-channel model &middot; 🔪 sharp high-detail cortical parcellation.
+*Icon key:* 🪓 robust models &middot; ⚡ fast lightweight model &middot; 🔪 sharp high-detail cortical parcellation.
+
+*Intended for research and educational use; not cleared as a medical device for clinical diagnosis.*
 
 ## Development
 

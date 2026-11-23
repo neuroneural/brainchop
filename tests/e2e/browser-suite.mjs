@@ -231,7 +231,7 @@ try {
       ['pve', '\u2154\u{1F9E0} Tissue fraction maps (GM/WM/CSF)', false],
       ['mindsnap', '\u{1FA93}\u{1F52A} Desikan-Killiany Atlas', false],
       ['divider', '-----------------', true],
-      ['mindmap-fast', '\u26A1\u{1FA93} Subcortical + Tissue', false],
+      ['mindmap-fast', '\u26A1\u{1FA93} Subcortical + Tissue (fast)', false],
     ],
   )
   console.log('  OK: crossOriginIsolated=true, 0 external requests, star=646, exact menu verified.')

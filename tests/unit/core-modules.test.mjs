@@ -21,7 +21,7 @@ import {
   updateCatLiteRgbaOpacity,
   computeCatLiteStats,
   buildCatLiteStatsCsv,
-} from '../../src/cat-lite-overlay.js'
+} from '../../src/pve-overlay.js'
 import { parseUncompressedNifti1, stripNiftiExt } from '../../src/io.js'
 import { computeStageTimings, parseV4PlanFromLog } from '../../src/diagnostics.js'
 
@@ -34,7 +34,7 @@ test('MODEL_MENU matches brainchop-test layout & icons (excluding DK-50 and lesi
       ['pve', '\u2154\u{1F9E0} Tissue fraction maps (GM/WM/CSF)'],
       ['mindsnap', '\u{1FA93}\u{1F52A} Desikan-Killiany Atlas'],
       ['divider', '-----------------'],
-      ['mindmap-fast', '\u26A1\u{1FA93} Subcortical + Tissue'],
+      ['mindmap-fast', '\u26A1\u{1FA93} Subcortical + Tissue (fast)'],
     ],
   )
   assert.equal(findModelEntry('16chan18cls')?.id, 'mindmap-fast')
@@ -149,7 +149,7 @@ test('rasToNativeIndex resolves custom img2RAS strides', () => {
   assert.equal(rasToNativeIndex(vol, [-1, 0, 0]), null)
 })
 
-test('CAT-lite decode, DT_RGBA32 composite, fast opacity update, and stats', () => {
+test('PVE tissue fraction decode, DT_RGBA32 composite, fast opacity update, and stats', () => {
   const gm = decodeTissueVolumeToFloat32({
     hdr: { scl_slope: 1 / 255, scl_inter: 0 },
     img: new Uint8Array([0, 255, 128, 0]),

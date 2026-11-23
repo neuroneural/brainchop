@@ -743,6 +743,12 @@ dialog a {
   margin-bottom: 4px;
 }
 
+.about-note {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: #8f98a3;
+}
+
 .about-links {
   display: flex;
   flex-wrap: wrap;
