@@ -274,7 +274,7 @@ async function main() {
 
   // --- Status & progress helpers ---
   function setStatusText(text) {
-    locationEl.textContent = text
+    if (locationEl.textContent !== text) locationEl.textContent = text
   }
 
   function setStatusSegments(parts) {
@@ -731,24 +731,16 @@ async function main() {
   }
 
   // --- Inference via @brainchop/core (worker: true) ---
+  // Leave granular layer/Z-chunk advancement purely to the smooth progress bar
+  // so LowMem128/paced runs never flicker status text in the bottom-left footer.
   function formatProgressStatus(entry, ev) {
-    const hasActiveLayer =
-      Number.isFinite(ev.layer) &&
-      Number.isFinite(ev.totalLayers) &&
-      ev.layer > 0 &&
-      ev.layer < ev.totalLayers
-    const rawMsg = ev.message ? String(ev.message).trim() : ''
-    if (hasActiveLayer) {
-      return /\bLayer\s+\d+\/\d+/i.test(rawMsg)
-        ? `${entry.shortLabel} \u00b7 ${rawMsg}`
-        : `${entry.shortLabel} \u00b7 Layer ${ev.layer}/${ev.totalLayers}`
-    }
     if (ev.stage === 'inference') {
       return entry.kind === 'tissues'
         ? 'Estimating tissue fraction maps\u2026'
         : `Running ${entry.shortLabel}\u2026`
     }
-    return rawMsg || `Running ${entry.shortLabel}\u2026`
+    const rawMsg = ev.message ? String(ev.message).trim() : ''
+    return rawMsg || null
   }
 
   async function runModel(entry) {
@@ -785,7 +777,8 @@ async function main() {
           } else {
             setProgress(ev.progress)
           }
-          setStatusText(formatProgressStatus(entry, ev))
+          const statusText = formatProgressStatus(entry, ev)
+          if (statusText) setStatusText(statusText)
         },
       }
 
@@ -1940,6 +1933,7 @@ async function main() {
   nv.addEventListener('locationChange', (e) => {
     const data = e.detail
     crosshairVox = data.vox
+    if (busy) return
     const segments = data.string
       .split('   ')
       .map((s) => s.trim())
