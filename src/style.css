@@ -446,7 +446,7 @@ progress {
   background: rgba(255, 255, 255, 0.12);
 }
 
-progress.is-busy {
+progress.is-busy:not(:indeterminate) {
   @media (prefers-reduced-motion: no-preference) {
     --progress-bar-animation: progress-busy-pulse 1.4s ease-in-out infinite;
   }
@@ -470,21 +470,11 @@ progress::-moz-progress-bar {
   animation: var(--progress-bar-animation, revert-rule);
 }
 
-/* Indeterminate sweeping bar for CPU WASM / WebGL2 backends */
-progress:indeterminate {
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(59, 130, 246, 0.28) 20%,
-      #60a5fa 50%,
-      rgba(59, 130, 246, 0.28) 80%,
-      transparent 100%
-    )
-    no-repeat,
-    rgba(255, 255, 255, 0.12);
-  background-size: 48% 100%, 100% 100%;
-  background-position: 50% 0, 0 0;
+/* GPU-composited indeterminate sweeping bar (0 main-thread paints) */
+.progress-wrap {
+  position: relative;
+  overflow: clip;
+  border-radius: 999px;
 }
 
 progress:indeterminate::-webkit-progress-bar,
@@ -493,18 +483,38 @@ progress:indeterminate::-moz-progress-bar {
   background: transparent;
 }
 
+.progress-wrap:has(> progress:indeterminate)::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 46%;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.3) 20%,
+    #60a5fa 50%,
+    rgba(59, 130, 246, 0.3) 80%,
+    transparent 100%
+  );
+  transform: translateX(60%);
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  progress:indeterminate {
+  .progress-wrap:has(> progress:indeterminate)::after {
     animation: progress-indeterminate-sweep 1.2s ease-in-out infinite;
   }
 }
 
 @keyframes progress-indeterminate-sweep {
   0% {
-    background-position: -90% 0, 0 0;
+    transform: translateX(-110%);
   }
   100% {
-    background-position: 190% 0, 0 0;
+    transform: translateX(225%);
   }
 }
 
