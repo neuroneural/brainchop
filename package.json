@@ -19,7 +19,7 @@
     "test": "npm run test:unit && npm run build && npm run test:e2e"
   },
   "dependencies": {
-    "@brainchop/core": "^1.0.0",
+    "@brainchop/core": "^1.1.0",
     "@niivue/niimath": "^1.4.20261114",
     "@niivue/niivue": "1.0.0-rc.237",
     "@niivue/nv-ext-dcm2niix": "1.0.0-rc.59"
