@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#1e2024" />
+  <meta name="description" content="Local in-browser 3D MRI brain segmentation and skull stripping powered by WebGPU, WebGL2, and WebAssembly." />
+
+  <!-- PWA manifest & icons -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+
+  <link rel="stylesheet" href="./src/style.css" />
+  <title>BrainChop — In-Browser 3D MRI Segmentation</title>
+</head>
+
+<body>
+  <header>
+    <!-- Opacity: two mini sliders stacked to save horizontal space -->
+    <div class="opacity-stack" title="Layer opacity">
+      <div class="opacity-row">
+        <span class="opacity-label" aria-hidden="true">BG</span>
+        <input type="range" min="0" max="1" step="0.05" value="1" class="mini-slider" id="opacitySlider0"
+          aria-label="Background opacity" />
+      </div>
+      <div class="opacity-row">
+        <span class="opacity-label" aria-hidden="true">OVL</span>
+        <input type="range" min="0" max="1" step="0.05" value="0.5" class="mini-slider" id="opacitySlider1"
+          aria-label="Overlay opacity" />
+      </div>
+    </div>
+
+    <span class="tb-divider" role="separator" aria-orientation="vertical"></span>
+
+    <!-- Model selector -->
+    <select id="modelSelect" class="model-select" aria-label="Segmentation model"
+      title="Choose a segmentation model to run">
+      <option value="" disabled selected hidden>Run Segmentation Model</option>
+    </select>
+    <select id="seriesSelect" class="model-select series-select" aria-label="DICOM series"
+      title="Choose a converted DICOM series" hidden></select>
+
+    <span class="tb-divider" role="separator" aria-orientation="vertical"></span>
+
+    <!-- Interaction mode (NiiVue DRAG_MODE on secondaryDragMode) -->
+    <div class="segmented segmented-icons" id="dragSegmented" role="group" aria-label="Mouse drag mode">
+      <button type="button" data-drag="3" aria-pressed="false" title="Pan / zoom" aria-label="Pan / zoom">
+        <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+          <path d="M12 2v20M2 12h20" />
+          <path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" />
+        </svg>
+      </button>
+      <button type="button" data-drag="1" aria-pressed="false" title="Brightness / contrast"
+        aria-label="Brightness / contrast">
+        <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
+      <button type="button" data-drag="2" aria-pressed="false" title="Measure a distance"
+        aria-label="Measure a distance">
+        <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+          <rect x="2.5" y="8.5" width="19" height="7" rx="1" />
+          <path d="M7 8.5v3M11 8.5v4M15 8.5v3M19 8.5v3" />
+        </svg>
+      </button>
+      <button type="button" data-drag="4" class="active" aria-pressed="true" title="Drag to reslice in 3D"
+        aria-label="Reslice in 3D">
+        <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+          <path d="M12 2.5l8.5 4.9v9.2L12 21.5l-8.5-4.9V7.4z" />
+          <path d="M12 12v9.5M3.5 7l8.5 5 8.5-5" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 3D shading toggle -->
+    <button type="button" id="shadingBtn" class="tb-icon-btn" aria-pressed="false"
+      title="Shiny 3D shading (matcap lighting in the render view)" aria-label="Shiny 3D shading">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" />
+        <circle cx="9.2" cy="9.2" r="2.2" fill="currentColor" stroke="none" />
+      </svg>
+    </button>
+
+    <!-- Reset view (hidden on narrow mobile where floating pane switcher carries ⟲) -->
+    <button type="button" id="resetViewBtn" class="tb-icon-btn"
+      title="Reset view (zoom, pan, 3D angle, and contrast)" aria-label="Reset view">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5" />
+      </svg>
+    </button>
+
+    <span class="tb-flex"></span>
+
+    <!-- Outputs -->
+    <button type="button" id="saveBtn" class="tb-btn" title="Save segmentation, input, or scene">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <path d="M12 3v12" />
+        <path d="M7 11l5 5 5-5" />
+        <path d="M4 21h16" />
+      </svg>Save
+    </button>
+    <button type="button" id="saveStatsBtn" class="tb-btn"
+      title="Per-region volume and intensity statistics, viewable and exportable as CSV">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <path d="M5 21V10" />
+        <path d="M12 21V4" />
+        <path d="M19 21v-7" />
+      </svg>Stats
+    </button>
+
+    <span class="tb-divider" role="separator" aria-orientation="vertical"></span>
+
+    <button type="button" id="diagnosticsBtn" class="tb-icon-btn" title="Diagnostics" aria-label="Diagnostics">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <path d="M4 12h4l2 5 4-10 2 5h4" />
+      </svg>
+    </button>
+    <button type="button" id="aboutBtn" class="tb-icon-btn" title="About BrainChop" aria-label="About BrainChop">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5" />
+        <path d="M12 7.5v.5" />
+      </svg>
+    </button>
+  </header>
+
+  <main id="canvas-container">
+    <canvas id="gl1"></canvas>
+    <div id="isoHud" class="iso-hud" hidden></div>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-item" id="location">Drag and drop NIfTI images, scenes (.nvd), or DICOM files / folders</div>
+
+      <div class="footer-status">
+        <div class="footer-item" id="activeModelItem" hidden>
+          <span id="activeModelBadge" class="model-badge"></span>
+        </div>
+
+        <div class="footer-item">
+          <progress id="modelProgress" value="0" max="100" aria-label="Model progress" title="Model progress"></progress>
+        </div>
+
+        <div class="footer-item" id="backendStatusItem">
+          <span id="backendStatus" class="status-text" style="color: #9aa0a6; cursor: help"
+            title="Detecting compute backend...">Checking&hellip;</span>
+        </div>
+
+        <a class="star-link" href="https://github.com/neuroneural/brainchop" target="_blank" rel="noopener noreferrer"
+          title="Star BrainChop on GitHub">
+          <span class="github-star">
+            <span class="star-glyph" aria-hidden="true">&#9733;</span>
+            <span id="star-count">__BRAINCHOP_GH_STARS__</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Native Modal Dialog (closedby="any" with Safari pointer fallback in main.js) -->
+  <dialog id="appDialog" closedby="any" aria-labelledby="dialogTitle">
+    <button id="dialogXBtn" class="dialog-x" type="button" aria-label="Close">&times;</button>
+    <h2 id="dialogTitle" class="dialog-title">Message</h2>
+    <div id="dialogMessage"></div>
+    <div id="dialogFooter" class="dialog-footer">
+      <button id="dialogCloseBtn" type="button">Close</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>

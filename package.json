@@ -1,0 +1,31 @@
+{
+  "name": "brainchop",
+  "private": true,
+  "version": "5.0.0",
+  "description": "In-browser 3D MRI brain segmentation and skull stripping powered by @brainchop/core and NiiVue",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://brainchop.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neuroneural/brainchop.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "node tests/e2e/browser-suite.mjs",
+    "test": "npm run test:unit && npm run build && npm run test:e2e"
+  },
+  "dependencies": {
+    "@brainchop/core": "^1.0.0",
+    "@niivue/niimath": "^1.4.20261114",
+    "@niivue/niivue": "1.0.0-rc.237",
+    "@niivue/nv-ext-dcm2niix": "1.0.0-rc.59"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "vite": "^7.1.0"
+  }
+}
