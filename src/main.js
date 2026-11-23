@@ -459,11 +459,16 @@ async function main() {
     })
   }
 
-  async function removeOverlays() {
+  function removeOverlaysNoRender() {
     resetIsolationState()
-    while (nv.volumes.length > 1) {
-      await nv.removeVolume(nv.volumes.length - 1)
+    while (nv.model.volumes.length > 1) {
+      nv.model.removeVolume(nv.model.volumes.length - 1)
     }
+  }
+
+  async function removeOverlays() {
+    removeOverlaysNoRender()
+    await nv.updateGLVolume()
   }
 
   // --- Region / Tissue Isolation & 3D Tile HUD ---
@@ -762,10 +767,14 @@ async function main() {
     setStatusText(`Running ${entry.shortLabel}\u2026`)
 
     const log = []
+    let clearedPrevious = false
+    const swapOverlay = async (overlayVol) => {
+      clearedPrevious = true
+      removeOverlaysNoRender()
+      applyUnderlayForModel(entry)
+      await nv.model.addVolume(overlayVol)
+    }
     try {
-      seg = null
-      await removeOverlays()
-
       const inputBytes = await nv.saveVolume({ volumeByIndex: 0, filename: '' })
       const tSerializeEnd = performance.now()
       const baseOptions = {
@@ -807,7 +816,7 @@ async function main() {
         },
       }
 
-      const opacity = Number(opacitySlider1.value)
+      let opacity = Number(opacitySlider1.value)
       const base = nv.volumes[0]
       let result
       let labelSummary = null
@@ -816,6 +825,7 @@ async function main() {
       if (entry.kind === 'tissues') {
         result = await segmentTissues(inputBytes, baseOptions)
         tWorkerEnd = performance.now()
+        opacity = Number(opacitySlider1.value)
         const gmVol = parseUncompressedNifti1(result.tissues.gm)
         const wmVol = parseUncompressedNifti1(result.tissues.wm)
         const csfVol = parseUncompressedNifti1(result.tissues.csf)
@@ -883,7 +893,7 @@ async function main() {
             opacity,
           },
         )
-        await nv.addVolume(overlayVol)
+        await swapOverlay(overlayVol)
         const addedOverlay = nv.volumes.at(-1)
         seg = {
           kind: 'tissues',
@@ -907,16 +917,18 @@ async function main() {
         }
         result = await segment(inputBytes, maskOpts)
         tWorkerEnd = performance.now()
+        opacity = Number(opacitySlider1.value)
         const parsedMask = parseUncompressedNifti1(result.mask)
         const maskU8 =
           parsedMask.img instanceof Uint8Array
             ? parsedMask.img
             : new Uint8Array(parsedMask.img)
-        await nv.addVolume({
+        const overlayVol = await nv.prepareVolume({
           url: new File([result.image], 'brain_stripped.nii'),
           colormap: 'copper2',
           opacity,
         })
+        await swapOverlay(overlayVol)
         seg = {
           kind: 'mask',
           entry,
@@ -939,6 +951,7 @@ async function main() {
         }
         result = await segment(inputBytes, labelOpts)
         tWorkerEnd = performance.now()
+        opacity = Number(opacitySlider1.value)
         const parsed = parseUncompressedNifti1(result.image)
         const u8Labels =
           parsed.img instanceof Uint8Array ? parsed.img : new Uint8Array(parsed.img)
@@ -998,7 +1011,7 @@ async function main() {
             opacity,
           },
         )
-        await nv.addVolume(overlayVol)
+        await swapOverlay(overlayVol)
         const addedSeg = nv.volumes.at(-1)
         if (addedSeg && !addedSeg.colormapLabel) {
           addedSeg.colormapLabel = fullLut
@@ -1014,7 +1027,6 @@ async function main() {
         }
       }
 
-      applyUnderlayForModel(entry)
       prevOverlayOpacity = opacity
       await nv.updateGLVolume()
       const tDisplayEnd = performance.now()
@@ -1052,9 +1064,12 @@ async function main() {
       setProgress(1)
       setStatusSegments([entry.shortLabel, `${(elapsedMs / 1000).toFixed(1)} s`, backend])
     } catch (error) {
-      updateActiveModelBadge(null)
-      await removeOverlays()
-      restoreBgOpacity(true)
+      if (!seg || clearedPrevious) {
+        seg = null
+        updateActiveModelBadge(null)
+        restoreBgOpacity(false)
+        await removeOverlays()
+      }
       setProgress(0)
       setStatusText('Segmentation failed')
       showErrorModal('Segmentation failed', error)

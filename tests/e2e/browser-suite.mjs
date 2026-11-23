@@ -88,8 +88,11 @@ async function waitForBaseVolume(page) {
 }
 
 async function runModelAndCollect(page, modelId, timeoutMs = 180_000) {
-  // Track main-thread rAF responsiveness AND status messages while worker inference runs
+  // Track main-thread rAF responsiveness, status messages, and swap-on-complete overlay persistence
   await page.evaluate(() => {
+    const bc = window.__brainchop
+    window.__hadOverlayBefore = bc.nv.volumes.length >= 2
+    window.__minVolumesDuringRun = bc.nv.volumes.length
     window.__rafTicks = 0
     window.__rafRunning = true
     window.__seenStatusTexts = []
@@ -101,6 +104,8 @@ async function runModelAndCollect(page, modelId, timeoutMs = 180_000) {
     window.__statusObs = obs
     const step = () => {
       window.__rafTicks++
+      const n = bc.nv.volumes.length
+      if (n < window.__minVolumesDuringRun) window.__minVolumesDuringRun = n
       if (window.__rafRunning) requestAnimationFrame(step)
     }
     requestAnimationFrame(step)
@@ -144,6 +149,8 @@ async function runModelAndCollect(page, modelId, timeoutMs = 180_000) {
     return {
       run,
       rafTicks: window.__rafTicks,
+      hadOverlayBefore: window.__hadOverlayBefore,
+      minVolumesDuringRun: window.__minVolumesDuringRun,
       seenStatusTexts: window.__seenStatusTexts,
       segKind: seg?.kind,
       overlayDatatype: bc.nv.volumes[1]?.hdr?.datatypeCode,
@@ -158,6 +165,12 @@ async function runModelAndCollect(page, modelId, timeoutMs = 180_000) {
 
   assert.ok(info.run, `Expected lastRun to be populated after ${modelId}`)
   assert.equal(info.run.ranInWorker, true, `${modelId} must run in Web Worker`)
+  if (info.hadOverlayBefore) {
+    assert.ok(
+      info.minVolumesDuringRun >= 2,
+      `${modelId} cleared previous overlay before swap (min volumes=${info.minVolumesDuringRun})`,
+    )
+  }
   assert.equal(info.selectValue, '', `${modelId} dropdown should reset to "Run Segmentation Model" after completion`)
   assert.ok(info.badgeText?.length > 0, `${modelId} active model badge in footer should remain populated`)
   assert.ok(info.fgCount > 100_000, `${modelId} foreground voxel count too low: ${info.fgCount}`)
