@@ -525,21 +525,87 @@ try {
   assert.match(v3Href || '', /neuroneural\.net\/brainchop-legacy/)
   await v3Page.close()
 
-  // Mobile narrow layout + pane switcher
-  const mobCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true })
+  // Open dialog (desktop): paired with Save, full format parity, loads local .nii.gz via File API
+  assert.equal(await page.locator('#openBtn').isVisible(), true, 'Desktop Open button must be visible in top bar')
+  assert.equal(await page.locator('#mobileOpenBtn').isVisible(), false, 'Mobile footer Open button must stay hidden on desktop')
+  await page.click('#openBtn')
+  await page.waitForSelector('.open-sheet')
+  const desktopOpenState = await page.evaluate(() => ({
+    title: document.getElementById('dialogTitle')?.textContent?.trim(),
+    hasVolume: Boolean(document.getElementById('openVolumeBtn')),
+    hasScene: Boolean(document.getElementById('openSceneBtn')),
+    hasDicomFiles: Boolean(document.getElementById('openDicomFilesBtn')),
+    hasDicomFolder: Boolean(document.getElementById('openDicomFolderBtn')),
+    privacyText: document.querySelector('.open-privacy-note')?.textContent?.trim(),
+    volAccept: document.getElementById('openInputVolume')?.getAttribute('accept'),
+    dicomAccept: document.getElementById('openInputDicomFiles')?.getAttribute('accept'),
+  }))
+  assert.equal(desktopOpenState.title, 'Open')
+  assert.equal(desktopOpenState.hasVolume, true)
+  assert.equal(desktopOpenState.hasScene, true)
+  assert.equal(desktopOpenState.hasDicomFiles, true)
+  assert.equal(desktopOpenState.hasDicomFolder, true, 'Desktop browser should show DICOM folder option')
+  assert.match(desktopOpenState.privacyText || '', /Stays on this device/i)
+  assert.match(desktopOpenState.volAccept || '', /\.nii\.gz/)
+  assert.equal(desktopOpenState.dicomAccept, null, 'DICOM files input must omit accept for extensionless slices')
+
+  // Actually pick a local NIfTI file through #openInputVolume
+  const sampleNiftiPath = path.join(root, 'public', 't1_crop.nii.gz')
+  await page.locator('#openInputVolume').setInputFiles(sampleNiftiPath)
+  await page.waitForFunction(
+    () => !document.getElementById('appDialog')?.open && window.__brainchop.nv.volumes.length === 1 && !window.__brainchop.busy,
+    { timeout: 30_000 },
+  )
+  assert.equal(await page.evaluate(() => window.__brainchop.seg), null, 'Opening a new volume should clear previous segmentation')
+
+  // Mobile narrow layout + footer Open button + iOS Safari capability adaptation
+  const mobCtx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+  })
   const mobPage = await mobCtx.newPage()
   await mobPage.goto(baseUrl, { waitUntil: 'networkidle' })
   await waitForBaseVolume(mobPage)
   const mobCheck = await mobPage.evaluate(() => ({
     narrow: document.body.classList.contains('nv-narrow'),
     switcherVisible: getComputedStyle(document.getElementById('paneSwitcher')).display !== 'none',
+    switcherButtons: document.querySelectorAll('#paneSwitcher button').length,
+    mobileOpenVisible: getComputedStyle(document.getElementById('mobileOpenBtn')).display !== 'none',
+    desktopHintVisible: getComputedStyle(document.querySelector('.loc-hint-desktop')).display !== 'none',
   }))
   assert.equal(mobCheck.narrow, true, '390x844 viewport should activate body.nv-narrow')
   assert.equal(mobCheck.switcherVisible, true, 'Mobile pane switcher should be visible')
+  assert.equal(mobCheck.switcherButtons, 6, 'Mobile pane switcher should remain uncluttered (All/A/C/S/3D/Reset)')
+  assert.equal(mobCheck.mobileOpenVisible, true, 'Mobile footer Open button must be visible on narrow viewports')
+  assert.equal(mobCheck.desktopHintVisible, false, 'Desktop drag-and-drop hint must be hidden on narrow viewports')
+
+  // Open dialog on mobile iOS Safari: DICOM folder hidden, accept omitted on volume/scene/dicom
+  await mobPage.click('#mobileOpenBtn')
+  await mobPage.waitForSelector('.open-sheet')
+  const mobOpenState = await mobPage.evaluate(() => ({
+    hasDicomFiles: Boolean(document.getElementById('openDicomFilesBtn')),
+    hasDicomFolder: Boolean(document.getElementById('openDicomFolderBtn')),
+    volAccept: document.getElementById('openInputVolume')?.getAttribute('accept'),
+    sceneAccept: document.getElementById('openInputScene')?.getAttribute('accept'),
+    dicomAccept: document.getElementById('openInputDicomFiles')?.getAttribute('accept'),
+  }))
+  assert.equal(mobOpenState.hasDicomFiles, true)
+  assert.equal(mobOpenState.hasDicomFolder, false, 'DICOM folder card must be hidden on mobile/unsupported browsers')
+  assert.equal(mobOpenState.volAccept, null, 'Safari/iOS must omit accept on volume input so .nii.gz is never grayed out')
+  assert.equal(mobOpenState.sceneAccept, null, 'Safari/iOS must omit accept on scene input')
+  assert.equal(mobOpenState.dicomAccept, null, 'DICOM files input must omit accept')
+  await mobPage.locator('#openInputVolume').setInputFiles(sampleNiftiPath)
+  await mobPage.waitForFunction(
+    () => !document.getElementById('appDialog')?.open && window.__brainchop.nv.volumes.length === 1 && !window.__brainchop.busy,
+    { timeout: 30_000 },
+  )
+
   await mobPage.click('#paneSwitcher button[data-pane="axial"]')
   assert.equal(await mobPage.evaluate(() => window.__brainchop.nv.sliceType), 0)
   await mobCtx.close()
-  console.log('  OK [Cite, About, Diagnostics, /v3/, Mobile]: all verified.')
+  console.log('  OK [Open Dialog, Cite, About, Diagnostics, /v3/, Mobile]: all verified.')
 
   // =========================================================================
   // 4. WebGPU LowMem128 (`?webgpuMode=low-memory`) Parity
