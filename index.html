@@ -96,7 +96,14 @@
 
     <span class="tb-flex"></span>
 
-    <!-- Outputs -->
+    <!-- Local file I/O & outputs -->
+    <button type="button" id="openBtn" class="tb-btn"
+      title="Open local NIfTI, scene (.nvd), or DICOM — processed on-device, never uploaded">
+      <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+        <path d="M3 7a2 2 0 0 1 2-2h4.2a2 2 0 0 1 1.5.7L12 7h7a2 2 0 0 1 2 2v1" />
+        <path d="M3 10.5h18l-1.5 7.2a2 2 0 0 1-2 1.6H5.2a2 2 0 0 1-2-1.7L3 7z" />
+      </svg>Open
+    </button>
     <button type="button" id="saveBtn" class="tb-btn" title="Save segmentation, input, or scene">
       <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
         <path d="M12 3v12" />
@@ -136,7 +143,17 @@
 
   <footer>
     <div class="footer-content">
-      <div class="footer-item" id="location">Drag and drop NIfTI images, scenes (.nvd), or DICOM files / folders</div>
+      <button type="button" id="mobileOpenBtn" class="footer-open-btn"
+        title="Open local NIfTI, scene (.nvd), or DICOM — processed on-device, never uploaded">
+        <svg viewBox="0 0 24 24" class="tb-ico" aria-hidden="true">
+          <path d="M3 7a2 2 0 0 1 2-2h4.2a2 2 0 0 1 1.5.7L12 7h7a2 2 0 0 1 2 2v1" />
+          <path d="M3 10.5h18l-1.5 7.2a2 2 0 0 1-2 1.6H5.2a2 2 0 0 1-2-1.7L3 7z" />
+        </svg><span>Open</span>
+      </button>
+      <div class="footer-item" id="location">
+        <span class="loc-hint-desktop">Drop or <button type="button" id="locationOpenBtn" class="loc-open-link">open local</button> NIfTI images, scenes (.nvd), or DICOM files / folders</span>
+        <span class="loc-hint-mobile">On-device &middot; local files only</span>
+      </div>
 
       <div class="footer-status">
         <div class="footer-item" id="activeModelItem" hidden>

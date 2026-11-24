@@ -37,6 +37,9 @@ import {
   convertDicomFiles,
   withNiimath,
   stripNiftiExt,
+  supportsDirectoryPicker,
+  getOpenInputAccept,
+  filterIgnorableFiles,
 } from './io.js'
 import { installResponsiveLayout } from './responsive-layout.js'
 import { installTouchViewControls, resetView } from './touch-view.js'
@@ -146,6 +149,10 @@ const SAVE_ICONS = {
   volume: '<svg viewBox="0 0 24 24" class="save-opt-ico" aria-hidden="true"><path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12l8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5"/></svg>',
   scene: '<svg viewBox="0 0 24 24" class="save-opt-ico" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M9.5 9.5v10"/></svg>',
   arrow: '<svg viewBox="0 0 24 24" class="save-opt-arrow" aria-hidden="true"><path d="M12 4.5v11"/><path d="M7.5 11.5L12 16l4.5-4.5"/><path d="M5 19.5h14"/></svg>',
+  dicomFiles: '<svg viewBox="0 0 24 24" class="save-opt-ico" aria-hidden="true"><rect x="4" y="4" width="12" height="14" rx="2"/><path d="M8 20h10a2 2 0 0 0 2-2V8"/><path d="M7.5 9h5M7.5 12.5h5"/></svg>',
+  folder: '<svg viewBox="0 0 24 24" class="save-opt-ico" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4.2a2 2 0 0 1 1.5.7L12 7h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" class="save-opt-arrow open-opt-chevron" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" class="open-privacy-ico" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
 }
 
 const STAT_LOCATE_ICON =
@@ -157,7 +164,11 @@ const STAT_LOCATE_ICON =
 // --- Dialog helpers (follows modern-web-guidance `dialog` & `light-dismiss-a-dialog`) ---
 
 function installDialogFallback(dialog) {
-  if (!dialog || 'closedBy' in HTMLDialogElement.prototype) return
+  if (!dialog) return
+  dialog.addEventListener('close', () => {
+    dialog.returnValue = ''
+  })
+  if ('closedBy' in HTMLDialogElement.prototype) return
   const isOutside = (e) => {
     const r = dialog.getBoundingClientRect()
     return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom
@@ -307,7 +318,15 @@ async function main() {
 
   function setBusy(on) {
     busy = on
-    for (const id of ['modelSelect', 'seriesSelect', 'saveBtn', 'saveStatsBtn']) {
+    for (const id of [
+      'modelSelect',
+      'seriesSelect',
+      'openBtn',
+      'mobileOpenBtn',
+      'locationOpenBtn',
+      'saveBtn',
+      'saveStatsBtn',
+    ]) {
       const el = $(id)
       if (el) el.disabled = on
     }
@@ -1724,7 +1743,7 @@ async function main() {
 
         <p><strong>Controls</strong></p>
         <ul>
-          <li><strong>Drag &amp; Drop</strong> any NIfTI (<code>.nii</code>/<code>.nii.gz</code>), NiiVue scene (<code>.nvd</code>), or DICOM file / folder.</li>
+          <li>Click <strong>Open</strong> or <strong>Drag &amp; Drop</strong> any NIfTI (<code>.nii</code>/<code>.nii.gz</code>), NiiVue scene (<code>.nvd</code>), or DICOM file / folder &mdash; everything stays on your device.</li>
           <li>Press <strong>C</strong> to cycle the 3D clip plane and <strong>V</strong> to cycle slice views.</li>
           <li><strong>Option/Alt-click</strong> a label or tissue map (or use <strong>Stats &rarr; isolate</strong>) to show it alone in 2D + 3D. Click it again, click background, or press <strong>Esc</strong> to restore.</li>
           <li>Click <strong>Reset view</strong> (or <strong>&#x27F2;</strong> on mobile) to restore default zoom, pan, 3D angle, and contrast.</li>
@@ -1800,7 +1819,8 @@ async function main() {
     showModal(`Choose one of ${series.length} series`, wrap, { hideClose: true, saveMode: true })
   }
 
-  async function openDroppedFiles(files) {
+  async function openLocalFiles(rawFiles) {
+    const files = filterIgnorableFiles(rawFiles)
     if (busy || !files.length) return
     setBusy(true)
     try {
@@ -1838,7 +1858,7 @@ async function main() {
       const images = [...volumes, ...converted.filter((f) => NIFTI_RE.test(f.name))]
       if (!meshes.length && !images.length) {
         throw new Error(
-          `Drop NIfTI images (.nii/.nii.gz), NiiVue scenes (.nvd), meshes, or DICOM files / folders.${dicomError ? ` (dcm2niix: ${dicomError.message})` : ''}`,
+          `Open or drop NIfTI images (.nii/.nii.gz), NiiVue scenes (.nvd), meshes, or DICOM files / folders.${dicomError ? ` (dcm2niix: ${dicomError.message})` : ''}`,
         )
       }
 
@@ -1866,19 +1886,148 @@ async function main() {
       setBusy(false)
       await loadSeries(0)
     } catch (error) {
-      showErrorModal('Could not open dropped file(s)', error)
+      showErrorModal('Could not open file(s)', error)
     } finally {
       setBusy(false)
     }
   }
 
-  document.addEventListener('dragover', (e) => e.preventDefault())
+  function openFileModal() {
+    if (busy) return
+    const canPickFolder = supportsDirectoryPicker()
+    const isNarrow = document.body.classList.contains('nv-narrow')
+    const volumeAccept = getOpenInputAccept('volume')
+    const sceneAccept = getOpenInputAccept('scene')
+
+    const renderOpenCard = ({ id, icon, title, sub, autofocus = false }) => `
+      <button type="button" id="${id}" class="save-opt"${autofocus ? ' autofocus' : ''}>
+        ${SAVE_ICONS[icon]}
+        <span class="save-opt-copy">
+          <span class="save-opt-title">${title}</span>
+          <span class="save-opt-sub">${sub}</span>
+        </span>
+        ${SAVE_ICONS.chevron}
+      </button>`
+
+    const dicomCardsHtml =
+      renderOpenCard({
+        id: 'openDicomFilesBtn',
+        icon: 'dicomFiles',
+        title: 'DICOM files',
+        sub: 'Select slices (.dcm or no ext.)',
+      }) +
+      (canPickFolder
+        ? renderOpenCard({
+            id: 'openDicomFolderBtn',
+            icon: 'folder',
+            title: 'DICOM folder',
+            sub: 'Entire study directory',
+          })
+        : '')
+
+    const dropHint = isNarrow ? '' : ' You can also drop files or folders anywhere.'
+    const acceptAttr = (val) => (val ? ` accept="${escapeHtml(val)}"` : '')
+
+    // Hidden file inputs live inside the open <dialog> so they are never inert.
+    const html = `
+      <div class="save-sheet open-sheet">
+        <section class="save-section">
+          <div class="save-section-head">
+            <span class="save-section-label">Volume &amp; Scene</span>
+            <span class="save-section-hint">Processed locally</span>
+          </div>
+          <div class="save-options">
+            ${renderOpenCard({
+              id: 'openVolumeBtn',
+              icon: 'volume',
+              title: 'NIfTI / Volume',
+              sub: '.nii, .nii.gz, .mgz, .nrrd, meshes',
+              autofocus: true,
+            })}
+            ${renderOpenCard({
+              id: 'openSceneBtn',
+              icon: 'scene',
+              title: 'Scene (.nvd)',
+              sub: 'Saved viewer state document',
+            })}
+          </div>
+        </section>
+        <section class="save-section save-section-divider">
+          <div class="save-section-head">
+            <span class="save-section-label">DICOM</span>
+            <span class="save-section-hint">${canPickFolder ? 'Single, series, or folder' : 'Single or multi-slice'}</span>
+          </div>
+          <div class="save-options">${dicomCardsHtml}</div>
+        </section>
+        <div class="open-privacy-note">
+          ${SAVE_ICONS.lock}
+          <p><strong>Stays on this device.</strong> Files are read directly in your browser and never uploaded.${dropHint}</p>
+        </div>
+        <input id="openInputVolume" type="file" multiple${acceptAttr(volumeAccept)} hidden />
+        <input id="openInputScene" type="file"${acceptAttr(sceneAccept)} hidden />
+        <input id="openInputDicomFiles" type="file" multiple hidden />
+        ${canPickFolder ? '<input id="openInputDicomFolder" type="file" webkitdirectory multiple hidden />' : ''}
+      </div>`
+
+    showModal('Open', html, { hideClose: true, saveMode: true })
+
+    const wirePicker = (btnId, inputId) => {
+      const btn = $(btnId)
+      const input = $(inputId)
+      if (!btn || !input) return
+      btn.onclick = () => input.click()
+      input.onchange = () => {
+        const selected = Array.from(input.files || [])
+        input.value = ''
+        if (!selected.length) return
+        const dlg = $('appDialog')
+        if (dlg?.open) dlg.close()
+        void openLocalFiles(selected)
+      }
+    }
+
+    wirePicker('openVolumeBtn', 'openInputVolume')
+    wirePicker('openSceneBtn', 'openInputScene')
+    wirePicker('openDicomFilesBtn', 'openInputDicomFiles')
+    if (canPickFolder) wirePicker('openDicomFolderBtn', 'openInputDicomFolder')
+  }
+
+  let dragDepth = 0
+  const setDropHighlight = (on) => {
+    const dlg = $('appDialog')
+    if (dlg?.open) {
+      dlg.classList.toggle('is-drop-target', on)
+      $('canvas-container')?.classList.remove('is-drop-target')
+    } else {
+      $('canvas-container')?.classList.toggle('is-drop-target', on)
+      dlg?.classList.remove('is-drop-target')
+    }
+  }
+  const hasDraggedFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files')
+
+  document.addEventListener('dragenter', (e) => {
+    if (!hasDraggedFiles(e) || busy) return
+    e.preventDefault()
+    dragDepth++
+    setDropHighlight(true)
+  })
+  document.addEventListener('dragover', (e) => {
+    if (!hasDraggedFiles(e)) return
+    e.preventDefault()
+  })
+  document.addEventListener('dragleave', (e) => {
+    if (!hasDraggedFiles(e)) return
+    dragDepth = Math.max(0, dragDepth - 1)
+    if (dragDepth === 0) setDropHighlight(false)
+  })
   document.addEventListener('drop', (e) => {
     e.preventDefault()
+    dragDepth = 0
+    setDropHighlight(false)
     if (busy) return
     const dlg = $('appDialog')
     if (dlg?.open) dlg.close()
-    readDropItems(e.dataTransfer).then(openDroppedFiles, (err) =>
+    readDropItems(e.dataTransfer).then(openLocalFiles, (err) =>
       showErrorModal('Could not read dropped files', err),
     )
   })
@@ -1905,6 +2054,10 @@ async function main() {
   }
 
   $('resetViewBtn').onclick = () => resetView(nv)
+  $('openBtn').onclick = openFileModal
+  $('mobileOpenBtn').onclick = openFileModal
+  const locationOpenBtn = $('locationOpenBtn')
+  if (locationOpenBtn) locationOpenBtn.onclick = openFileModal
   $('saveBtn').onclick = openSaveModal
   $('saveStatsBtn').onclick = openStatsModal
   $('diagnosticsBtn').onclick = () => void openDiagnosticsModal()
@@ -2068,7 +2221,9 @@ async function main() {
     },
     isolateLabel,
     isolateTissue,
-    openDroppedFiles,
+    openFileModal,
+    openLocalFiles,
+    openDroppedFiles: openLocalFiles,
   }
 
   // Load default bundled T1 volume

@@ -11,6 +11,71 @@ import { writeVolume } from '@niivue/niivue'
 
 export const NIFTI_RE = /\.nii(\.gz)?$/i
 
+const IGNORABLE_FILE_RE = /^(?:\.DS_Store|\._.*|Thumbs\.db|desktop\.ini)$/i
+
+const VOLUME_ACCEPT_LIST =
+  '.nii,.nii.gz,.gz,.hdr,.img,.mgz,.mgh,.nrrd,.nhdr,.mha,.mhd,.head,.brik,.vmr,.v,.v16,.mz3,.gii,.obj,.stl,.vtk'
+
+const SCENE_ACCEPT_LIST = '.nvd,.json'
+
+/**
+ * Detect Safari (macOS/iOS) and all iOS/iPadOS WebKit browsers, where `accept`
+ * filters on `<input type="file">` frequently gray out `.nii.gz` compound
+ * extensions and unregistered neuroimaging UTIs.
+ */
+export function isAppleWebKitBrowser(env = typeof navigator !== 'undefined' ? navigator : {}) {
+  const ua = String(env?.userAgent ?? '')
+  const platform = String(env?.platform ?? '')
+  const touch = Number(env?.maxTouchPoints ?? 0)
+  const isIos = /iPad|iPhone|iPod/i.test(ua) || (platform === 'MacIntel' && touch > 1)
+  const isSafari =
+    /Safari/i.test(ua) && !/(Chrome|Chromium|CriOS|Edg|EdgiOS|OPR|FxiOS|Firefox|Android)/i.test(ua)
+  return isIos || isSafari
+}
+
+/**
+ * Detect whether directory selection (`<input type="file" webkitdirectory>`) is
+ * actually usable. Mobile OS browsers (especially iOS Safari) often expose the
+ * DOM property while failing to open a directory picker.
+ */
+export function supportsDirectoryPicker(
+  env = typeof navigator !== 'undefined' ? navigator : {},
+  hasWebkitDirectory = typeof document !== 'undefined' &&
+    'webkitdirectory' in document.createElement('input'),
+) {
+  if (!hasWebkitDirectory) return false
+  const ua = String(env?.userAgent ?? '')
+  const platform = String(env?.platform ?? '')
+  const touch = Number(env?.maxTouchPoints ?? 0)
+  const isMobileOs =
+    /iPad|iPhone|iPod|Android|Mobile/i.test(ua) || (platform === 'MacIntel' && touch > 1)
+  return !isMobileOs
+}
+
+/**
+ * Return the appropriate `accept` attribute value for a local open file input.
+ * - `dicom`: always omitted (clinical DICOM slices frequently have no extension).
+ * - `volume` / `scene`: omitted on Safari & iOS WebKit so `.nii.gz` / `.nvd` stay selectable.
+ */
+export function getOpenInputAccept(kind, env = typeof navigator !== 'undefined' ? navigator : {}) {
+  if (kind === 'dicom') return ''
+  if (isAppleWebKitBrowser(env)) return ''
+  if (kind === 'volume') return VOLUME_ACCEPT_LIST
+  if (kind === 'scene') return SCENE_ACCEPT_LIST
+  return ''
+}
+
+/**
+ * Filter out OS metadata files (`.DS_Store`, `._*`, `Thumbs.db`, `desktop.ini`)
+ * from dropped or directory-picked file lists while keeping extensionless DICOMs.
+ */
+export function filterIgnorableFiles(files) {
+  return Array.from(files || []).filter((file) => {
+    const base = String(file?.name ?? '').split(/[\\/]/).pop() || ''
+    return base.length > 0 && !IGNORABLE_FILE_RE.test(base)
+  })
+}
+
 export function downloadBlob(data, filename, mime = 'application/octet-stream') {
   const blob = data instanceof Blob ? data : new Blob([data], { type: mime })
   const url = URL.createObjectURL(blob)

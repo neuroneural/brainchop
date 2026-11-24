@@ -22,7 +22,14 @@ import {
   computeCatLiteStats,
   buildCatLiteStatsCsv,
 } from '../../src/pve-overlay.js'
-import { parseUncompressedNifti1, stripNiftiExt } from '../../src/io.js'
+import {
+  parseUncompressedNifti1,
+  stripNiftiExt,
+  isAppleWebKitBrowser,
+  supportsDirectoryPicker,
+  getOpenInputAccept,
+  filterIgnorableFiles,
+} from '../../src/io.js'
 import { computeStageTimings, parseV4PlanFromLog } from '../../src/diagnostics.js'
 
 test('MODEL_MENU matches brainchop-test layout & icons (excluding DK-50 and lesion scan)', () => {
@@ -257,4 +264,82 @@ test('computeStageTimings & parseV4PlanFromLog extract granular stage timings an
     WebGPU_V4_Reason: 'override',
     WebGPU_V4_Probe: '12.4ms',
   })
+})
+
+test('local Open helpers omit accept on Safari/iOS, hide directory picker on mobile, and filter OS junk', () => {
+  const macSafari = {
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+    platform: 'MacIntel',
+    maxTouchPoints: 0,
+  }
+  const iosSafari = {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    platform: 'iPhone',
+    maxTouchPoints: 5,
+  }
+  const iosChrome = {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0.0.0 Mobile/15E148 Safari/604.1',
+    platform: 'iPhone',
+    maxTouchPoints: 5,
+  }
+  const ipadDesktopMode = {
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+    platform: 'MacIntel',
+    maxTouchPoints: 5,
+  }
+  const macChrome = {
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    platform: 'MacIntel',
+    maxTouchPoints: 0,
+  }
+  const androidChrome = {
+    userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36',
+    platform: 'Linux armv8l',
+    maxTouchPoints: 5,
+  }
+  const linuxFirefox = {
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0',
+    platform: 'Linux x86_64',
+    maxTouchPoints: 0,
+  }
+
+  assert.equal(isAppleWebKitBrowser(macSafari), true)
+  assert.equal(isAppleWebKitBrowser(iosSafari), true)
+  assert.equal(isAppleWebKitBrowser(iosChrome), true)
+  assert.equal(isAppleWebKitBrowser(ipadDesktopMode), true)
+  assert.equal(isAppleWebKitBrowser(macChrome), false)
+  assert.equal(isAppleWebKitBrowser(androidChrome), false)
+  assert.equal(isAppleWebKitBrowser(linuxFirefox), false)
+
+  // Directory picker: true only on desktop browsers that actually expose webkitdirectory
+  assert.equal(supportsDirectoryPicker(macChrome, true), true)
+  assert.equal(supportsDirectoryPicker(macSafari, true), true)
+  assert.equal(supportsDirectoryPicker(linuxFirefox, true), true)
+  assert.equal(supportsDirectoryPicker(macChrome, false), false)
+  assert.equal(supportsDirectoryPicker(iosSafari, true), false)
+  assert.equal(supportsDirectoryPicker(ipadDesktopMode, true), false)
+  assert.equal(supportsDirectoryPicker(androidChrome, true), false)
+
+  // accept attribute strategy
+  assert.equal(getOpenInputAccept('volume', macSafari), '')
+  assert.equal(getOpenInputAccept('volume', iosSafari), '')
+  assert.equal(getOpenInputAccept('scene', iosChrome), '')
+  assert.match(getOpenInputAccept('volume', macChrome), /\.nii,\.nii\.gz,\.gz/)
+  assert.match(getOpenInputAccept('scene', linuxFirefox), /\.nvd/)
+  assert.equal(getOpenInputAccept('dicom', macChrome), '')
+  assert.equal(getOpenInputAccept('dicom', linuxFirefox), '')
+
+  // Ignore OS metadata files while keeping extensionless DICOMs
+  const filtered = filterIgnorableFiles([
+    { name: '.DS_Store' },
+    { name: '._T1w.nii.gz' },
+    { name: 'Thumbs.db' },
+    { name: 'IM0001' },
+    { name: 'sub-01_T1w.nii.gz' },
+    { name: 'study/1.2.840.113619' },
+  ])
+  assert.deepEqual(
+    filtered.map((f) => f.name),
+    ['IM0001', 'sub-01_T1w.nii.gz', 'study/1.2.840.113619'],
+  )
 })
