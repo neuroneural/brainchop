@@ -14,6 +14,7 @@
   <a href="https://brainchop.org"><strong>brainchop.org</strong></a> &middot;
   <a href="https://www.npmjs.com/package/@brainchop/core"><code>@brainchop/core</code></a> &middot;
   <a href="https://github.com/neuroneural/brainchop-core">Core Engine / CLI / Python</a> &middot;
+  <a href="https://brainchomp.org">Brainchomp (Rodent MRI)</a> &middot;
   <a href="https://neuroneural.net/brainchop-legacy/">Legacy v3 (TF.js)</a>
 </p>
 
@@ -48,6 +49,10 @@ npm run test:e2e    # Real-browser Playwright E2E suite (WebGPU, WebGL2, CPU WAS
 - `?webgpuMode=auto|standard|low-memory|recalibrate` — Override WebGPU V4 memory/pacing auto-detection
 - `?viewer=webgl2|webgpu` — Select NiiVue's viewer renderer
 - `?ct=1`, `?comply=1`, `?border=<mm>`, `?legacyCleanup=1` — Optional preprocessing / postprocessing flags
+
+## Sibling Project: Brainchomp (Rodent MRI)
+
+Working with mouse or rat brain MRI? Try our sibling app **[Brainchomp](https://brainchomp.org/)** ([`neuroneural/brainchomp`](https://github.com/neuroneural/brainchomp)) for privacy-first in-browser rodent brain extraction and interactive 3D mask sculpting.
 
 ## Legacy BrainChop v3
 
