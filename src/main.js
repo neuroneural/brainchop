@@ -1738,6 +1738,8 @@ async function main() {
           <li><strong>&#x2154;&#x1F9E0;</strong> Continuous GM/WM/CSF tissue fraction maps (experimental)</li>
         </ul>
 
+        <p><strong>Rodent MRI?</strong> Try our sibling app <a href="https://brainchomp.org/" target="_blank" rel="noopener noreferrer">Brainchomp</a> (<a href="https://github.com/neuroneural/brainchomp" target="_blank" rel="noopener noreferrer">GitHub</a>) for local mouse &amp; rat brain extraction.</p>
+
         <p class="about-note">Intended for research and educational use; not cleared as a medical device for clinical diagnosis.</p>
 
         <div class="about-links">
