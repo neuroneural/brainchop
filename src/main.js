@@ -1713,14 +1713,45 @@ async function main() {
     const text = await formatDiagnosticsReport({ lastRun, capabilityReport, nv })
     const copied = await navigator.clipboard?.writeText(text).then(() => true, () => false)
 
+    const issuesUrl = 'https://github.com/neuroneural/brainchop/issues'
+    const benchUrl = 'https://github.com/neuroneural/brainchop-core/issues/3'
+    const mkLink = (href, label) => {
+      const a = document.createElement('a')
+      a.href = href
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      a.textContent = label
+      return a
+    }
+
     const wrap = document.createElement('div')
     const note = document.createElement('p')
-    note.textContent = copied
-      ? 'Diagnostics copied to clipboard.'
-      : 'Could not copy automatically \u2014 select and copy below.'
+    note.className = 'diag-note'
+    note.append(
+      document.createTextNode(
+        copied
+          ? 'Diagnostics copied to clipboard. Share timings in '
+          : 'Could not copy automatically \u2014 select and copy below, then paste in ',
+      ),
+      mkLink(benchUrl, 'Community Benchmarks'),
+      document.createTextNode(' or '),
+      mkLink(issuesUrl, 'GitHub Issues'),
+      document.createTextNode('.'),
+    )
+
     const pre = document.createElement('pre')
     pre.className = 'diag-pre'
-    pre.textContent = text
+    const urlIdx = text.indexOf(issuesUrl)
+    if (urlIdx >= 0) {
+      pre.append(
+        document.createTextNode(text.slice(0, urlIdx)),
+        mkLink(issuesUrl, issuesUrl),
+        document.createTextNode(text.slice(urlIdx + issuesUrl.length)),
+      )
+    } else {
+      pre.textContent = text
+    }
+
     wrap.append(note, pre)
     showModal('Diagnostics', wrap)
   }

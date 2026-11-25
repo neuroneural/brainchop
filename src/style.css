@@ -769,6 +769,24 @@ dialog a {
   outline-offset: 2px;
 }
 
+.diag-note {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.diag-note a,
+.diag-pre a {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.diag-note a:hover,
+.diag-pre a:hover {
+  color: #93c5fd;
+}
+
 .diag-pre {
   margin: 10px 0 0;
   padding: 10px 12px;
