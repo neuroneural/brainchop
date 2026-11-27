@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "@brainchop/core"
+    ignore:
+      - dependency-name: "@brainchop/core"
+        update-types: ["version-update:semver-major"]
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 2
