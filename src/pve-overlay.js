@@ -202,6 +202,39 @@ export function buildCatLiteRgbaComposite(
 }
 
 /**
+ * Build NIfTI header overrides for an overlay buffer already reoriented into
+ * NiiVue's RAS voxel order. NiiVue stores `matRAS` in row-major order (matching
+ * `hdr.affine.flat()`), so rows are sliced as `[0..3]..[12..15]` rather than
+ * transposed, `pixDims` is updated to `pixDimsRAS`, and the native `qform` is
+ * cleared so serialized headers carry a consistent RAS transform.
+ */
+export function buildRasHdrOverrides(base, rasLayout) {
+  if (!rasLayout?.dimsRAS) return {}
+  const overrides = {
+    dims: [3, rasLayout.dimsRAS[1], rasLayout.dimsRAS[2], rasLayout.dimsRAS[3], 1, 1, 1, 1],
+  }
+  if (base?.pixDimsRAS && base.pixDimsRAS.length >= 4) {
+    const pixDims = base.hdr?.pixDims ? [...base.hdr.pixDims] : [1, 1, 1, 1, 0, 0, 0, 0]
+    pixDims[0] = base.pixDimsRAS[0]
+    pixDims[1] = base.pixDimsRAS[1]
+    pixDims[2] = base.pixDimsRAS[2]
+    pixDims[3] = base.pixDimsRAS[3]
+    overrides.pixDims = pixDims
+  }
+  const m = base?.matRAS
+  if (m && m.length >= 16) {
+    overrides.affine = [
+      [m[0], m[1], m[2], m[3]],
+      [m[4], m[5], m[6], m[7]],
+      [m[8], m[9], m[10], m[11]],
+      [m[12], m[13], m[14], m[15]],
+    ]
+    overrides.qform_code = 0
+  }
+  return overrides
+}
+
+/**
  * Fast (~1.5 ms) in-place alpha update when the overlay opacity slider drags.
  */
 export function updateCatLiteRgbaOpacity(rgba, activeAlphaOffsets, activeBaseAlpha, opacity) {
