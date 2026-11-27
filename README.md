@@ -14,6 +14,8 @@
   <a href="https://brainchop.org"><strong>brainchop.org</strong></a> &middot;
   <a href="https://www.npmjs.com/package/@brainchop/core"><code>@brainchop/core</code></a> &middot;
   <a href="https://github.com/neuroneural/brainchop-core">Core Engine / CLI / Python</a> &middot;
+  <a href="https://huggingface.co/neuroneural/mindgrab">Hugging Face Model</a> &middot;
+  <a href="https://huggingface.co/spaces/neuroneural/mindgrab">HF Space</a> &middot;
   <a href="https://brainchomp.org">Brainchomp (Rodent MRI)</a> &middot;
   <a href="https://neuroneural.net/brainchop-legacy/">Legacy v3 (TF.js)</a>
 </p>
@@ -22,7 +24,7 @@ BrainChop runs 3D MeshNet volumetric segmentation entirely on the user's device 
 
 ## Models
 
-- **🪓🧠 Omnimodal Skull Stripping** (`mindgrab`) — Modality-agnostic skull stripping & brain masking (T1, T2, FLAIR, DWI, EPI, MRA, PDw, qT1, CT, PET)
+- **🪓🧠 Omnimodal Skull Stripping** (`mindgrab`) — Modality-agnostic skull stripping & brain masking (T1, T2, FLAIR, DWI, EPI, MRA, PDw, qT1, CT, PET) · [Hugging Face Model](https://huggingface.co/neuroneural/mindgrab) · [Interactive HF Space](https://huggingface.co/spaces/neuroneural/mindgrab)
 - **🪓 Subcortical + Tissue** (`mindmap`) — Primary 18-class cortical & subcortical parcellation
 - **⅔🧠 Tissue fraction maps (GM/WM/CSF)** (`mindmap` PVE) — Continuous GM/WM/CSF partial-volume estimation (experimental)
 - **🪓🔪 Desikan-Killiany Atlas** (`mindsnap`) — 104-region Desikan-Killiany cortical + subcortical + 5-part corpus callosum parcellation
