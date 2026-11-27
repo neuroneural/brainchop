@@ -205,8 +205,9 @@ export function buildCatLiteRgbaComposite(
  * Build NIfTI header overrides for an overlay buffer already reoriented into
  * NiiVue's RAS voxel order. NiiVue stores `matRAS` in row-major order (matching
  * `hdr.affine.flat()`), so rows are sliced as `[0..3]..[12..15]` rather than
- * transposed, `pixDims` is updated to `pixDimsRAS`, and the native `qform` is
- * cleared so serialized headers carry a consistent RAS transform.
+ * transposed, `pixDims` is updated to `pixDimsRAS` (with right-handed `qfac=1`),
+ * the native `qform` is cleared, and `sform_code` is ensured positive so both
+ * `.nii` exports and `.nvd` scenes carry a consistent RAS transform.
  */
 export function buildRasHdrOverrides(base, rasLayout) {
   if (!rasLayout?.dimsRAS) return {}
@@ -215,7 +216,7 @@ export function buildRasHdrOverrides(base, rasLayout) {
   }
   if (base?.pixDimsRAS && base.pixDimsRAS.length >= 4) {
     const pixDims = base.hdr?.pixDims ? [...base.hdr.pixDims] : [1, 1, 1, 1, 0, 0, 0, 0]
-    pixDims[0] = base.pixDimsRAS[0]
+    pixDims[0] = 1
     pixDims[1] = base.pixDimsRAS[1]
     pixDims[2] = base.pixDimsRAS[2]
     pixDims[3] = base.pixDimsRAS[3]
@@ -229,7 +230,16 @@ export function buildRasHdrOverrides(base, rasLayout) {
       [m[8], m[9], m[10], m[11]],
       [m[12], m[13], m[14], m[15]],
     ]
+    const sformCode = base.hdr?.sform_code > 0 ? base.hdr.sform_code : 0
+    const qformCode = base.hdr?.qform_code > 0 ? base.hdr.qform_code : 0
+    overrides.sform_code = Math.max(sformCode, qformCode, 1)
     overrides.qform_code = 0
+    overrides.quatern_b = 0
+    overrides.quatern_c = 0
+    overrides.quatern_d = 0
+    overrides.qoffset_x = 0
+    overrides.qoffset_y = 0
+    overrides.qoffset_z = 0
   }
   return overrides
 }

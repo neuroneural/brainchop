@@ -394,8 +394,14 @@ test('buildRasHdrOverrides preserves row-major matRAS affine and RAS pixDims on 
   }
   const overrides = buildRasHdrOverrides(base, rasLayout)
   assert.deepEqual(overrides.dims, [3, base.dimsRAS[1], base.dimsRAS[2], base.dimsRAS[3], 1, 1, 1, 1])
-  assert.deepEqual(overrides.pixDims.slice(0, 4), Array.from(base.pixDimsRAS))
+  assert.deepEqual(overrides.pixDims.slice(0, 4), [
+    1,
+    base.pixDimsRAS[1],
+    base.pixDimsRAS[2],
+    base.pixDimsRAS[3],
+  ])
   assert.equal(overrides.qform_code, 0)
+  assert.equal(overrides.sform_code, 1)
   assert.deepEqual(overrides.affine.flat(), Array.from(base.matRAS))
 
   const serializedHdr = {
@@ -413,6 +419,16 @@ test('buildRasHdrOverrides preserves row-major matRAS affine and RAS pixDims on 
   for (let i = 0; i < 12; i++) {
     assert.ok(Math.abs(writtenSform[i] - base.matRAS[i]) < 1e-4, `sform[${i}] mismatch`)
   }
+  assert.equal(dv.getInt16(252, true), 0)
+  assert.equal(dv.getInt16(254, true), 1)
+  assert.equal(dv.getFloat32(76, true), 1)
   const writtenPixDims = [dv.getFloat32(80, true), dv.getFloat32(84, true), dv.getFloat32(88, true)]
   assert.deepEqual(writtenPixDims, [base.pixDimsRAS[1], base.pixDimsRAS[2], base.pixDimsRAS[3]])
+
+  // qform-only input must still produce a valid positive sform_code (e.g. for .nvd scenes)
+  const qOnlyBase = nii2volume({ ...baseHdr, qform_code: 2, sform_code: 0 }, new Uint8Array(4 * 6 * 8), 'qonly.nii')
+  const qOnlyOverrides = buildRasHdrOverrides(qOnlyBase, rasLayout)
+  assert.equal(qOnlyOverrides.qform_code, 0)
+  assert.equal(qOnlyOverrides.sform_code, 2)
+  assert.deepEqual([qOnlyOverrides.qoffset_x, qOnlyOverrides.qoffset_y, qOnlyOverrides.qoffset_z], [0, 0, 0])
 })
