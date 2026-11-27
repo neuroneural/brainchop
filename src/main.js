@@ -22,6 +22,7 @@ import {
 import {
   decodeTissueVolumeToFloat32,
   buildCatLiteRgbaComposite,
+  buildRasHdrOverrides,
   updateCatLiteRgbaOpacity,
   computeCatLiteStats,
   buildCatLiteStatsCsv,
@@ -871,21 +872,7 @@ async function main() {
               img2RASstep: [1, rasLayout.dimsRAS[1], rasLayout.dimsRAS[1] * rasLayout.dimsRAS[2]],
             }
           : {}
-        const rasHdrOverrides = comp.isRasOrdered
-          ? {
-              dims: [3, rasLayout.dimsRAS[1], rasLayout.dimsRAS[2], rasLayout.dimsRAS[3], 1, 1, 1, 1],
-              ...(base.matRAS && base.matRAS.length >= 16
-                ? {
-                    affine: [
-                      [base.matRAS[0], base.matRAS[4], base.matRAS[8], base.matRAS[12]],
-                      [base.matRAS[1], base.matRAS[5], base.matRAS[9], base.matRAS[13]],
-                      [base.matRAS[2], base.matRAS[6], base.matRAS[10], base.matRAS[14]],
-                      [base.matRAS[3], base.matRAS[7], base.matRAS[11], base.matRAS[15]],
-                    ],
-                  }
-                : {}),
-            }
-          : {}
+        const rasHdrOverrides = comp.isRasOrdered ? buildRasHdrOverrides(base, rasLayout) : {}
 
         const overlayVol = cloneOverlayVolume(
           base,

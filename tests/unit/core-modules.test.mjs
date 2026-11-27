@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { nii2volume, writeVolume } from '@niivue/niivue'
 import { MODELS } from '@brainchop/core'
 import { MODEL_MENU, findModelEntry, parseUrlOptions } from '../../src/models.js'
 import { CITATIONS, allBibtex } from '../../src/cite.js'
@@ -18,6 +19,7 @@ import {
 import {
   decodeTissueVolumeToFloat32,
   buildCatLiteRgbaComposite,
+  buildRasHdrOverrides,
   updateCatLiteRgbaOpacity,
   computeCatLiteStats,
   buildCatLiteStatsCsv,
@@ -342,4 +344,91 @@ test('local Open helpers omit accept on Safari/iOS, hide directory picker on mob
     filtered.map((f) => f.name),
     ['IM0001', 'sub-01_T1w.nii.gz', 'study/1.2.840.113619'],
   )
+})
+
+test('buildRasHdrOverrides preserves row-major matRAS affine and RAS pixDims on serialization', async () => {
+  const baseHdr = {
+    littleEndian: true,
+    dim_info: 0,
+    dims: [3, 4, 6, 8, 1, 1, 1, 1],
+    intent_p1: 0,
+    intent_p2: 0,
+    intent_p3: 0,
+    intent_code: 0,
+    datatypeCode: 2,
+    numBitsPerVoxel: 8,
+    slice_start: 0,
+    pixDims: [-1, 1.5, 2.0, 3.0, 0, 0, 0, 0],
+    vox_offset: 352,
+    scl_slope: 1,
+    scl_inter: 0,
+    slice_end: 0,
+    slice_code: 0,
+    xyzt_units: 10,
+    cal_max: 255,
+    cal_min: 0,
+    slice_duration: 0,
+    toffset: 0,
+    description: '',
+    aux_file: '',
+    qform_code: 1,
+    sform_code: 1,
+    quatern_b: 0,
+    quatern_c: 0,
+    quatern_d: 0,
+    qoffset_x: 10,
+    qoffset_y: -20,
+    qoffset_z: 30,
+    affine: [
+      [-1.5, 0.1, 0, 10],
+      [0, 0, 3.0, -20],
+      [0.2, -2.0, 0, 30],
+      [0, 0, 0, 1],
+    ],
+  }
+  const base = nii2volume(baseHdr, new Uint8Array(4 * 6 * 8), 'aniso_oblique.nii')
+  const rasLayout = {
+    dimsRAS: [...base.dimsRAS],
+    img2RASstart: [...base.img2RASstart],
+    img2RASstep: [...base.img2RASstep],
+  }
+  const overrides = buildRasHdrOverrides(base, rasLayout)
+  assert.deepEqual(overrides.dims, [3, base.dimsRAS[1], base.dimsRAS[2], base.dimsRAS[3], 1, 1, 1, 1])
+  assert.deepEqual(overrides.pixDims.slice(0, 4), [
+    1,
+    base.pixDimsRAS[1],
+    base.pixDimsRAS[2],
+    base.pixDimsRAS[3],
+  ])
+  assert.equal(overrides.qform_code, 0)
+  assert.equal(overrides.sform_code, 1)
+  assert.deepEqual(overrides.affine.flat(), Array.from(base.matRAS))
+
+  const serializedHdr = {
+    ...base.hdr,
+    ...overrides,
+    datatypeCode: 2304,
+    numBitsPerVoxel: 32,
+    scl_slope: 1,
+    scl_inter: 0,
+  }
+  const rgba = new Uint8Array(4 * 6 * 8 * 4)
+  const buf = await writeVolume('pve.nii', serializedHdr, rgba.buffer)
+  const dv = new DataView(buf)
+  const writtenSform = Array.from({ length: 12 }, (_, i) => dv.getFloat32(280 + 4 * i, true))
+  for (let i = 0; i < 12; i++) {
+    assert.ok(Math.abs(writtenSform[i] - base.matRAS[i]) < 1e-4, `sform[${i}] mismatch`)
+  }
+  assert.equal(dv.getInt16(252, true), 0)
+  assert.equal(dv.getInt16(254, true), 1)
+  assert.equal(dv.getFloat32(76, true), 1)
+  const writtenPixDims = [dv.getFloat32(80, true), dv.getFloat32(84, true), dv.getFloat32(88, true)]
+  assert.deepEqual(writtenPixDims, [base.pixDimsRAS[1], base.pixDimsRAS[2], base.pixDimsRAS[3]])
+
+  // qform-only input must still produce a valid positive sform_code (e.g. for .nvd scenes)
+  const qOnlyBase = nii2volume({ ...baseHdr, qform_code: 2, sform_code: 0 }, new Uint8Array(4 * 6 * 8), 'qonly.nii')
+  const qOnlyOverrides = buildRasHdrOverrides(qOnlyBase, rasLayout)
+  assert.equal(qOnlyOverrides.qform_code, 0)
+  assert.equal(qOnlyOverrides.sform_code, 2)
+  assert.deepEqual([qOnlyOverrides.qoffset_x, qOnlyOverrides.qoffset_y, qOnlyOverrides.qoffset_z], [0, 0, 0])
 })
